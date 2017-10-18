@@ -30,10 +30,10 @@
     }
   }
 
-  var rpcCall = function(promise){
+  var rpcCall = function(promise_fn){
     if (rpcCall.lock) return
     rpcCall.lock = true
-    return promise.then(x => {
+    return promise_fn().then(x => {
       rpcCall.lock = false
       return Promise.resolve(x)
     }).catch(err => {
@@ -83,17 +83,19 @@
       location.reload()
     },
     balance: function(){
-      return rpcCall(eztz.rpc.getBalance(data.pkh)
-      .then(function(x){
-        document.getElementById('balance').innerHTML = (x / 100).toFixed(2) + 'ꜩ'
-        return Promise.resolve(x)
-      }))
+      return rpcCall(function(){
+        eztz.rpc.getBalance(data.pkh)
+        .then(function(x){
+          document.getElementById('balance').innerHTML = (x / 100).toFixed(2) + 'ꜩ'
+          return Promise.resolve(x)
+      })})
     },
     add_balance: function(){
-      return rpcCall(eztz.alphanet.faucet(data.pkh)
-      .then(function(x){
-        tz_event.balance()
-      }))
+      return rpcCall(function(){
+        eztz.alphanet.faucet(data.pkh)
+        .then(function(x){
+          tz_event.balance()
+      })})
     }
   }
 
