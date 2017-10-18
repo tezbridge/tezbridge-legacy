@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Demo page</title>
+</head>
+<body>
+  <iframe src="http://127.0.0.1:8080/index.html" id="tezbox"></iframe>
+  <p>
+    Address: <span id="address"></span> <br/>
+    Balance: <span id="balance"></span>
+  </p>
+  <button onclick="getAddress()">get address</button>
+  <button onclick="getBalance()">get balance</button>
+  <button onclick="transfer()">make transaction</button>
+</body>
+<script type="text/javascript">
+  var tezbox_window = document.getElementById('tezbox').contentWindow
+
+  var getAddress = function(){
+    tezbox_window.postMessage({tz_method: 'get_address'}, '*')
+  }
+
+  var getBalance = function(){
+    tezbox_window.postMessage({tz_method: 'get_balance'}, '*')
+  }
+
+  var transfer = function(){
+    tezbox_window.postMessage({tz_method: 'transfer'}, '*')
+  }
+
+  window.addEventListener('message', function(e){
+    var router = {
+      get_address: function(){
+        address.innerHTML = e.data.data.address
+      },
+      get_balance: function(){
+        balance.innerHTML = e.data.data.balance
+      }
+    }
+
+    router[e.data.reply] && router[e.data.reply]()
+  })
+</script>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>tezbox - bridge</title>
+  <script src="eztz.js"></script>
+  <script src="js/crypto.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <p>↑ Check the url and make sure it's <b style="text-decoration: underline;">https://tezbox-bridge.github.io</b> | created with eztz.js</p>
+  <div id="intro">
+    <button onclick="tz_event.generate()">generate new</button>
+  </div>
+  <div id="lock">
+    <button onclick="tz_event.clear()">Clear</button>
+    <button onclick="tz_event.unlock()">Unlock</button>
+  </div>
+  <div id="info">
+    <table>
+      <tr>
+        <th>address:</th>
+        <td id="pkh"></td>
+      </tr>
+      <tr>
+        <th>balance:
+        </th>
+        <td id="balance"></td>
+      </tr>
+    </table>
+    <button onclick="tz_event.balance()">refresh balance</button>
+    <button onclick="tz_event.add_balance()">add balance(only in alphanet)</button>
+  </div>
+</body>
+<script src="js/index.js"></script>
+</html>
