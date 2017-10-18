@@ -30,6 +30,15 @@
     }
   }
 
+  var rpcCall = function(promise){
+    if (rpcCall.lock) return
+    rpcCall.lock = true
+    return promise.then(x => {
+      rpcCall.lock = false
+      return Promise.resolve(x)
+    })
+  }
+
   var makeTx = function(operation, tz, callback){
     eztz.sendOperation(operation, {pk: data.pk, pkh: data.pkh, sk: data.sk}, tz, function(r){
       callback(r)
@@ -71,17 +80,17 @@
       location.reload()
     },
     balance: function(){
-      return eztz.rpc.getBalance(data.pkh)
+      return rpcCall(eztz.rpc.getBalance(data.pkh)
       .then(function(x){
         document.getElementById('balance').innerHTML = (x / 100).toFixed(2) + 'ꜩ'
         return Promise.resolve(x)
-      })
+      }))
     },
     add_balance: function(){
-      return eztz.alphanet.faucet(data.pkh)
+      return rpcCall(eztz.alphanet.faucet(data.pkh)
       .then(function(x){
         tz_event.balance()
-      })
+      }))
     }
   }
 
@@ -113,7 +122,7 @@
     if (!e.data.tz_method) return
 
     if (!localStorage.getItem('_')){
-      alert('No account stored in https://tezbox-bridge.github.io, click to open')
+      alert('No account stored in https://tezbox-bridge.github.io, now opening the tezbox-bridge')
       window.open('https://tezbox-bridge.github.io')
       return
     }
