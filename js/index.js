@@ -112,6 +112,11 @@
   var DISPATCHER = function(e){
     if (!e.data.tz_method) return
 
+    if (!localStorage.getItem('_')){
+      alert('No account stored in https://tezbox-bridge.github.io, click to open')
+      window.open('https://tezbox-bridge.github.io')
+      return
+    }
     var handler = function(){
       if (ROUTER[e.data.tz_method]){
         ROUTER[e.data.tz_method].handler()
