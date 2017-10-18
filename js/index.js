@@ -3,6 +3,7 @@
   var intro_dom = document.getElementById('intro')
   var lock_dom = document.getElementById('lock')
   var info_dom = document.getElementById('info')
+  var balance_dom = document.getElementById('balance')
 
   var data = {}
 
@@ -84,14 +85,16 @@
     },
     balance: function(){
       return rpcCall(function(){
+        balance_dom.innerHTML = 'loading...'
         return eztz.rpc.getBalance(data.pkh)
         .then(function(x){
-          document.getElementById('balance').innerHTML = (x / 100).toFixed(2) + 'ꜩ'
+          balance_dom.innerHTML = (x / 100).toFixed(2) + 'ꜩ'
           return Promise.resolve(x)
       })})
     },
     add_balance: function(){
       return rpcCall(function(){
+        balance_dom.innerHTML = 'loading...'
         return eztz.alphanet.faucet(data.pkh)
         .then(function(x){
           tz_event.balance()
