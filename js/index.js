@@ -36,6 +36,9 @@
     return promise.then(x => {
       rpcCall.lock = false
       return Promise.resolve(x)
+    }).catch(err => {
+      rpcCall.lock = false
+      return Promise.reject(err)
     })
   }
 
