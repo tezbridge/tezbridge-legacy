@@ -84,7 +84,7 @@
     },
     balance: function(){
       return rpcCall(function(){
-        eztz.rpc.getBalance(data.pkh)
+        return eztz.rpc.getBalance(data.pkh)
         .then(function(x){
           document.getElementById('balance').innerHTML = (x / 100).toFixed(2) + 'ꜩ'
           return Promise.resolve(x)
@@ -92,7 +92,7 @@
     },
     add_balance: function(){
       return rpcCall(function(){
-        eztz.alphanet.faucet(data.pkh)
+        return eztz.alphanet.faucet(data.pkh)
         .then(function(x){
           tz_event.balance()
       })})
