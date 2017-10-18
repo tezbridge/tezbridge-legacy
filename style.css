@@ -1,5 +1,5 @@
 * { font-family: Hevletica, Arial; font-size: 14px;}
-th { font-weight: 400; min-width: 100px; text-align: right; padding-right: 4px;}
+th { font-weight: 400; text-align: right; padding-right: 4px;}
 td { border-bottom: 1px solid black; }
 
 #lock { display: none }
