@@ -15,19 +15,36 @@
 
   var ROUTER = {
     get_address: {
-      desc: 'Get your Tezos address',
+      desc: function(){return'Get your Tezos address'},
       handler: function(){
         return Promise.resolve({reply: 'get_address', data: {address: data.pkh}})
       }
     },
     get_balance: {
-      desc: 'Get your account balance',
+      desc: function(){return 'Get your account balance'},
       handler: function(){
         return tz_event.balance()
         .then(function(x){
           return {reply: 'get_balance', data: {balance: x}}
         })
       }
+    },
+    transfer: {
+      desc: function(e){
+        return 'Transfer ' + e.data.amount + ' to ' + e.data.destination + ' with parameter ' + (e.data.parameters || 'Unit') 
+      },
+      handler: function(e){
+        return makeTx({
+          "kind": "transaction",
+          "amount": parseInt(e.data.amount), 
+          "destination": e.data.destination,
+          "parameters": e.data.parameters || 'Unit'
+        }, 0)
+        .then(function(x){
+          return {reply: 'transfer', data: {result: x}}
+        })
+      }
+
     }
   }
 
@@ -43,9 +60,10 @@
     })
   }
 
-  var makeTx = function(operation, tz, callback){
-    eztz.sendOperation(operation, {pk: data.pk, pkh: data.pkh, sk: data.sk}, tz, function(r){
-      callback(r)
+  var makeTx = function(operation, tz){
+    console.log(operation)
+    return rpcCall(function(){
+      return eztz.rpc.sendOperation(operation, {pk: data.pk, pkh: data.pkh, sk: data.sk}, tz)
     })
   }
 
@@ -59,7 +77,7 @@
       return input
     },
     unlock: function(e, success_cb){
-      var tip = (e ? TIPS.warning(e) + '`' + ROUTER[e.data.tz_method].desc + '`\n' : '') + 'Please input your password'
+      var tip = (e ? TIPS.warning(e) + '(' + ROUTER[e.data.tz_method].desc(e) + ')\n' : '') + 'Please input your password'
       var input = prompt(tip)
       var encrypted_data = localStorage.getItem('_')
       if (!encrypted_data) 
@@ -97,7 +115,11 @@
         balance_dom.innerHTML = 'loading...'
         return eztz.alphanet.faucet(data.pkh)
         .then(function(x){
-          tz_event.balance()
+          return eztz.rpc.getBalance(data.pkh)
+            .then(function(x){
+              balance_dom.innerHTML = (x / 100).toFixed(2) + 'ꜩ'
+              return Promise.resolve(x)
+          })
       })})
     }
   }
@@ -134,9 +156,15 @@
       window.open('https://tezbox-bridge.github.io')
       return
     }
-    var handler = function(){
+
+    var handler = function(with_confirmation){
       if (ROUTER[e.data.tz_method]){
-        ROUTER[e.data.tz_method].handler()
+        if (with_confirmation) {
+          if (!confirm(TIPS.warning(e) + '(' + ROUTER[e.data.tz_method].desc(e) + ')'))
+            return
+        }
+
+        ROUTER[e.data.tz_method].handler(e)
         .then(function(reply_msg){
           e.source.postMessage(reply_msg, '*')
         })
@@ -144,7 +172,7 @@
     }
 
     if (data.sk) {
-      handler()
+      handler(true)
     } else {
       tz_event.unlock(e, function(){
         handler()
@@ -155,6 +183,9 @@
   window.addEventListener('message', DISPATCHER)
 
   var init = function(){
+    // for local node
+    // eztz.node.setProvider('http://127.0.0.1:9527')
+
     if (localStorage.getItem('_')){
       tz_renderer.lock()
     } else {
