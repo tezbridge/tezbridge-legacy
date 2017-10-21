@@ -22422,14 +22422,14 @@ utility = {
       n = n.slice(prefix.length);
       return n;
   },
-  generateMnemonic : function(){
-    return library.bip39.generateMnemonic(160)
-  },
-  checkAddress : function(a){//TODO
-    return true;
-  },
   buf2hex : function(buffer) {
-    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+    var byteArray = new Uint8Array(buffer), hexParts = [];
+    for(var i = 0; i < byteArray.length; i++) {
+      var hex = byteArray[i].toString(16);
+      var paddedHex = ('00' + hex).slice(-2);
+      hexParts.push(paddedHex);
+    }
+    return hexParts.join('');
   },
   hex2buf : function(hex){
       return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(function (h) {
@@ -22444,6 +22444,18 @@ utility = {
   }
 },
 crypto = {
+  generateMnemonic : function(){
+    return library.bip39.generateMnemonic(160)
+  },
+  checkAddress : function(a){
+    try {
+      utility.b58cdecode(a, prefix.tz1);
+      return true;
+    } 
+    catch (e){
+      return false;
+    }
+  },
   generateKeysNoSeed : function(){
         var kp = library.sodium.crypto_sign_keypair();
         return {
@@ -22506,24 +22518,29 @@ crypto = {
   },
 }
 node = {
+  activeProvider: defaultProvider,
   setProvider : function(u){
-    activeProvider = u;
+    node.activeProvider = u;
   },
   resetProvider : function(){
-    activeProvider = defaultProvider;
+    node.activeProvider = defaultProvider;
   },
   query :function(e, o){
     if (typeof o == 'undefined') o = {};
     return new Promise(function (resolve, reject) {
       var http = new XMLHttpRequest();
-      http.open("POST", activeProvider + e, true);
+      http.open("POST", node.activeProvider + e, true);
       http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       http.onload = function() {
           if(http.status == 200) {
              if (http.responseText){
                   var r = JSON.parse(http.responseText);
-                  if (typeof r.ok != 'undefined') r = r.ok;
-                  resolve(r);
+                  if (typeof r.error != 'undefined'){
+                   reject(r.error);
+                  } else {
+                    if (typeof r.ok != 'undefined') r = r.ok;
+                    resolve(r);
+                  }
              } else {
                  reject("Empty response returned");
              }
@@ -22590,7 +22607,6 @@ rpc = {
 contract = {//TODO
   
 };
-var activeProvider = defaultProvider;
 //Expose library
 window.eztz = {
   library : library,
@@ -22654,6 +22670,12 @@ window.eztz.alphanet.faucet = function(toAddress){
       return rpc.sendOperation(operation, keys, 0);
   });
 }
+
+module.exports = {
+  defaultProvider: defaultProvider,
+  eztz: window.eztz,
+};
+
 },{"bip39":159,"bs58check":168,"buffer/":169,"libsodium-wrappers":177,"pbkdf2":179}],157:[function(require,module,exports){
 // base-x encoding
 // Forked from https://github.com/cryptocoinjs/bs58

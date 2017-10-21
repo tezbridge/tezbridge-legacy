@@ -51,10 +51,10 @@
   var rpcCall = function(promise_fn){
     if (rpcCall.lock) return
     rpcCall.lock = true
-    return promise_fn().then(x => {
+    return promise_fn().then(function(x) {
       rpcCall.lock = false
       return Promise.resolve(x)
-    }).catch(err => {
+    }).catch(function(err) {
       rpcCall.lock = false
       return Promise.reject(err)
     })
