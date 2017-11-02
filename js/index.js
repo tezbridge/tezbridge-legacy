@@ -16,16 +16,16 @@
   var ROUTER = {
     get_address: {
       desc: function(){return'Get your Tezos address'},
-      handler: function(){
-        return Promise.resolve({reply: 'get_address', data: {address: data.pkh}})
+      handler: function(e){
+        return Promise.resolve({req_id: e.data.req_id, data: {address: data.pkh}})
       }
     },
     get_balance: {
       desc: function(){return 'Get your account balance'},
-      handler: function(){
+      handler: function(e){
         return tz_event.balance()
         .then(function(x){
-          return {reply: 'get_balance', data: {balance: x}}
+          return {req_id: e.data.req_id, data: {balance: x}}
         })
       }
     },
@@ -41,7 +41,7 @@
           "parameters": e.data.parameters || 'Unit'
         }, 0)
         .then(function(x){
-          return {reply: 'transfer', data: {result: x}}
+          return {req_id: e.data.req_id, data: {result: x}}
         })
       }
 
@@ -51,7 +51,23 @@
         return 'Originate contract with amount:' + e.data.amount
       },
       handler: function(e) {
-        return Promise.resolve({reply: 'originate', data: {contract: 'TZ...'}})
+        return Promise.resolve({req_id: e.data.req_id, data: {contract: 'TZ...'}})
+      }
+    },
+    get_storage: {
+      desc: function(e) {
+        return 'Get storage from contract:' + e.data.contract
+      },
+      handler: function(e) {
+        return rpcCall(function(){
+          return eztz.contract.storage(e.data.contract)
+        })
+        .then(function(x){
+          return {req_id: e.data.req_id, data: x}
+        })
+        .catch(function(err){
+          return {req_id: e.data.req_id, data: err}
+        })
       }
     }
   }
@@ -176,6 +192,9 @@
         .then(function(reply_msg){
           e.source.postMessage(reply_msg, '*')
         })
+        .catch(function(err){
+          console.log(err)
+        })
       }
     }
 
@@ -192,7 +211,7 @@
 
   var init = function(){
     // for local node
-    // eztz.node.setProvider('http://127.0.0.1:9527')
+    eztz.node.setProvider('http://127.0.0.1:9527')
 
     if (localStorage.getItem('_')){
       tz_renderer.lock()
