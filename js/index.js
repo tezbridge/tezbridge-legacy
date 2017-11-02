@@ -45,6 +45,14 @@
         })
       }
 
+    },
+    originate: {
+      desc: function(e) {
+        return 'Originate contract with amount:' + e.data.amount
+      },
+      handler: function(e) {
+        return Promise.resolve({reply: 'originate', data: {contract: 'TZ...'}})
+      }
     }
   }
 
