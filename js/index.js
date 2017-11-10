@@ -211,7 +211,7 @@
 
   var init = function(){
     // for local node
-    // eztz.node.setProvider('http://127.0.0.1:9527')
+    eztz.node.setProvider('http://teznode.catsigma.com')
 
     if (localStorage.getItem('_')){
       tz_renderer.lock()
