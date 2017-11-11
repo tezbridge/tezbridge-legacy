@@ -15,7 +15,8 @@
 }
 
 
-.watermark { line-height: 50px; bottom: 0; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
+.watermark { bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
+.watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
 
 * { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
 p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }
@@ -29,7 +30,7 @@ td { text-align: right }
 #loading span { padding: 4px 8px; background: #eee; border-radius: 0 0 8px 8px; }
 
 
-body { opacity: 0; padding: 4px ; background: #333; color: #ccc; transition: opacity 1s; }
+body { opacity: 0; padding: 4px ; background: #333; color: #ccc; transition: opacity 1s; -webkit-transition: opacity 1s;}
 .group { padding: 6px; margin: 6px; background: rgba(255,255,255,0.1) }
 
 .group input::placeholder { color: #aaa; }

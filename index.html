@@ -5,31 +5,85 @@
   <title>tezbridge</title>
   <script src="js/eztz.js"></script>
   <script src="js/crypto.js"></script>
+  <script src="js/vue.js"></script>
+  <link rel="stylesheet" href="css/global.css">
 </head>
 <body>
-  <p>↑ Check the url and make sure it's <b style="text-decoration: underline;">https://tezbridge.github.io</b> | created with eztz.js</p>
-  <div id="intro">
-    <button onclick="tz_event.generate()">generate new</button>
+  <div class="watermark">
+    <span>TEZ</span>BRIDGE
   </div>
-  <div id="lock">
-    <button onclick="tz_event.clear()">Clear</button>
-    <button onclick="tz_event.unlock()">Unlock</button>
-  </div>
-  <div id="info">
-    <table>
-      <tr>
-        <th>address:</th>
-        <td id="pkh"></td>
-      </tr>
-      <tr>
-        <th>balance:
-        </th>
-        <td id="balance"></td>
-      </tr>
-    </table>
-    <button onclick="tz_event.balance()">refresh balance</button>
-    <button onclick="tz_event.add_balance()">add balance(only in alphanet and it takes about 30 seconds)</button>
+  <div id="tezbridge">
+    <div id="loading" v-if="loading"><span>{{loading}}</span></div>
+    <div v-if="!view.entry">
+      <p>ACCOUNT:</p>
+      <p class="indent">{{keys.pkh}}</p>
+      <p>BALANCE:</p>
+      <p class="indent">{{balance || 'UNKNOW'}} ꜩ</p>
+      <p>ACCESS CODE:</p>
+      <p class="indent" ref="accessCodeNode">{{access_code || 'NONE'}}</p>
+      <p>OPERATIONS:</p>
+      <p class="indent">
+        <button @click="refresh_balance">REFRESH BALANCE</button> <br>
+        <button @click="tez_faucet">+ BALANCE (ONLY IN ALPHANET)</button> <br>
+        <button @click="clear">CLEAR</button> <br>
+        <button @click="gen_access_code">GET ACCESS CODE</button> <br>
+      </p>
+    </div>
+    <div v-if="view.entry === 'with-key'">
+      <div class="group">
+        <input type="password" placeholder="type local secure password" v-model="localpwd" />
+        <button @click="view_stored">VIEW STORED ACCOUNT</button>
+      </div>
+      <div class="group">
+        <button @click="clear">CLEAR</button>
+      </div>
+    </div>
+    <div v-if="view.entry === 'without-key'">
+      <label>
+        <input type="radio" name="subentry" @click="view.subentry = 'import'" />
+        <span>IMPORT</span>
+      </label>
+      <label>
+        <input type="radio" name="subentry" @click="generate" />
+        <span>GENERATE</span>
+      </label>
+
+      <div v-if="view.subentry === 'import'" class="group">
+        <input type="password" placeholder="set local secure password" v-model="localpwd" /> <br>
+        <br>
+
+        <p>USING MNEMONIC</p>
+        <p class="indent">
+          <input placeholder="put mnemonic word here" v-model="import_mnemonic" /> <br>
+          <input type="password" placeholder="type passphrase here" v-model="import_passphrase" />
+        </p>
+        <br>
+
+        <p>USING SECRET KEY</p>
+        <p class="indent">
+          <input placeholder="put secret key here" v-model="import_sk" />
+        </p>
+        <br>
+
+        <button @click="import_key">IMPORT</button>
+      </div>
+      <div v-if="view.subentry === 'generate'" class="group">
+        <div v-if="!keys.sk">
+          <p>{{mnemonic}}<p>
+          <input type="password" placeholder="set passphrase here" v-model="passphrase" />
+          <br>
+          <button @click="generate_next">NEXT</button>
+        </div>
+        <div v-if="keys.sk">
+          <p>SECRET KEY:</p>
+          <p class="indent">{{keys.sk}}</p>
+          <input type="password" placeholder="type local secure password" v-model="localpwd" />
+          <br>
+          <button @click="use_this_account" v-if="keys.sk">USE THIS ACCOUNT</button>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
-<script src="js/index.js"></script>
+<script src="js/indexapp.js"></script>
 </html>
