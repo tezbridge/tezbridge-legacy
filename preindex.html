@@ -10,6 +10,7 @@
 </head>
 <body>
   <div id="tezbridge">
+    <div id="loading" v-if="loading"><span>{{loading}}</span></div>
     <div v-if="!view.entry">
       <table>
         <tr>
@@ -38,19 +39,35 @@
     <div v-if="view.entry === 'with-key'">
       <button @click="clear">CLEAR</button>
 
-      <input placeholder="type local secure password" v-model="localpwd" />
+      <input type="password" placeholder="type local secure password" v-model="localpwd" />
       <button @click="view_stored">VIEW STORED ACCOUNT</button>
     </div>
     <div v-if="view.entry === 'without-key'">
-      <button>IMPORT</button>
-      <button @click="generate">GENERATE</button>
+      <label>
+        <input type="radio" name="subentry" @click="view.subentry = 'import'" />
+        <span>IMPORT</span>
+      </label>
+      <label>
+        <input type="radio" name="subentry" @click="generate" />
+        <span>GENERATE</span>
+      </label>
+
+      <div v-if="view.subentry === 'import'">
+        <input placeholder="put mnemonic word here" v-model="import_mnemonic" />
+        <input type="password" placeholder="type passphrase here" v-model="import_passphrase" />
+        OR
+        <input placeholder="put secret key here" v-model="import_sk" />
+
+        <input type="password" placeholder="type local secure password" v-model="localpwd" />
+        <button @click="import_key">IMPORT</button>
+      </div>
       <div v-if="view.subentry === 'generate'">
         {{mnemonic}}
-        <input placeholder="type passphrase here" v-model="passphrase" />
+        <input type="password" placeholder="type passphrase here" v-model="passphrase" />
         <pre>{{keys.sk}}</pre>
         <button @click="generate_next" v-if="!keys.sk">NEXT</button>
 
-        <input placeholder="type local secure password" v-model="localpwd" />
+        <input type="password" placeholder="type local secure password" v-model="localpwd" />
         <button @click="use_this_account" v-if="keys.sk">USE THIS ACCOUNT</button>
       </div>
     </div>

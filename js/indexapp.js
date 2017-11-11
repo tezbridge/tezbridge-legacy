@@ -1,25 +1,28 @@
 ((window) => {
-
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
     if (rpc.locked) return
     rpc.locked = true
+    app.loading = 'RPC CALLING...'
     return promise_fn().then(function(x) {
+      app.loading = ''
       rpc.locked = false
       return Promise.resolve(x)
     }).catch(function(err) {
+      app.loading = ''
       rpc.locked = false
       return Promise.reject(err)
     })
   }
 
-  new Vue({
+  const app = new Vue({
     el: '#tezbridge',
     components: {
 
     },
     data: {
+      loading: '',
       view: {
         entry: getLocal('_') ? 'with-key' : 'without-key',
         subentry: '',
@@ -33,7 +36,10 @@
         sk: ''
       },
       balance: '',
-      access_code: ''
+      access_code: '',
+      import_sk: '',
+      import_mnemonic: '',
+      import_passphrase: ''
     },
     methods: {
       clear: function(){
@@ -41,6 +47,22 @@
           setLocal('_', '')
           setLocal('__', '')
           location.reload()
+        }
+      },
+      import_key: function(){
+        try {
+          if (this.import_sk) {
+            this.keys.pk = eztz.utility.b58cencode(eztz.utility.b58cdecode(this.import_sk, eztz.prefix.edsk).slice(32), eztz.prefix.edpk)
+            this.keys.pkh = eztz.utility.b58cencode(eztz.library.sodium.crypto_generichash(20, eztz.utility.b58cdecode(this.import_sk, eztz.prefix.edsk).slice(32)), eztz.prefix.tz1)
+            this.keys.sk = this.import_sk
+          } else if (this.import_mnemonic && this.import_passphrase) {
+            this.keys = eztz.crypto.generateKeys(this.import_mnemonic, this.import_passphrase)
+            delete this.keys.passphrase
+            delete this.keys.mnemonic
+          }
+          app.use_this_account.call(app)
+        } catch (e) {
+          alert('Import failed')
         }
       },
       generate: function(){
@@ -68,6 +90,7 @@
           this.localpwd = ''
           this.keys = JSON.parse(x)
           this.view.entry = ''
+          this.access_code = getLocal('__') ? 'PREVIOUSLY GENERATED' : ''
         })
       },
       refresh_balance: function(){

@@ -15,10 +15,13 @@
 }
 
 
-* { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-weight: 400; margin: 0; padding: 0; }
+* { font-family: metropolisregular, Helvetica, Arial, sans-serif; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
 h4 { color: #88FED8; font-family: metropolisbold; padding: 4px 8px; border-bottom: 1px solid #666; }
 h5 { color: #88FED8; font-size: 12px;}
 p { line-height: 1.6; }
 
 button { padding: 2px 4px; }
 td { text-align: right }
+
+#loading { position: fixed; top: 0; left: 0; width: 100%; text-align: center}
+#loading span { padding: 2px 4px; background: #eee; }
