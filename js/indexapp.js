@@ -140,5 +140,7 @@
     }
   })
 
-  document.body.style.opacity = 1
+  setTimeout(() => {
+    document.body.style.opacity = 1
+  }, 200)
 })(window)
