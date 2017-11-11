@@ -20,5 +20,5 @@ h4 { color: #88FED8; font-family: metropolisbold; padding: 4px 8px; border-botto
 h5 { color: #88FED8; font-size: 12px;}
 p { line-height: 1.6; }
 
-body { background: #333; color: #ddd; display: none; font-size: 12px;}
-
+button { padding: 2px 4px; }
+td { text-align: right }

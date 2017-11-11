@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>tezbridge</title>
+  <script src="js/eztz.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/vue.js"></script>
+  <link rel="stylesheet" href="css/global.css">
+</head>
+<body>
+  <div id="tezbridge">
+    <div v-if="!view.entry">
+      <table>
+        <tr>
+          <td>ACCOUNT:</td>
+          <td>{{keys.pkh}}</td>
+        </tr>
+        <tr>
+          <td>BALANCE:</td>
+          <td>{{balance || 'UNKNOW'}} ꜩ</td>
+        </tr>
+        <tr>
+          <td>ACCESS CODE:</td>
+          <td>{{access_code || 'NONE'}}</td>
+        </tr>
+        <tr>
+          <td>OPERATIONS:</td>
+          <td>
+            <button @click="refresh_balance">REFRESH BALANCE</button> <br>
+            <button @click="tez_faucet">+ BALANCE(ONLY IN ALPHANET)</button> <br>
+            <button @click="clear">CLEAR</button> <br>
+            <button @click="gen_access_code">GET ACCESS CODE</button> <br>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div v-if="view.entry === 'with-key'">
+      <button @click="clear">CLEAR</button>
+
+      <input placeholder="type local secure password" v-model="localpwd" />
+      <button @click="view_stored">VIEW STORED ACCOUNT</button>
+    </div>
+    <div v-if="view.entry === 'without-key'">
+      <button>IMPORT</button>
+      <button @click="generate">GENERATE</button>
+      <div v-if="view.subentry === 'generate'">
+        {{mnemonic}}
+        <input placeholder="type passphrase here" v-model="passphrase" />
+        <pre>{{keys.sk}}</pre>
+        <button @click="generate_next" v-if="!keys.sk">NEXT</button>
+
+        <input placeholder="type local secure password" v-model="localpwd" />
+        <button @click="use_this_account" v-if="keys.sk">USE THIS ACCOUNT</button>
+      </div>
+    </div>
+  </div>
+</body>
+<script src="js/indexapp.js"></script>
+</html>
