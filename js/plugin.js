@@ -29,7 +29,7 @@
         return `get balance`
       },
       handler(e) {
-        return rpc(
+        return rpc(() =>
           eztz.rpc.getBalance(keys.pkh)
           .then(x => ({result: {balance: x}}))
           )
@@ -40,7 +40,7 @@
         return `get info for contract:${e.data.contract}`
       },
       handler(e) {
-        return rpc(
+        return rpc(() =>
           eztz.contract.storage(e.data.contract)
           .then(x => ({result: x}))
           )
@@ -51,7 +51,7 @@
         return `transfer ${e.data.amount} to ${e.data.destination} with parameter {${e.data.parameter || 'Unit'}}`
       },
       handler(e) {
-        return rpc(
+        return rpc(() =>
           eztz.rpc.sendOperation({
             "kind": "transaction",
             "amount": parseInt(e.data.amount), 
@@ -70,11 +70,11 @@
     if (!keys.sk) {
       const encrypted_keys = getLocal('__')
       if (!encrypted_keys) {
-        alert('No account stored in [tezbridge.github.io], opening...')
+        alert('No account is accessible in [tezbridge.github.io], opening...')
         window.open('https://tezbridge.github.io/')
       } else {
         const key = prompt('Input the access key of [tezbridge.github.io]')
-        window.localcrypto.decrypt(key, encrypted_keys, x => {
+        window.localcrypto.decrypt(key, JSON.parse(encrypted_keys), x => {
           keys = JSON.parse(x)
           setLocal('__', '')
           dispatcher(e)
@@ -82,7 +82,7 @@
       }
     } else {
       if (!export_functions[e.data.method]) return
-      if (!confirm(`Allow ${e.source} to #${export_functions[e.data.method].confirm(e)}#`)) return
+      if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) return
 
       const p = export_functions[e.data.method].handler(e)
       if (p) 
