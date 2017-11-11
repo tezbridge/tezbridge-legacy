@@ -1,4 +1,5 @@
 ((window) => {
+
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
@@ -120,7 +121,24 @@
         window.localcrypto.encrypt(this.access_code, JSON.stringify(this.keys), x => {
           setLocal('__', JSON.stringify(x))
         })
+
+        setTimeout(() => {
+          const range = document.createRange()
+          const selection = window.getSelection()
+          range.selectNodeContents(this.$refs.accessCodeNode)
+          selection.removeAllRanges()
+          selection.addRange(range)
+          document.execCommand("Copy")
+        }, 1000)
+        
+
+        this.loading = 'ACCESS CODE COPIED'
+        setTimeout(() => {
+          this.loading = ''
+        }, 2000)
       }
     }
   })
+
+  document.body.style.opacity = 1
 })(window)
