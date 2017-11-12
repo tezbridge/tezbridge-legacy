@@ -69,6 +69,7 @@
 
     if (!keys.sk) {
       const encrypted_keys = getLocal('__')
+      setLocal('__', '')
       if (!encrypted_keys) {
         alert('No account is accessible in [tezbridge.github.io], opening...')
         window.open('https://tezbridge.github.io/')
@@ -76,7 +77,6 @@
         const key = prompt('Input the access key of [tezbridge.github.io]')
         window.localcrypto.decrypt(key, JSON.parse(encrypted_keys), x => {
           keys = JSON.parse(x)
-          setLocal('__', '')
           dispatcher(e)
         })
       }
@@ -91,7 +91,7 @@
           e.source.postMessage(x, '*')
         })
         .catch(function(err){
-          e.source.postMessage({tezbridge: tezbridge, error: err}, '*')
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, '*')
         })
     }
   }
