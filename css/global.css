@@ -11,13 +11,12 @@
     src: url('metropolis-regular-webfont.woff2') format('woff2'),
          url('metropolis-regular-webfont.woff') format('woff');
     font-weight: normal;
-    font-style: normal;
+    font-style: normal; 
 }
 
-
+.watermark:visited { color: #ccc; }
 .watermark { bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
 .watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
-.donate { position: fixed; bottom: 0; right: 0; color: #ccc; opacity: 0.2;}
 
 * { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
 p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }

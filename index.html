@@ -5,14 +5,13 @@
   <title>tezbridge</title>
   <script src="js/eztz.js"></script>
   <script src="js/crypto.js"></script>
-  <script src="js/vue.js"></script>
+  <script src="js/vue.min.js"></script>
   <link rel="stylesheet" href="css/global.css">
 </head>
 <body>
-  <a class="donate" href="https://github.com/tezbridge/tezbridge.github.io#donation" target="_blank">donate</a>
-  <div class="watermark">
+  <a class="watermark" href="https://github.com/tezbridge/tezbridge.github.io#donation" target="_blank">
     <span>TEZ</span>BRIDGE
-  </div>
+  </a>
   <div id="tezbridge">
     <div id="loading" v-if="loading"><span>{{loading}}</span></div>
     <div v-if="!view.entry">
