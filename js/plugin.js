@@ -74,7 +74,7 @@
         alert('No account is accessible in [tezbridge.github.io], opening...')
         window.open('https://tezbridge.github.io/')
       } else {
-        const key = prompt('Input the access key of [tezbridge.github.io]')
+        const key = prompt('Input the access code of [tezbridge.github.io]')
         window.localcrypto.decrypt(key, JSON.parse(encrypted_keys), x => {
           keys = JSON.parse(x)
           dispatcher(e)
