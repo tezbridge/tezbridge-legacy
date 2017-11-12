@@ -31,7 +31,7 @@
       handler(e) {
         return rpc(() =>
           eztz.rpc.getBalance(keys.pkh)
-          .then(x => ({result: {balance: x}}))
+          .then(x => ({result: x}))
           )
       }
     },
