@@ -21,7 +21,7 @@
         return `get public key hash`
       },
       handler(e) {
-        return keys.pkh
+        return Promise.resolve({result: keys.pkh})
       }
     },
     get_balance: {

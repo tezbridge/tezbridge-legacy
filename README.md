@@ -25,6 +25,7 @@ tezbridge is the one that allows you to visit the decentralized application of t
 Tip: one access code can be used only once
 
 ### For developer
+0. view the Dapp demo [https://gistpreview.github.io/?a1672ec7f51663e7ebd3dac8af79b8f2](https://gistpreview.github.io/?a1672ec7f51663e7ebd3dac8af79b8f2)
 1. add `<iframe src="https://tezbridge.github.io/plugin.html" id="tezbridge"></iframe>` in your web app
 2. add codes below in your web app
 ```javascript
@@ -53,13 +54,13 @@ Tip: one access code can be used only once
 3. get the tezbridge object
 ```javascript
 const tezbridge = window.tezbridgeCreator(document.querySelector('#tezbridge'))
-
 ```
 
-4. use the tezbridge object
+4. use the tezbridge object (the iframe should be completely loaded)
 ```javascript
-tezbridge({method: 'get_balance'})
-.then(x => console.log(x))
+document.querySelector('#tezbridge').onload = () => {
+  tezbridge({method: 'get_balance'}).then(x => console.log(x))
+}
 ```
 
 #### API list
