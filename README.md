@@ -7,10 +7,10 @@ tezbridge is the one that allows you to visit the distributed application of tom
 ## Support browsers
 * Chrome 49+
 * Firefox 52+
-* Safari 11+
+* Safari 11+ (Safari > Preferences > Privacy > Cookies and website data > Always allow)
 * Edge 15+
 * Opera 48+
-* iOS Safari 11+
+* iOS Safari 11+ (Settings > Safari > Prevent Cross-Site Tracking > Off)
 * Android Browser 56+
 * Android Chrome 61+
 
