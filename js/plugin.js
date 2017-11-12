@@ -97,7 +97,7 @@
   }
 
   const main = () => {
-    eztz.node.setProvider('http://teznode.catsigma.com')
+    // eztz.node.setProvider('http://teznode.catsigma.com')
     window.addEventListener('message', dispatcher)
   }
   main()
