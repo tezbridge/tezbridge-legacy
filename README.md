@@ -1,6 +1,6 @@
 # tezbridge
 
-tezbridge is the one that allows you to visit the distributed application of tomorrow in your browser and mobile today
+tezbridge is the one that allows you to visit the decentralized application of tomorrow in your browser and mobile today
 
 ---
 
@@ -19,7 +19,7 @@ tezbridge is the one that allows you to visit the distributed application of tom
 1. Open [https://tezbridge.github.io/](https://tezbridge.github.io/)
 2. Import or create your account
 3. Generate an access code
-4. Open a Dapp or a distributed website
+4. Open a Dapp or a decentralized website
 5. Paste the access code when the browser asks your for it
 
 Tip: one access code can be used only once
