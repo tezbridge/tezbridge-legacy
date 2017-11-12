@@ -1,5 +1,5 @@
 ((window) => {
-  // eztz.node.setProvider('http://teznode.catsigma.com')
+  eztz.node.setProvider('https://teznode.catsigma.com')
 
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
