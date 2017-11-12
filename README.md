@@ -64,22 +64,22 @@ tezbridge({method: 'get_balance'})
 
 #### API list
 1. Get public key hash
-```
+```javascript
 tezbridge({method: 'get_pkh'})
 ```
 
 2. Get balance
-```
+```javascript
 tezbridge({method: 'get_balance'})
 ```
 
 3. Get contract info (including code and storage)
-```
+```javascript
 tezbridge({method: 'get_contract_info', contract: 'TZ...'})
 ```
 
 4. Transfer
-```
+```javascript
 tezbridge({method: 'transfer', amount: 0, destination: 'TZ.../tz...', parameters: {json object}})
 ```
 
