@@ -91,3 +91,9 @@ BTC: `1L1Kbm7SmmzVLAAaZi9pQdtMnR2SDERZFc`
 XEM: `NCWXS5-Z4EEBR-COYF4I-CKPIQV-Z5Z2ZY-HJWTAW-IJCP`
 
 IOTA: `RSEBRIEHUKUTM9WUSNYMBYXDLDZKYQXUWBDVGDGWG9ZAXHGEEYR9IDSAJIBY9JR9YAIZYJV9CTIMWKNWX9LM9UEXUW`
+
+## Credits
+[https://github.com/stephenandrews/eztz](https://github.com/stephenandrews/eztz) (Easy Tezos JS Library)
+
+## License
+MIT
