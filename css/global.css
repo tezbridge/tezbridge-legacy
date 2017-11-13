@@ -14,8 +14,8 @@
     font-style: normal; 
 }
 
+.watermark { color: #ccc; bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
 .watermark:visited { color: #ccc; }
-.watermark { bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
 .watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
 
 * { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
