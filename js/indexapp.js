@@ -18,6 +18,10 @@
     })
   }
 
+  // first time
+  if (getLocal('mute') === null)
+    setLocal('mute', 'true')
+
   const app = new Vue({
     el: '#tezbridge',
     components: {
@@ -25,6 +29,7 @@
     },
     data: {
       loading: '',
+      mute: !!getLocal('mute'),
       view: {
         entry: getLocal('_') ? 'with-key' : 'without-key',
         subentry: '',
@@ -42,6 +47,15 @@
       import_sk: '',
       import_mnemonic: '',
       import_passphrase: ''
+    },
+    watch: {
+      mute(x) {
+        if (x) {
+          setLocal('mute', 'true')
+        } else {
+          setLocal('mute', '')
+        }
+      }
     },
     methods: {
       clear: function(){

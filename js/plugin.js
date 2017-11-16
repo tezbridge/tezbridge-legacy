@@ -17,6 +17,7 @@
 
   const export_functions = {
     get_pkh: {
+      mute: true,
       confirm(e) {
         return `get public key hash`
       },
@@ -25,6 +26,7 @@
       }
     },
     get_balance: {
+      mute: true,
       confirm(e) {
         return `get balance`
       },
@@ -36,6 +38,7 @@
       }
     },
     get_contract_info: {
+      mute: true,
       confirm(e) {
         return `get info for contract:${e.data.contract}`
       },
@@ -82,7 +85,8 @@
       }
     } else {
       if (!export_functions[e.data.method]) return
-      if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) return
+      if (!export_functions[e.data.method].mute || !getLocal('mute'))
+        if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) return
 
       const p = export_functions[e.data.method].handler(e)
       if (p) 

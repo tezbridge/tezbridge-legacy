@@ -21,6 +21,10 @@
       <p class="indent">{{balance || 'UNKNOW'}}</p>
       <p>ACCESS CODE:</p>
       <p class="indent" ref="accessCodeNode">{{access_code || 'NONE'}}</p>
+      <p>OPTIONS:</p>
+      <P class="indent">
+        <label><input type="checkbox" v-model="mute" /> <span>Mute for non-spending operations</span></label>
+      </P>
       <p>OPERATIONS:</p>
       <p class="indent">
         <button @click="refresh_balance">REFRESH BALANCE</button> <br>
