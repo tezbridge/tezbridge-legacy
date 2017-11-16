@@ -51,7 +51,8 @@
     },
     transfer: {
       confirm(e) {
-        return `transfer ${e.data.amount} to ${e.data.destination} with parameter {${e.data.parameter || 'Unit'}}`
+        return `transfer ${e.data.amount} to ${e.data.destination} with parameter 
+          ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
         return rpc(() =>

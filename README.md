@@ -31,6 +31,7 @@ Tip: one access code can be used only once
 ```javascript
 ;((window) => {
   const req_func = {}
+  const req_reject_func = {}
 
   const tezbridgeCreator = (iframe_window) => {
     return (param) => {
@@ -39,13 +40,19 @@ Tip: one access code can be used only once
         param.tezbridge = tick
         iframe_window.contentWindow.postMessage(param, '*')
         req_func[tick] = resolve
+        req_reject_func[tick] = reject
       })
     }
   }
 
   window.addEventListener('message', function(e){
-    req_func[e.data.tezbridge] && req_func[e.data.tezbridge](e.data.result)
-  })  
+    if (e.data.tezbridge) {
+      if (e.data.error) 
+        req_reject_func[e.data.tezbridge] && req_reject_func[e.data.tezbridge](e.data.error)
+      else
+        req_func[e.data.tezbridge] && req_func[e.data.tezbridge](e.data.result)
+    }
+  })
 
   window.tezbridgeCreator = tezbridgeCreator
 })(window)
