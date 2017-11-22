@@ -44,7 +44,13 @@
       },
       handler(e) {
         return rpc(() =>
-          eztz.contract.storage(e.data.contract)
+          new Promise(function (resolve, reject) {
+            eztz.node.query("/blocks/head/proto/context/contracts/" + e.data.contract).then(function(r){
+              resolve(r.script.storage)
+            }).catch(function(e){
+              reject(e)
+            })
+          })
           .then(x => ({result: x}))
           )
       }
