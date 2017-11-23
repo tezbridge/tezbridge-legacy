@@ -64,12 +64,38 @@
         return rpc(() =>
           eztz.rpc.sendOperation({
             "kind": "transaction",
-            "amount": parseInt(e.data.amount), 
+            "amount": Math.round(parseFloat(e.data.amount).toFixed(2) * 100), 
             "destination": e.data.destination,
             "parameters": e.data.parameters || 'Unit'
           }, {pk: keys.pk, pkh: keys.pkh, sk: keys.sk}, 0)
           .then(x => ({result: x}))
           )
+      }
+    },
+    originate: {
+      confirm(e) {
+        return `originate contract for ${e.data.amount}tz 
+          with code:${!!e.data.script || !!e.data.code_raw}
+          with init:${!!e.data.init_raw}`
+      },
+      handler(e) {
+        return rpc(() => {
+          const script = e.data.script || {
+            code: e.data.code_raw && eztz.utility.mlraw2json(e.data.code_raw),
+            storage: e.data.init_raw && utility.ml2tzjson(e.data.init_raw)
+          } 
+
+          return eztz.rpc.sendOperation({
+            "kind": "origination",
+            "balance": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),  
+            "managerPubkey": keys.pkh,
+            "script": script,
+            "spendable": (typeof e.data.spendable != "undefined" ? e.data.spendable : false),
+            "delegatable": (typeof e.data.delegatable != "undefined" ? e.data.delegatable : false),
+            "delegate": e.data.delegate
+          }, {pk: keys.pk, pkh: keys.pkh, sk: keys.sk}, 0)
+          .then(x => ({result: x}))
+        })
       }
     }
   }
