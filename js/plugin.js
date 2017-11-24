@@ -46,7 +46,7 @@
         return rpc(() =>
           new Promise(function (resolve, reject) {
             eztz.node.query("/blocks/head/proto/context/contracts/" + e.data.contract).then(function(r){
-              resolve(r.script.storage)
+              resolve(r)
             }).catch(function(e){
               reject(e)
             })
