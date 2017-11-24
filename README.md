@@ -91,6 +91,18 @@ tezbridge({method: 'get_contract_info', contract: 'TZ...'})
 tezbridge({method: 'transfer', amount: 0, destination: 'TZ.../tz...', parameters: {json object}})
 ```
 
+5. Originate new contract
+```javascript
+tezbridge({
+  method: 'originate', 
+  amount: 1.8, 
+  script: script,    // script struct should be the same as the response of RPC result from API 3 - Get contract info
+  spendable: true / false,    // optional, default is false
+  delegatable: true / false,    // optional, default is false
+  delegate: 'tz...'    // optional
+})
+```
+
 ## Donation
 If this project help you reduce time to develop, you can give me a cup of milk 😊
 
