@@ -67,7 +67,7 @@
             "amount": Math.round(parseFloat(e.data.amount).toFixed(2) * 100), 
             "destination": e.data.destination,
             "parameters": e.data.parameters || 'Unit'
-          }, {pk: keys.pk, pkh: keys.pkh, sk: keys.sk}, 0)
+          }, {pk: keys.pk, pkh: e.data.pkh || keys.pkh, sk: keys.sk}, 0)
           .then(x => ({result: x}))
           )
       }
@@ -93,7 +93,7 @@
             "spendable": (typeof e.data.spendable != "undefined" ? e.data.spendable : false),
             "delegatable": (typeof e.data.delegatable != "undefined" ? e.data.delegatable : false),
             "delegate": e.data.delegate
-          }, {pk: keys.pk, pkh: keys.pkh, sk: keys.sk}, 0)
+          }, {pk: keys.pk, pkh: e.data.pkh || keys.pkh, sk: keys.sk}, 0)
           .then(x => ({result: x}))
         })
       }
