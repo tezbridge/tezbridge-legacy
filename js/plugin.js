@@ -103,6 +103,10 @@
   const dispatcher = (e) => {
     if (!e.data.tezbridge) return
 
+    const host = getLocal('host')
+    if (host)
+      eztz.node.setProvider(host)
+    
     if (!keys.sk) {
       const encrypted_keys = getLocal('__')
       setLocal('__', '')
@@ -140,7 +144,6 @@
   }
 
   const main = () => {
-    // eztz.node.setProvider('https://teznode.catsigma.com')
     window.addEventListener('message', dispatcher)
   }
   main()

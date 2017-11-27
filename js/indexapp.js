@@ -1,6 +1,4 @@
 ((window) => {
-  // eztz.node.setProvider('https://teznode.catsigma.com')
-
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
@@ -19,6 +17,10 @@
   }
 
   // first time
+  if (getLocal('host') === null)
+    setLocal('host', 'https://teznode.catsigma.com')
+  eztz.node.setProvider(getLocal('host'))
+
   if (getLocal('mute') === null)
     setLocal('mute', 'true')
 
@@ -30,6 +32,7 @@
     data: {
       loading: '',
       mute: !!getLocal('mute'),
+      host: getLocal('host'),
       view: {
         entry: getLocal('_') ? 'with-key' : 'without-key',
         subentry: '',
@@ -49,6 +52,10 @@
       import_passphrase: ''
     },
     watch: {
+      host(x) {
+        eztz.node.setProvider(x)
+        setLocal('host', x)
+      },
       mute(x) {
         if (x) {
           setLocal('mute', 'true')

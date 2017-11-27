@@ -24,6 +24,12 @@
       <p>OPTIONS:</p>
       <P class="indent">
         <label><input type="checkbox" v-model="mute" /> <span>Mute for non-spending operations</span></label>
+        <br>
+        <span>HOST: </span> 
+        <select v-model="host">
+          <option value="https://teznode.catsigma.com">teznode.catsigma.com</option>  
+          <option value="https://tezrpc.me/api">tezrpc.me</option>  
+        </select>
       </P>
       <p>OPERATIONS:</p>
       <p class="indent">
