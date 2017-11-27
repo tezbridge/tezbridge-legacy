@@ -44,7 +44,7 @@
     })
   }
 
-  const decrypt = (password, encrypted_data_array, callback) => {
+  const decrypt = (password, encrypted_data_array, callback, fail_callback) => {
     const encrypted_content = encrypted_data_array[0]
     const key = encrypted_data_array[1]
     const iv = encrypted_data_array[2]
@@ -76,6 +76,7 @@
     .catch((err) => {
       console.log(err)
       alert('Decrypt failed')
+      fail_callback && fail_callback(err)
     })
   }
 
