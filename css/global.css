@@ -18,7 +18,7 @@
 .watermark:visited { color: #ccc; }
 .watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
 
-* { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
+* { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 13px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
 p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }
 p.indent { padding-left: 8px; }
 
