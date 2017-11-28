@@ -17,6 +17,10 @@
     <div v-if="!view.entry">
       <p>ACCOUNT:</p>
       <p class="indent">{{keys.pkh}}</p>
+      <p>SECRET KEY:</p>
+      <p class="indent" @click="show_sk = !show_sk">
+        {{show_sk ? keys.sk : '*****'}}
+      </p>
       <p>BALANCE:</p>
       <p class="indent">{{balance || 'UNKNOWN'}}</p>
       <p>ACCESS CODE:</p>

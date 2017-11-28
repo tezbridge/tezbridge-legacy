@@ -45,6 +45,7 @@
         pkh: '',
         sk: ''
       },
+      show_sk: false,
       balance: '',
       access_code: '',
       import_sk: '',
