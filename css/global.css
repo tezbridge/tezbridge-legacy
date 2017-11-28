@@ -22,7 +22,7 @@
 p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }
 p.indent { padding-left: 8px; }
 
-button { background: rgba(255,255,255, 0.3); color: #ddd; box-shadow: #333 2px 2px 0; padding: 4px 8px; margin: 4px; border: 0}
+button { background: rgb(113,113,113); color: #ddd; box-shadow: #333 2px 2px 0; padding: 4px 8px; margin: 4px; border: 0}
 button:active {box-shadow: #333 0 0 0; color: white;}
 td { text-align: right }
 
