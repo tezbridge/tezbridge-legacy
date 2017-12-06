@@ -62,6 +62,22 @@
         <span>GENERATE</span>
       </label>
 
+      <div v-if="view.subentry.length === 0" class="group compatibility">
+        <p>
+          Support browsers:<br>
+          <ul>
+            <li>Chrome 49+</li>
+            <li>Firefox 52+</li>
+            <li>Safari 11+ (Safari > Preferences > Privacy > Cookies and website data > Always allow)</li>
+            <li>Edge 15+</li>
+            <li>Opera 48+</li>
+            <li>iOS Safari 11+ (Settings > Safari > Prevent Cross-Site Tracking > Off)</li>
+            <li>Android Browser 56+</li>
+            <li>Android Chrome 61+</li>
+          </ul>
+        </p>
+      </div>
+
       <div v-if="view.subentry === 'import'" class="group">
         <input type="password" placeholder="set local secure password" v-model="localpwd" /> <br>
         <br>
