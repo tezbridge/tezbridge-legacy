@@ -104,7 +104,7 @@ tezbridge({
 ```
 
 ## Donation
-If this project help you reduce time to develop, you can give me a cup of milk 😊
+If this project help you reduce time to develop, you can buy me a cup of milk 😊
 
 BTC: `1L1Kbm7SmmzVLAAaZi9pQdtMnR2SDERZFc`
 
