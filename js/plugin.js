@@ -14,7 +14,6 @@
   }
 
   let keys = {}
-  let opened_window = null
 
   const export_functions = {
     get_pkh: {
@@ -115,10 +114,7 @@
         e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
         alert('No account is accessible in [tezbridge.github.io], opening...')
 
-        if (opened_window && !opened_window.closed)
-          opened_window.focus()
-        else
-          opened_window = window.open('https://tezbridge.github.io/')
+        window.open('https://tezbridge.github.io/')
         
       } else {
         const key = prompt('Input the access code of [tezbridge.github.io]')
