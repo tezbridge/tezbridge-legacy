@@ -31,7 +31,7 @@
         <br>
         <span>HOST: </span> 
         <select v-model="host">
-          <option value="https://teznode.catsigma.com">teznode.catsigma.com</option>  
+          <option value="https://teznode.catsigma.com">default</option>
           <option value="https://tezrpc.me/api">tezrpc.me</option>  
         </select>
       </P>
@@ -99,7 +99,7 @@
       </div>
       <div v-if="view.subentry === 'generate'" class="group">
         <div v-if="!keys.sk">
-          <p>{{mnemonic}}<p>
+          <p>{{mnemonic}}</p>
           <input type="password" placeholder="set passphrase here" v-model="passphrase" />
           <br>
           <button @click="generate_next">NEXT</button>
