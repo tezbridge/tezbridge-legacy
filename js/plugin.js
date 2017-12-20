@@ -37,6 +37,15 @@
           )
       }
     },
+    get_block_head: {
+      mute: true,
+      confirm(e) {
+        return `get block head of node`
+      },
+      handler(e) {
+        return rpc(() => eztz.rpc.getHead().then(x => ({result: x})))
+      }
+    },
     get_contract_info: {
       mute: true,
       confirm(e) {
