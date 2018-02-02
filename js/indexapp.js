@@ -151,7 +151,7 @@
           range.selectNodeContents(this.$refs.accessCodeNode)
           selection.removeAllRanges()
           selection.addRange(range)
-          document.execCommand("Copy")
+          document.execCommand('copy')
         }, 1000)
         
 
