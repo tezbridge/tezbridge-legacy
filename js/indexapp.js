@@ -141,20 +141,19 @@
       gen_access_code: function(){
         const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
         this.access_code = window.localcrypto.abtos(random_iv)
+        this.$refs.accessCodeNode.innerHTML = this.access_code
+        
         window.localcrypto.encrypt(this.access_code, JSON.stringify(this.keys), x => {
           setLocal('__', JSON.stringify(x))
         })
 
-        setTimeout(() => {
-          const range = document.createRange()
-          const selection = window.getSelection()
-          range.selectNodeContents(this.$refs.accessCodeNode)
-          selection.removeAllRanges()
-          selection.addRange(range)
-          document.execCommand('copy')
-        }, 1000)
+        const range = document.createRange()
+        const selection = window.getSelection()
+        range.selectNodeContents(this.$refs.accessCodeNode)
+        selection.removeAllRanges()
+        selection.addRange(range)
+        document.execCommand("copy")
         
-
         this.loading = 'ACCESS CODE COPIED'
         setTimeout(() => {
           this.loading = ''
