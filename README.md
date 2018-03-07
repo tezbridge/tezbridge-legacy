@@ -37,11 +37,11 @@ Tip: one access code can be used only once
   const tezbridgeCreator = (iframe_window) => {
     return (param) => {
       return new Promise(function(resolve, reject){
-        const tick = id++
-        param.tezbridge = tick
+        const ticket = id++
+        param.tezbridge = ticket
         iframe_window.contentWindow.postMessage(param, '*')
-        req_func[tick] = resolve
-        req_reject_func[tick] = reject
+        req_func[ticket] = resolve
+        req_reject_func[ticket] = reject
       })
     }
   }
