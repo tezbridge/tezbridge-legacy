@@ -15,6 +15,12 @@ tezbridge is the one that allows you to visit the decentralized application of t
 * Android Chrome 61+
 
 ## How to use
+
+![How TezExchange(A Tezos Dapp) interact with TezBridge](https://user-images.githubusercontent.com/26104967/37083123-847b226c-2229-11e8-9985-916cf99adbce.gif)
+
+
+How TezExchange(A Tezos Dapp) interact with TezBridge
+
 ### For user
 1. Open [https://tezbridge.github.io/](https://tezbridge.github.io/)
 2. Import or create your account
