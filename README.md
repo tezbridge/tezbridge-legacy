@@ -14,6 +14,10 @@ tezbridge is the one that allows you to visit the decentralized application of t
 * Android Browser 56+
 * Android Chrome 61+
 
+## How safe is tezbridge
+Now the private key stored in localStorage is protected by `Argon2id` + `AES-PMAC-SIV`.
+So even if someone gets the ciphertext, it will take a lot efforts to crack it.
+
 ## How to use
 
 ![How TezExchange(A Tezos Dapp) interact with TezBridge](https://user-images.githubusercontent.com/26104967/37083123-847b226c-2229-11e8-9985-916cf99adbce.gif)
@@ -54,7 +58,7 @@ Tip: one access code can be used only once
 
   window.addEventListener('message', function(e){
     if (e.data.tezbridge) {
-      if (e.data.error) 
+      if (e.data.error)
         req_reject_func[e.data.tezbridge] && req_reject_func[e.data.tezbridge](e.data.error)
       else
         req_func[e.data.tezbridge] && req_func[e.data.tezbridge](e.data.result)
@@ -101,8 +105,8 @@ tezbridge({method: 'transfer', amount: 0, destination: 'TZ.../tz...', parameters
 5. Originate new contract
 ```javascript
 tezbridge({
-  method: 'originate', 
-  amount: 1.8, 
+  method: 'originate',
+  amount: 1.8,
   script: script,    // script struct should be the same as the response of RPC result from API 3 - Get contract info
   spendable: true / false,    // optional, default is false
   delegatable: true / false,    // optional, default is false
