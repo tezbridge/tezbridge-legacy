@@ -1,89 +1,45 @@
 ((window) => {
-  const abtos = (arrayBuffer) => {
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)))
+  const getKey = (password, salt) => {
+    return sodium.crypto_pwhash(
+      64,
+      password,
+      salt,
+      1,
+      1024 * 16,
+      sodium.crypto_pwhash_ALG_ARGON2ID13)
   }
 
-  const stoab = (base64) => {
-    const binary_string =  window.atob(base64)
-    const len = binary_string.length
-    const bytes = new Uint8Array(len)
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binary_string.charCodeAt(i)
+  const encrypt = (password, content) => {
+    const salt = window.crypto.getRandomValues(new Uint8Array(16))
+    const iv = window.crypto.getRandomValues(new Uint8Array(16))
+    const key = getKey(password, salt)
+    return miscreant.AEAD.importKey(key, 'AES-PMAC-SIV')
+    .then(x => x.seal(new TextEncoder('utf-8').encode(content), iv))
+    .then(x => ({
+      v: 0.1,
+      salt: sodium.to_hex(salt),
+      iv: sodium.to_hex(iv),
+      ciphertext: sodium.to_hex(x)}))
+  }
+
+  const decrypt = (password, cipherobj) => {
+    if (cipherobj.v !== 0.1) {
+      alert('The crypto system has been updated\nPlease clear your account and reimport it again')
+      return Promise.reject()
     }
-    return bytes.buffer
-  }
 
-  const encrypt = (password, content, callback) => {
-    const iv = window.crypto.getRandomValues(new Uint8Array(12))
-    window.crypto.subtle.generateKey(
-        {name: "AES-GCM", length: 256},
-        true, ["encrypt"])
-    .then((aesKey) => {
-      const encrypt_content = window.crypto.subtle.encrypt(
-        {
-          name: "AES-GCM",
-          iv: iv,
-          additionalData: stoab(btoa(password)),
-          tagLength: 128, 
-        },
-        aesKey,
-        stoab(btoa(content))
-      )
-      const export_key = window.crypto.subtle.exportKey(
-        "raw", 
-        aesKey
-      )
-      return Promise.all([encrypt_content, export_key])
-    })
-    .then((result) => {
-      callback([abtos(result[0]), abtos(result[1]), abtos(iv)])
-    })
-    .catch((err) => {
-      console.log(err)
-      alert(`Encrypt error:${err}`)
-    })
-  }
+    const salt = sodium.from_hex(cipherobj.salt)
+    const iv = sodium.from_hex(cipherobj.iv)
+    const ciphertext = sodium.from_hex(cipherobj.ciphertext)
 
-  const decrypt = (password, encrypted_data_array, callback, fail_callback) => {
-    const encrypted_content = encrypted_data_array[0]
-    const key = encrypted_data_array[1]
-    const iv = encrypted_data_array[2]
-
-    window.crypto.subtle.importKey(
-      "raw", 
-      stoab(key),
-      {
-        name: "AES-GCM",
-      },
-      false, 
-      ["decrypt"]
-    )
-    .then((key) => {
-      return window.crypto.subtle.decrypt(
-        {
-            name: "AES-GCM",
-            iv: stoab(iv),
-            additionalData: stoab(btoa(password)),
-            tagLength: 128, 
-        },
-        key, 
-        stoab(encrypted_content) 
-      )
-    })
-    .then((result) => {
-      callback(atob(abtos(result)))
-    })
-    .catch((err) => {
-      console.log(err)
-      alert('Decrypt failed')
-      fail_callback && fail_callback(err)
-    })
+    const key = getKey(password, salt)
+    return miscreant.AEAD.importKey(key, 'AES-PMAC-SIV')
+    .then(x => x.open(ciphertext, iv))
+    .then(x => new TextDecoder('utf-8').decode(x))
   }
 
   window.localcrypto = {
     encrypt,
-    decrypt,
-    abtos,
-    stoab
+    decrypt
   }
 })(window)

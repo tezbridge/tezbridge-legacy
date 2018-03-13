@@ -3,6 +3,8 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>TEZBRIDGE</title>
+  <script src="js/sodium.js"></script>
+  <script src="js/miscreant.js"></script>
   <script src="js/eztz.js"></script>
   <script src="js/crypto.js"></script>
   <script src="js/vue.min.js"></script>
@@ -29,10 +31,10 @@
       <P class="indent">
         <label><input type="checkbox" v-model="mute" /> <span>Mute for non-spending operations</span></label>
         <br>
-        <span>HOST: </span> 
+        <span>HOST: </span>
         <select v-model="host">
           <option value="https://teznode.catsigma.com">alphanet</option>
-          <option value="https://teznode-main.catsigma.com">mainnet</option>  
+          <option value="https://teznode-main.catsigma.com">mainnet</option>
         </select>
       </P>
       <p>OPERATIONS:</p>

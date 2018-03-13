@@ -66,14 +66,14 @@
     },
     transfer: {
       confirm(e) {
-        return `transfer ${e.data.amount} to ${e.data.destination} with parameter 
+        return `transfer ${e.data.amount} to ${e.data.destination} with parameter
           ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
         return rpc(() =>
           eztz.rpc.sendOperation({
             "kind": "transaction",
-            "amount": Math.round(parseFloat(e.data.amount).toFixed(2) * 100), 
+            "amount": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),
             "destination": e.data.destination,
             "parameters": e.data.parameters || 'Unit'
           }, {pk: keys.pk, pkh: e.data.pkh || keys.pkh, sk: keys.sk}, 0)
@@ -83,7 +83,7 @@
     },
     originate: {
       confirm(e) {
-        return `originate contract for ${e.data.amount}tz 
+        return `originate contract for ${e.data.amount}tz
           with code:${!!e.data.script || !!e.data.code_raw}
           with init:${!!e.data.init_raw}`
       },
@@ -92,11 +92,11 @@
           const script = e.data.script || {
             code: e.data.code_raw && eztz.utility.mlraw2json(e.data.code_raw),
             storage: e.data.init_raw && utility.ml2tzjson(e.data.init_raw)
-          } 
+          }
 
           return eztz.rpc.sendOperation({
             "kind": "origination",
-            "balance": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),  
+            "balance": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),
             "managerPubkey": keys.pkh,
             "script": script,
             "spendable": (typeof e.data.spendable != "undefined" ? e.data.spendable : false),
@@ -115,7 +115,7 @@
     const host = getLocal('host')
     if (host)
       eztz.node.setProvider(host)
-    
+
     if (!keys.sk) {
       const encrypted_keys = getLocal('__')
       setLocal('__', '')
@@ -124,14 +124,16 @@
         alert('No account is accessible in [tezbridge.github.io], opening...')
 
         window.open('https://tezbridge.github.io/')
-        
+
       } else {
         const key = prompt('Input the access code of [tezbridge.github.io]')
-        window.localcrypto.decrypt(key, JSON.parse(encrypted_keys), x => {
+        window.localcrypto.decrypt(key, JSON.parse(encrypted_keys))
+        .then(x => {
           keys = JSON.parse(x)
           dispatcher(e)
-        }, err => {
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'decrypt failed'}, '*')
+        })
+        .catch(() => {
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, '*')
         })
       }
     } else {
@@ -143,7 +145,7 @@
         }
 
       const p = export_functions[e.data.method].handler(e)
-      if (p) 
+      if (p)
         p.then(x => {
           x.tezbridge = e.data.tezbridge
           e.source.postMessage(x, '*')
