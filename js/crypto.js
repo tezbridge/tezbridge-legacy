@@ -16,14 +16,14 @@
     return miscreant.AEAD.importKey(key, 'AES-PMAC-SIV')
     .then(x => x.seal(new TextEncoder('utf-8').encode(content), iv))
     .then(x => ({
-      v: 0.1,
+      v: 0.11,
       salt: sodium.to_hex(salt),
       iv: sodium.to_hex(iv),
       ciphertext: sodium.to_hex(x)}))
   }
 
   const decrypt = (password, cipherobj) => {
-    if (cipherobj.v !== 0.1) {
+    if (cipherobj.v !== 0.11) {
       alert('The crypto system has been updated\nPlease clear your account and reimport it again')
       return Promise.reject()
     }
