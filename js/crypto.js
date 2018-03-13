@@ -4,8 +4,8 @@
       64,
       password,
       salt,
-      1,
-      1024 * 16,
+      64,
+      1024 * 32,
       sodium.crypto_pwhash_ALG_ARGON2ID13)
   }
 
