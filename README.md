@@ -16,7 +16,7 @@ tezbridge is the one that allows you to visit the decentralized application of t
 
 ## How safe is tezbridge
 Now the private key stored in localStorage is protected by `Argon2id` + `AES-PMAC-SIV`.
-So even if someone gets the ciphertext, it will take a lot efforts to crack it.
+So even if someone gets the ciphertext, it will take a lot efforts to crack it for him.
 
 ## How to use
 
