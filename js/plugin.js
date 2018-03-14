@@ -133,7 +133,7 @@
 
           setTimeout(() => {
             keys = {}
-          }, 1000 * 60 * 20)
+          }, 1000 * 60 * 30)
 
           dispatcher(e)
         })
