@@ -101,10 +101,10 @@
       use_this_account: function(){
         this.passphrase = ''
         this.mnemonic = ''
-        this.view.entry = ''
 
         window.localcrypto.encrypt(this.localpwd, JSON.stringify(this.keys))
         .then(x => {
+          this.view.entry = ''
           this.localpwd = ''
           setLocal('_', JSON.stringify(x))
         })
@@ -144,7 +144,7 @@
       },
       gen_access_code: function(){
         const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
-        this.access_code = sodium.to_base64(random_iv)
+        this.access_code = localcrypto.to_base64(random_iv)
         this.$refs.accessCodeNode.innerHTML = this.access_code
 
         window.localcrypto.encrypt(this.access_code, JSON.stringify(this.keys))
