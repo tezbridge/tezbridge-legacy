@@ -15,7 +15,7 @@ tezbridge is the one that allows you to visit the decentralized application of t
 * Android Chrome 61+
 
 ## How safe is tezbridge
-Now the private key stored in localStorage is protected by `Argon2id` + `AES-PMAC-SIV`.
+Now the private key stored in localStorage is protected by `Argon2i` + `AES-PMAC-SIV`.
 So even if someone gets the ciphertext, it will take a lot efforts to crack it for him.
 
 ## How to use
