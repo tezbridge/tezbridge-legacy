@@ -121,7 +121,7 @@
       setLocal('__', '')
       if (!encrypted_keys) {
         e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
-        alert('No account is accessible in [tezbridge.github.io], opening...')
+        alert('Account is inaccessible\Please get your access code')
 
         window.open('https://tezbridge.github.io/')
 
@@ -130,6 +130,11 @@
         window.localcrypto.decrypt(key, JSON.parse(encrypted_keys))
         .then(x => {
           keys = JSON.parse(x)
+
+          setTimeout(() => {
+            keys = {}
+          }, 1000 * 20)
+
           dispatcher(e)
         })
         .catch(() => {
