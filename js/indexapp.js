@@ -24,6 +24,9 @@
   if (getLocal('mute') === null)
     setLocal('mute', 'true')
 
+  if (getLocal('plugin_timeout') === null)
+    setLocal('plugin_timeout', '')
+
   const app = new Vue({
     el: '#tezbridge',
     components: {
@@ -32,6 +35,7 @@
     data: {
       loading: '',
       mute: !!getLocal('mute'),
+      plugin_timeout: !!getLocal('plugin_timeout'),
       host: getLocal('host'),
       view: {
         entry: getLocal('_') ? 'with-key' : 'without-key',
@@ -58,11 +62,10 @@
         setLocal('host', x)
       },
       mute(x) {
-        if (x) {
-          setLocal('mute', 'true')
-        } else {
-          setLocal('mute', '')
-        }
+        setLocal('mute', x ? 'true' : '')
+      },
+      plugin_timeout(x) {
+        setLocal('plugin_timeout', x ? 'true' : '')
       }
     },
     methods: {

@@ -131,9 +131,11 @@
         .then(x => {
           keys = JSON.parse(x)
 
-          setTimeout(() => {
-            keys = {}
-          }, 1000 * 60 * 30)
+          if (getLocal('plugin_timeout')) {
+            setTimeout(() => {
+              keys = {}
+            }, 1000 * 60 * 30)
+          }
 
           dispatcher(e)
         })
