@@ -132,22 +132,17 @@
           keys = JSON.parse(x)
 
           if (getLocal('plugin_timeout')) {
-            const timeout_ticker = setTimeout(() => {
-              reset()
-            }, 1000 * 60 * 30)
-            
             const start_date = +new Date()
-            const focus_listener = () => { 
-              if (new Date() - start_date > 1000 * 60 * 30) {
+
+            const timer = setInterval(() => {
+              if (new Date() - start_date >= 1000 * 60 * 30) {
                 reset()
               }
-            }
-            window.addEventListener("focus", focus_listener)
+            }, 5000)
 
             const reset = () => {
               keys = {}
-              window.removeEventListener('focus', focus_listener)
-              clearTimeout(timeout_ticker)
+              clearInterval(timer)
             }
           }
 
