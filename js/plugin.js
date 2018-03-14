@@ -121,7 +121,7 @@
       setLocal('__', '')
       if (!encrypted_keys) {
         e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
-        alert('Account is inaccessible\Please get your access code')
+        alert('Account is inaccessible\nPlease get your access code')
 
         window.open('https://tezbridge.github.io/')
 
