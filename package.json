@@ -1,0 +1,18 @@
+{
+  "name": "tezbridge.github.io",
+  "version": "1.0.0",
+  "description": "tezbridge is the one that allows you to visit the decentralized application of tomorrow in your browser and mobile today",
+  "scripts": {
+    "build": "browserify js/indexapp.js -o js/build/indexapp.js && browserify js/plugin.js -o js/build/plugin.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tezbridge/tezbridge.github.io.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tezbridge/tezbridge.github.io/issues"
+  },
+  "homepage": "https://github.com/tezbridge/tezbridge.github.io#readme"
+}

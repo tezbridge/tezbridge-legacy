@@ -1,4 +1,6 @@
 ((window) => {
+  const LocalCrypto = require('./crypto')
+
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
@@ -29,9 +31,7 @@
 
   const app = new Vue({
     el: '#tezbridge',
-    components: {
-
-    },
+    template: require('./main_template'),
     data: {
       loading: '',
       mute: !!getLocal('mute'),
@@ -105,7 +105,7 @@
         this.passphrase = ''
         this.mnemonic = ''
 
-        window.localcrypto.encrypt(this.localpwd, JSON.stringify(this.keys))
+        LocalCrypto.encrypt(this.localpwd, JSON.stringify(this.keys))
         .then(x => {
           this.view.entry = ''
           this.localpwd = ''
@@ -115,7 +115,7 @@
       },
       view_stored: function(){
         const cipherobj = JSON.parse(getLocal('_'))
-        window.localcrypto.decrypt(this.localpwd, cipherobj)
+        LocalCrypto.decrypt(this.localpwd, cipherobj)
         .then(x => {
           this.localpwd = ''
           this.keys = JSON.parse(x)
@@ -147,10 +147,10 @@
       },
       gen_access_code: function(){
         const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
-        this.access_code = localcrypto.to_base64(random_iv)
+        this.access_code = LocalCrypto.to_base64(random_iv)
         this.$refs.accessCodeNode.innerHTML = this.access_code
 
-        window.localcrypto.encrypt(this.access_code, JSON.stringify(this.keys))
+        LocalCrypto.encrypt(this.access_code, JSON.stringify(this.keys))
         .then(x => {
           setLocal('__', JSON.stringify(x))
         })
