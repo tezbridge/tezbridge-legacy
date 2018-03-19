@@ -21,7 +21,7 @@ const main_template = `
         <span>HOST: </span>
         <select v-model="host">
           <option value="https://teznode.catsigma.com">alphanet</option>
-          <option value="https://teznode-main.catsigma.com">mainnet</option>
+          <option value="https://zeronet.catsigma.com">zeronet</option>
         </select>
       </P>
       <p>OPERATIONS:</p>
