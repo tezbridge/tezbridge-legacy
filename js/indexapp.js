@@ -1,4 +1,5 @@
 ((window) => {
+  require('./tzclient')
   const LocalCrypto = require('./crypto')
 
   const getLocal = x => window.localStorage.getItem(x)
