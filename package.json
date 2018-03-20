@@ -14,5 +14,9 @@
   "bugs": {
     "url": "https://github.com/tezbridge/tezbridge.github.io/issues"
   },
-  "homepage": "https://github.com/tezbridge/tezbridge.github.io#readme"
+  "homepage": "https://github.com/tezbridge/tezbridge.github.io#readme",
+  "dependencies": {
+    "bs58check": "^2.1.1",
+    "libsodium-wrappers": "^0.7.3"
+  }
 }
