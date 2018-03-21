@@ -180,9 +180,6 @@ class TZClient {
   }
 }
 
-window.TZClient = TZClient
-window.sodium = sodium
-
 sodium.ready.then(() => {
 
   const tzc = new TZClient({
