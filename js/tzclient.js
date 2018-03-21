@@ -56,15 +56,19 @@ class TZClient {
   }
 
   static r2tz(input) {
-    return Math.round(input * 1000000)
+    return '' + Math.round(input * 1000000)
   }
   static tz2r(input) {
-    return (input / 1000000).toFixed(6)
+    return input / 1000000
   }
 
 
   call(path, data = {}) {
     return RPCall(this.host + path, data)
+  }
+
+  prevalidation() {
+    return this.call('/blocks/prevalidation')
   }
 
   head() {
@@ -85,93 +89,99 @@ class TZClient {
     return this.call(`/blocks/${this.block_pointer}/proto/context/contracts/${key_hash}/script`)
   }
 
-  // originate({
-  //   fee = 0,
-  //   amount = 0,
-  //   balance = 0
-  // }) {
-  //   return Promise.all([this.head(), this.counter()])
-  //   .then(([head, counter]) => {
-  //     const post_data = {
-  //       branch: head.predecessor,
-  //       kind: 'manager',
-  //       source: this.key_pair.public_key_hash,
-  //       fee: TZClient.r2tz(fee),
-  //       counter: counter + 1,
-  //       operations: [
-  //         {
-  //           kind: 'origination',
-  //           managerPubkey: this.key_pair.public_key,
-  //           balance: TZClient.r2tz(balance),
-  //         }
-  //       ]
-  //     }
-
-  //     return this.call(`/blocks/prevalidation/proto/helpers/forge/forge/operations`, post_data)
-  //     .then(x => {
-  //       const post_data = {
-  //         pred_block: head.predecessor,
-  //         operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, x.operation)),
-  //         forged_operation: x.operation,
-  //         signature: TZClient.enc58(prefix.signature, sodium.crypto_sign_detached(x.operation, TZClient.dec58(prefix.secret_key, this.key_pair.secret_key)))
-  //       }
-
-  //       return this.call(`/blocks/prevalidation/proto/helpers/apply_operation`, post_data)
-  //     })
-  //   })
-  //   .then(x => console.log(x))
-  //   .catch(err => console.log(err))
-  // }
+  originate({
+    fee = 0,
+    balance = 0,
+    spendable = false,
+    delegatable = false,
+    script
+  }) {
+    return this.makeOperation([{
+      kind: 'origination',
+      managerPubkey: this.key_pair.public_key_hash,
+      balance: TZClient.r2tz(balance),
+      spendable,
+      delegatable,
+      script
+    }], fee)
+  }
 
   transfer({
     fee = 0,
     amount = 0,
+    source,
     destination,
     parameters
   }) {
-    return Promise.all([this.head(), this.counter()])
-    .then(([head, counter]) => {
+    return this.makeOperation([{
+      kind: 'reveal',
+      public_key: this.key_pair.public_key
+    }, {
+      kind: 'transaction',
+      amount: TZClient.r2tz(amount),
+      destination,
+      parameters
+    }], fee, source && {source})
+  }
+
+  faucet() {
+    return this.makeOperation([{
+      kind: 'faucet',
+      id: this.key_pair.public_key_hash,
+      nonce: sodium.to_hex(sodium.crypto_generichash(32, '' + new Date() + Math.random()))
+    }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
+    .then(x => this.transfer({
+      amount: 100000,
+      source: x[0][0],
+      destination: this.key_pair.public_key_hash
+    }))
+  }
+
+  makeOperation(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
+    return Promise.all([this.prevalidation(), this.counter(additional_forge_data.source)])
+    .then(([prevalidation, counter]) => {
       const post_data = {
-        branch: head.predecessor,
+        branch: prevalidation.predecessor,
         kind: 'manager',
         source: this.key_pair.public_key_hash,
         fee: TZClient.r2tz(fee),
         counter: counter + 1,
-        operations: [
-          {
-            kind: 'transaction',
-            amount: TZClient.r2tz(amount),
-            destination,
-            parameters
-          }
-        ]
+        operations: ops
       }
 
-      return this.call(`/blocks/prevalidation/proto/helpers/forge/forge/operations`, post_data)
+      return this.call(`/blocks/prevalidation/proto/helpers/forge/forge/operations`, Object.assign(post_data, additional_forge_data))
       .then(x => {
         const sig = sodium.crypto_sign_detached(sodium.from_hex(x.operation), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = x.operation + sodium.to_hex(sig)
 
         const post_data = {
-          pred_block: head.predecessor,
-          operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, x.operation)),
+          pred_block: prevalidation.predecessor,
+          operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, sodium.from_hex(with_signature ? signed_operation : x.operation))),
           forged_operation: x.operation,
-          signature: TZClient.enc58(prefix.signature, sig)
+          signature: with_signature ? TZClient.enc58(prefix.signature, sig) : undefined
         }
 
-        return Promise.all([this.call(`/blocks/prevalidation/proto/helpers/apply_operation`, post_data), signed_operation])
+        return Promise.all([
+          this.call(`/blocks/prevalidation/proto/helpers/apply_operation`, post_data),
+          with_signature ? signed_operation : x.operation,
+          prevalidation.chain_id
+        ])
       })
     })
-    .then(([x, signed_operation]) => {
+    .then(([x, signed_operation, chain_id]) => {
       const post_data = {
-        signedOperationContents: signed_operation
+        signedOperationContents: signed_operation,
+        chain_id
       }
-      return this.call('/inject_operation', post_data)
+      return Promise.all([x.contracts, this.call('/inject_operation', post_data)])
     })
-    .then(x => x.injectedOperation)
+    .then(([contracts, x]) => [contracts, x.injectedOperation])
     .catch(err => console.log(err))
   }
 }
+
+window.TZClient = TZClient
+window.sodium = sodium
 
 sodium.ready.then(() => {
 
@@ -179,15 +189,36 @@ sodium.ready.then(() => {
     seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
   })
 
-  tzc.transfer({
-    destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
-    amount: 135.325732
+  Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
+  .then(balances => {
+    // return
+    return tzc.transfer({
+      destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
+      amount: 13.001001
+    })
+    .then(() => {
+      return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
+      .then(new_balances => {
+        console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
+      })
+    })
   })
-  .then(x => console.log(x))
   .then(() => {
-    return tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')
+    // return
+    return tzc.balance()
+    .then(balance => {
+      return tzc.faucet()
+      .then(() => tzc.balance())
+      .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
+    })
   })
-  .then(x => console.log(x))
-  .catch(err => console.log(err))
+  .then(() => {
+    // return
+    return tzc.originate({
+      balance: 2.01
+    })
+    .then(x => tzc.balance(x[0][0]))
+    .then(x => console.log('originate test:', TZClient.tz2r(x)))
+  })
 
 })
