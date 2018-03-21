@@ -1,5 +1,6 @@
 const bs58check = require('bs58check')
 const sodium = require('libsodium-wrappers')
+const bip39 = require('bip39')
 
 const combineUint8Array = (x, y) => {
   const tmp = new Uint8Array(x.length + y.length)
@@ -31,18 +32,14 @@ const prefix = {
 class TZClient {
   constructor(params = {}) {
     this.host = params.host || 'https://zeronet.catsigma.com'
-    this.key_pair = {
-      public_key_hash: params.public_key_hash,
-      public_key: params.public_key,
-      secret_key: params.secret_key
-    }
+    this.key_pair = {}
 
     if (params.seed) {
-      const seed_raw = TZClient.dec58(prefix.secret_key, params.seed)
-      const key_pair = sodium.crypto_sign_seed_keypair(seed_raw)
-      this.key_pair.public_key = TZClient.enc58(prefix.public_key, key_pair.publicKey)
-      this.key_pair.secret_key = TZClient.enc58(prefix.secret_key, key_pair.privateKey)
-      this.key_pair.public_key_hash = TZClient.enc58(prefix.identity, sodium.crypto_generichash(20, key_pair.publicKey))
+      this.key_pair = TZClient.getKeysFromSeed(params.seed)
+    }
+
+    if (params.mnemonic && params.password) {
+      this.key_pair = TZClient.getKeysFromSeed(TZClient.getSeedFromMnemonic(params.mnemonic, params.password))
     }
   }
 
@@ -61,6 +58,23 @@ class TZClient {
     return input / 1000000
   }
 
+  static getKeysFromSeed(seed) {
+    const seed_raw = TZClient.dec58(prefix.secret_key, seed)
+    const key_pair = sodium.crypto_sign_seed_keypair(seed_raw)
+    return {
+      public_key: TZClient.enc58(prefix.public_key, key_pair.publicKey),
+      secret_key: TZClient.enc58(prefix.secret_key, key_pair.privateKey),
+      public_key_hash: TZClient.enc58(prefix.identity, sodium.crypto_generichash(20, key_pair.publicKey))
+    }
+  }
+
+  static genMnemonic() {
+    return bip39.generateMnemonic()
+  }
+
+  static getSeedFromMnemonic(mnemonic, password) {
+    return TZClient.enc58(prefix.secret_key, bip39.mnemonicToSeed(mnemonic, password).slice(0, 32))
+  }
 
   call(path, data = {}) {
     return RPCall(this.host + path, data)
@@ -183,14 +197,25 @@ class TZClient {
 }
 
 sodium.ready.then(() => {
+  window.TZClient = TZClient
+
+  // const tzc = new TZClient({
+  //   seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
+  // })
 
   const tzc = new TZClient({
-    seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
+    mnemonic: TZClient.genMnemonic(),
+    password: 'abcdefg'
   })
 
-  Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
+  tzc.balance()
+  .then(balance => {
+    return tzc.faucet()
+    .then(() => tzc.balance())
+    .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
+  })
+  .then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
   .then(balances => {
-    // return
     return tzc.transfer({
       destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
       amount: 13.001001
@@ -203,16 +228,6 @@ sodium.ready.then(() => {
     })
   })
   .then(() => {
-    // return
-    return tzc.balance()
-    .then(balance => {
-      return tzc.faucet()
-      .then(() => tzc.balance())
-      .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
-    })
-  })
-  .then(() => {
-    // return
     return tzc.originate({
       balance: 2.01
     })
