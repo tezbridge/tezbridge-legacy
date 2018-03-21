@@ -31,7 +31,6 @@ const prefix = {
 class TZClient {
   constructor(params = {}) {
     this.host = params.host || 'https://zeronet.catsigma.com'
-    this.block_pointer = 'prevalidation'
     this.key_pair = {
       public_key_hash: params.public_key_hash,
       public_key: params.public_key,
@@ -67,6 +66,11 @@ class TZClient {
     return RPCall(this.host + path, data)
   }
 
+  predecessor() {
+    return this.call('/blocks/prevalidation/predecessor')
+    .then(x => x.predecessor)
+  }
+
   prevalidation() {
     return this.call('/blocks/prevalidation')
   }
@@ -76,7 +80,7 @@ class TZClient {
   }
 
   balance(key_hash) {
-    return this.call(`/blocks/${this.block_pointer}/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
+    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
     .then(x => x.balance)
   }
 
@@ -86,7 +90,7 @@ class TZClient {
   }
 
   script(key_hash) {
-    return this.call(`/blocks/${this.block_pointer}/proto/context/contracts/${key_hash}/script`)
+    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash}/script`)
   }
 
   originate({
@@ -138,10 +142,10 @@ class TZClient {
   }
 
   makeOperation(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
-    return Promise.all([this.prevalidation(), this.counter(additional_forge_data.source)])
-    .then(([prevalidation, counter]) => {
+    return Promise.all([this.predecessor(), this.counter(additional_forge_data.source)])
+    .then(([predecessor, counter]) => {
       const post_data = {
-        branch: prevalidation.predecessor,
+        branch: predecessor,
         kind: 'manager',
         source: this.key_pair.public_key_hash,
         fee: TZClient.r2tz(fee),
@@ -155,7 +159,7 @@ class TZClient {
         const signed_operation = x.operation + sodium.to_hex(sig)
 
         const post_data = {
-          pred_block: prevalidation.predecessor,
+          pred_block: predecessor,
           operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, sodium.from_hex(with_signature ? signed_operation : x.operation))),
           forged_operation: x.operation,
           signature: with_signature ? TZClient.enc58(prefix.signature, sig) : undefined
@@ -163,15 +167,13 @@ class TZClient {
 
         return Promise.all([
           this.call(`/blocks/prevalidation/proto/helpers/apply_operation`, post_data),
-          with_signature ? signed_operation : x.operation,
-          prevalidation.chain_id
+          with_signature ? signed_operation : x.operation
         ])
       })
     })
     .then(([x, signed_operation, chain_id]) => {
       const post_data = {
-        signedOperationContents: signed_operation,
-        chain_id
+        signedOperationContents: signed_operation
       }
       return Promise.all([x.contracts, this.call('/inject_operation', post_data)])
     })
