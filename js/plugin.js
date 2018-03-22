@@ -18,7 +18,7 @@
   const tzclient = new TZClient()
 
   const export_functions = {
-    get_pkh: {
+    public_key_hash: {
       mute: true,
       confirm(e) {
         return `get public key hash`
@@ -27,19 +27,19 @@
         return Promise.resolve({result: tzclient.key_pair.public_key_hash})
       }
     },
-    get_balance: {
+    balance: {
       mute: true,
       confirm(e) {
         return `get balance`
       },
       handler(e) {
         return rpc(() =>
-          tzclient.balance()
+          tzclient.balance(e.data.contract)
           .then(x => ({result: TZClient.tz2r(x)}))
         )
       }
     },
-    get_block_head: {
+    block_head: {
       mute: true,
       confirm(e) {
         return `get block head of node`
@@ -48,7 +48,7 @@
         return rpc(() => tzclient.head().then(x => ({result: x})))
       }
     },
-    get_contract_info: {
+    contract: {
       mute: true,
       confirm(e) {
         return `get info for contract:${e.data.contract}`
@@ -79,7 +79,7 @@
     },
     originate: {
       confirm(e) {
-        return `originate contract for ${e.data.amount}tz
+        return `originate contract for ${e.data.balance}tz
           with code:${!!e.data.script || !!e.data.code_raw}
           with init:${!!e.data.init_raw}`
       },
@@ -109,7 +109,7 @@
       setLocal('__', '')
       if (!encrypted_keys) {
         e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
-        alert('CurrentHostname:[' + window.location.hostname + ']\nAccount is inaccessible\nPlease get your access code')
+        alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
 
         window.open('https://tezbridge.github.io/')
 
