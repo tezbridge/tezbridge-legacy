@@ -20,23 +20,23 @@ So even if someone gets the ciphertext, it will take a lot efforts to crack it f
 
 ## How to use
 
-![How TezExchange(A Tezos Dapp) interact with TezBridge](https://user-images.githubusercontent.com/26104967/37083123-847b226c-2229-11e8-9985-916cf99adbce.gif)
+![How TezExchange(A Tezos DApp) interact with TezBridge](https://user-images.githubusercontent.com/26104967/37083123-847b226c-2229-11e8-9985-916cf99adbce.gif)
 
 
-How [TezExchange(A Tezos Dapp)](https://tezexchange.github.io/) interact with TezBridge
+How [TezExchange(A Tezos DApp)](https://tezexchange.github.io/) interact with TezBridge
 
 ### For user
 1. Open [https://tezbridge.github.io/](https://tezbridge.github.io/)
 2. Import or create your account
 3. Generate an access code
-4. Open a Dapp or a decentralized website
+4. Open a DApp or a decentralized website
 5. Paste the access code when the browser asks your for it
 
 Tip: one access code can be used only once
 
 ### For developer
 0. add `<script src="https://tezbridge.github.io/plugin.js"></script>` in your HTML file, then you are good to go
-1. view the Dapp demo [https://tezbridge.github.io/test/dapp.html](https://tezbridge.github.io/test/dapp.html)
+1. view the DApp demo [https://tezbridge.github.io/test/dapp.html](https://tezbridge.github.io/test/dapp.html)
 
 #### API list
 1. Get public key hash
