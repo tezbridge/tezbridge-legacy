@@ -14,7 +14,7 @@
         max-height: 150px;
         font-size: 16px;
         margin: 4px;
-        font-family: consolas;
+        font-family: Menlo, consolas;
       }
     </style>
   </head>
@@ -24,12 +24,12 @@
       <textarea id="pkh_script">
 tezbridge({method: 'public_key_hash'})
 .then(x => {
-  pkh.innerHTML = x
+  public_key_hash_el.innerHTML = x
 })
       </textarea>
       <div>
         <button onclick="eval(pkh_cm.getValue())">get public key hash</button>
-        public key hash:<b id="pkh"></b>
+        public key hash:<b id="public_key_hash_el"></b>
       </div>
     </div>
 
@@ -41,12 +41,12 @@ tezbridge({
   contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
 })
 .then(x => {
-  balance.innerHTML = x
+  balance_el.innerHTML = x
 })
       </textarea>
       <div>
         <button onclick="eval(balance_cm.getValue())">get balance</button>
-        balance:<b id="balance"></b>
+        balance:<b id="balance_el"></b>
       </div>
     </div>
 
@@ -59,12 +59,12 @@ tezbridge({
   destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
 })
 .then(x => {
-  transfer.innerHTML = JSON.stringify(x)
+  transfer_el.innerHTML = JSON.stringify(x)
 })
         </textarea>
         <div>
           <button onclick="eval(transfer_cm.getValue())">transfer</button>
-          transfer:<b id="transfer"></b>
+          transfer:<b id="transfer_el"></b>
         </div>
     </div>
 
@@ -76,12 +76,12 @@ tezbridge({
   balance: 2.001001
 })
 .then(x => {
-  originate.innerHTML = JSON.stringify(x)
+  originate_el.innerHTML = JSON.stringify(x)
 })
         </textarea>
         <div>
           <button onclick="eval(originate_cm.getValue())">originate</button>
-          originate:<b id="originate"></b>
+          originate:<b id="originate_el"></b>
         </div>
     </div>
 
@@ -93,12 +93,12 @@ tezbridge({
   contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
 })
 .then(x => {
-  contract.innerHTML = JSON.stringify(x)
+  contract_el.innerHTML = JSON.stringify(x)
 })
         </textarea>
         <div>
           <button onclick="eval(contract_cm.getValue())">contract</button>
-          contract:<b id="contract"></b>
+          contract:<b id="contract_el"></b>
         </div>
     </div>
   </body>
