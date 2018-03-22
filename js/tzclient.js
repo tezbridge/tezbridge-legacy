@@ -125,6 +125,7 @@ class TZClient {
     balance = 0,
     spendable = false,
     delegatable = false,
+    delegate,
     script
   }) {
     return this.makeOperation([{
@@ -133,6 +134,7 @@ class TZClient {
       balance: TZClient.r2tz(balance),
       spendable,
       delegatable,
+      delegate,
       script
     }], fee)
   }

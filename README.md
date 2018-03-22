@@ -35,66 +35,23 @@ How [TezExchange(A Tezos Dapp)](https://tezexchange.github.io/) interact with Te
 Tip: one access code can be used only once
 
 ### For developer
-0. view the Dapp demo [https://gistpreview.github.io/?a1672ec7f51663e7ebd3dac8af79b8f2](https://gistpreview.github.io/?a1672ec7f51663e7ebd3dac8af79b8f2)
-1. add `<iframe src="https://tezbridge.github.io/plugin.html" id="tezbridge"></iframe>` in your web app
-2. add codes below in your web app
-```javascript
-;((window) => {
-  const req_func = {}
-  const req_reject_func = {}
-
-  let id = 1
-  const tezbridgeCreator = (iframe_window) => {
-    return (param) => {
-      return new Promise(function(resolve, reject){
-        const ticket = id++
-        param.tezbridge = ticket
-        iframe_window.contentWindow.postMessage(param, '*')
-        req_func[ticket] = resolve
-        req_reject_func[ticket] = reject
-      })
-    }
-  }
-
-  window.addEventListener('message', function(e){
-    if (e.data.tezbridge) {
-      if (e.data.error)
-        req_reject_func[e.data.tezbridge] && req_reject_func[e.data.tezbridge](e.data.error)
-      else
-        req_func[e.data.tezbridge] && req_func[e.data.tezbridge](e.data.result)
-    }
-  })
-
-  window.tezbridgeCreator = tezbridgeCreator
-})(window)
-```
-
-3. get the tezbridge object
-```javascript
-const tezbridge = window.tezbridgeCreator(document.querySelector('#tezbridge'))
-```
-
-4. use the tezbridge object (the iframe should be completely loaded)
-```javascript
-document.querySelector('#tezbridge').onload = () => {
-  tezbridge({method: 'get_balance'}).then(x => console.log(x))
-}
-```
+0. add `<script src="https://tezbridge.github.io/plugin.js"></script>` in your HTML file, then you are good to go
+1. view the Dapp demo [https://tezbridge.github.io/test/dapp.html](https://tezbridge.github.io/test/dapp.html)
 
 #### API list
 1. Get public key hash
 ```javascript
-tezbridge({method: 'get_pkh'})
+tezbridge({method: 'public_key_hash'})
 ```
 
 2. Get balance
 ```javascript
-tezbridge({method: 'get_balance'})
+tezbridge({method: 'balance'})
 ```
 
 3. Get contract info (including code and storage)
 ```javascript
-tezbridge({method: 'get_contract_info', contract: 'TZ...'})
+tezbridge({method: 'contract', contract: 'TZ...'})
 ```
 
 4. Transfer
@@ -106,7 +63,7 @@ tezbridge({method: 'transfer', amount: 0, destination: 'TZ.../tz...', parameters
 ```javascript
 tezbridge({
   method: 'originate',
-  amount: 1.8,
+  balance: 13.001001,
   script: script,    // script struct should be the same as the response of RPC result from API 3 - Get contract info
   spendable: true / false,    // optional, default is false
   delegatable: true / false,    // optional, default is false

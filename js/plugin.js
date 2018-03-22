@@ -89,7 +89,8 @@
             balance: e.data.balance,
             spendable: !!e.data.spendable,
             delegatable: !!e.data.delegatable,
-            script: e.data.script
+            script: e.data.script,
+            delegate: e.data.delegate
           })
           .then(x => ({result: x}))
         })

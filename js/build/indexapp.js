@@ -82,6 +82,8 @@ module.exports = {
 
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
+  const removeLocal = (x, y) => window.localStorage.removeItem(x)
+
   const rpc = function(promise_fn){
     if (rpc.locked) return
     rpc.locked = true
@@ -98,6 +100,13 @@ module.exports = {
   }
 
   // first time
+  if (getLocal('version') !== '0.11') {
+    removeLocal('host')
+    removeLocal('mute')
+    removeLocal('timeout')
+    setLocal('version', '0.11')
+  }
+
   if (getLocal('host') === null)
     setLocal('host', 'https://zeronet.catsigma.com')
 
