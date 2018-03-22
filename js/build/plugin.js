@@ -77,6 +77,8 @@ module.exports = {
 
 },{}],2:[function(require,module,exports){
 ((window) => {
+  const TZClient = window.TZClient
+
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
@@ -91,7 +93,7 @@ module.exports = {
     })
   }
 
-  let keys = {}
+  const tzclient = new TZClient()
 
   const export_functions = {
     get_pkh: {
@@ -100,7 +102,7 @@ module.exports = {
         return `get public key hash`
       },
       handler(e) {
-        return Promise.resolve({result: keys.pkh})
+        return Promise.resolve({result: tzclient.key_pair.public_key_hash})
       }
     },
     get_balance: {
@@ -110,9 +112,9 @@ module.exports = {
       },
       handler(e) {
         return rpc(() =>
-          eztz.rpc.getBalance(keys.pkh)
-          .then(x => ({result: x}))
-          )
+          tzclient.balance()
+          .then(x => ({result: TZClient.tz2r(x)}))
+        )
       }
     },
     get_block_head: {
@@ -121,7 +123,7 @@ module.exports = {
         return `get block head of node`
       },
       handler(e) {
-        return rpc(() => eztz.rpc.getHead().then(x => ({result: x})))
+        return rpc(() => tzclient.head().then(x => ({result: x})))
       }
     },
     get_contract_info: {
@@ -131,15 +133,9 @@ module.exports = {
       },
       handler(e) {
         return rpc(() =>
-          new Promise(function (resolve, reject) {
-            eztz.node.query("/blocks/head/proto/context/contracts/" + e.data.contract).then(function(r){
-              resolve(r)
-            }).catch(function(e){
-              reject(e)
-            })
-          })
+          tzclient.contract(e.data.contract)
           .then(x => ({result: x}))
-          )
+        )
       }
     },
     transfer: {
@@ -149,14 +145,14 @@ module.exports = {
       },
       handler(e) {
         return rpc(() =>
-          eztz.rpc.sendOperation({
-            "kind": "transaction",
-            "amount": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),
-            "destination": e.data.destination,
-            "parameters": e.data.parameters || 'Unit'
-          }, {pk: keys.pk, pkh: e.data.pkh || keys.pkh, sk: keys.sk}, 0)
+          tzclient.transfer({
+            amount: e.data.amount,
+            source: e.data.source,
+            destination: e.data.destination,
+            parameters: e.data.parameters
+          })
           .then(x => ({result: x}))
-          )
+        )
       }
     },
     originate: {
@@ -167,20 +163,12 @@ module.exports = {
       },
       handler(e) {
         return rpc(() => {
-          const script = e.data.script || {
-            code: e.data.code_raw && eztz.utility.mlraw2json(e.data.code_raw),
-            storage: e.data.init_raw && utility.ml2tzjson(e.data.init_raw)
-          }
-
-          return eztz.rpc.sendOperation({
-            "kind": "origination",
-            "balance": Math.round(parseFloat(e.data.amount).toFixed(2) * 100),
-            "managerPubkey": keys.pkh,
-            "script": script,
-            "spendable": (typeof e.data.spendable != "undefined" ? e.data.spendable : false),
-            "delegatable": (typeof e.data.delegatable != "undefined" ? e.data.delegatable : false),
-            "delegate": e.data.delegate
-          }, {pk: keys.pk, pkh: e.data.pkh || keys.pkh, sk: keys.sk}, 0)
+          return tzclient.originate({
+            balance: e.data.balance,
+            spendable: !!e.data.spendable,
+            delegatable: !!e.data.delegatable,
+            script: e.data.script
+          })
           .then(x => ({result: x}))
         })
       }
@@ -192,9 +180,9 @@ module.exports = {
 
     const host = getLocal('host')
     if (host)
-      eztz.node.setProvider(host)
+      tzclient.host = host
 
-    if (!keys.sk) {
+    if (!tzclient.key_pair.secret_key) {
       const encrypted_keys = getLocal('__')
       setLocal('__', '')
       if (!encrypted_keys) {
@@ -207,9 +195,9 @@ module.exports = {
         const key = prompt('Input the access code')
         require('./crypto').decrypt(key, JSON.parse(encrypted_keys))
         .then(x => {
-          keys = JSON.parse(x)
+          tzclient.importKey({secret_key: x})
 
-          if (getLocal('plugin_timeout')) {
+          if (getLocal('timeout')) {
             const start_date = +new Date()
 
             const timer = setInterval(() => {
@@ -219,7 +207,7 @@ module.exports = {
             }, 5000)
 
             const reset = () => {
-              keys = {}
+              tzclient.key_pair = {}
               clearInterval(timer)
             }
           }

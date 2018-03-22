@@ -1,6 +1,6 @@
 ((window) => {
-  const TZClient = require('./tzclient')
   const LocalCrypto = require('./crypto')
+  const TZClient = window.TZClient
 
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)

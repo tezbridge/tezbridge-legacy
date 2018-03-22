@@ -116,8 +116,8 @@ class TZClient {
     .then(x => x.counter)
   }
 
-  script(key_hash) {
-    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash}/script`)
+  contract(key_hash) {
+    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash}`)
   }
 
   originate({
