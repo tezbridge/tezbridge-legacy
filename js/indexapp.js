@@ -1,18 +1,19 @@
 ((window) => {
   const LocalCrypto = require('./crypto')
+  const TZClient = window.TZClient
 
   const getLocal = x => window.localStorage.getItem(x)
   const setLocal = (x, y) => window.localStorage.setItem(x, y)
   const rpc = function(promise_fn){
     if (rpc.locked) return
     rpc.locked = true
-    app.loading = 'RPC CALLING...'
+    app.view.loading = 'RPC CALLING...'
     return promise_fn().then(function(x) {
-      app.loading = ''
+      app.view.loading = ''
       rpc.locked = false
       return Promise.resolve(x)
     }).catch(function(err) {
-      app.loading = ''
+      app.view.loading = ''
       rpc.locked = false
       return Promise.reject(err)
     })
@@ -20,92 +21,86 @@
 
   // first time
   if (getLocal('host') === null)
-    setLocal('host', 'https://teznode.catsigma.com')
-  eztz.node.setProvider(getLocal('host'))
+    setLocal('host', 'https://zeronet.catsigma.com')
 
   if (getLocal('mute') === null)
     setLocal('mute', 'true')
 
-  if (getLocal('plugin_timeout') === null)
-    setLocal('plugin_timeout', '')
+  if (getLocal('timeout') === null)
+    setLocal('timeout', '')
 
   const app = new Vue({
     el: '#tezbridge',
     template: require('./main_template'),
     data: {
-      loading: '',
-      mute: !!getLocal('mute'),
-      plugin_timeout: !!getLocal('plugin_timeout'),
+      tzclient: new TZClient({host: getLocal('host')}),
       host: getLocal('host'),
       view: {
+        show_sk: false,
+        loading: '',
         entry: getLocal('_') ? 'with-key' : 'without-key',
         subentry: '',
+        balance: ''
+    },
+      plugin: {
+        access_code: '',
+        mute: !!getLocal('mute'),
+        timeout: !!getLocal('timeout'),
       },
-      mnemonic: '',
-      passphrase: '',
       localpwd: '',
-      keys: {
-        pk: '',
-        pkh: '',
-        sk: ''
-      },
-      show_sk: false,
-      balance: '',
-      access_code: '',
-      import_sk: '',
-      import_mnemonic: '',
-      import_passphrase: ''
+      key_import: {
+        secret_key: '',
+        mnemonic: '',
+        password: '',
+        seed: ''
+      }
     },
     watch: {
       host(x) {
-        eztz.node.setProvider(x)
+        this.tzclient.host = x
         setLocal('host', x)
       },
-      mute(x) {
+      'plugin.mute'(x) {
         setLocal('mute', x ? 'true' : '')
       },
-      plugin_timeout(x) {
-        setLocal('plugin_timeout', x ? 'true' : '')
+      'plugin.timeout'(x) {
+        setLocal('timeout', x ? 'true' : '')
       }
     },
     methods: {
-      clear: function(){
+      clear() {
         if (confirm('Do you really want to clear the key?')) {
           setLocal('_', '')
           setLocal('__', '')
           location.reload()
         }
       },
-      import_key: function(){
+      switch_to_import() {
+        this.key_import.mnemonic = ''
+        this.key_import.password = ''
+        this.key_import.secret_key = ''
+        this.view.subentry = 'import'
+      },
+      import_key() {
         try {
-          if (this.import_sk) {
-            this.keys.pk = eztz.utility.b58cencode(eztz.utility.b58cdecode(this.import_sk, eztz.prefix.edsk).slice(32), eztz.prefix.edpk)
-            this.keys.pkh = eztz.utility.b58cencode(eztz.library.sodium.crypto_generichash(20, eztz.utility.b58cdecode(this.import_sk, eztz.prefix.edsk).slice(32)), eztz.prefix.tz1)
-            this.keys.sk = this.import_sk
-          } else if (this.import_mnemonic && this.import_passphrase) {
-            this.keys = eztz.crypto.generateKeys(this.import_mnemonic, this.import_passphrase)
-            delete this.keys.passphrase
-            delete this.keys.mnemonic
-          }
+          this.tzclient.importKey(this.key_import)
           app.use_this_account.call(app)
         } catch (e) {
           alert('Import failed')
         }
       },
-      generate: function(){
-        this.mnemonic = eztz.crypto.generateMnemonic()
+      generate() {
+        this.key_import.mnemonic = TZClient.genMnemonic()
         this.view.subentry = 'generate'
       },
-      generate_next: function(){
-        this.keys = eztz.crypto.generateKeys(this.mnemonic, this.passphrase)
-        delete this.keys.passphrase
-        delete this.keys.mnemonic
+      generate_next() {
+        this.tzclient.importKey({
+          mnemonic: this.key_import.mnemonic,
+          password: this.key_import.password
+        })
       },
-      use_this_account: function(){
-        this.passphrase = ''
-        this.mnemonic = ''
-
-        LocalCrypto.encrypt(this.localpwd, JSON.stringify(this.keys))
+      use_this_account() {
+        LocalCrypto.encrypt(this.localpwd, this.tzclient.key_pair.secret_key)
         .then(x => {
           this.view.entry = ''
           this.localpwd = ''
@@ -113,44 +108,36 @@
         })
         .catch(() => alert('Encryption failed'))
       },
-      view_stored: function(){
+      view_stored() {
         const cipherobj = JSON.parse(getLocal('_'))
         LocalCrypto.decrypt(this.localpwd, cipherobj)
         .then(x => {
+          this.tzclient.importKey({secret_key: x})
           this.localpwd = ''
-          this.keys = JSON.parse(x)
           this.view.entry = ''
-          this.access_code = getLocal('__') ? 'PREVIOUSLY GENERATED' : ''
+          this.plugin.access_code = getLocal('__') ? 'PREVIOUSLY GENERATED' : ''
         })
         .catch(() => alert('Decryption failed'))
       },
-      refresh_balance: function(){
-        const self = this
-        const pkh = this.keys.pkh
+      refresh_balance() {
+        rpc(() => this.tzclient.balance().then(x => {
+          this.view.balance = TZClient.tz2r(x)
+        }))
+      },
+      tez_faucet() {
         rpc(() =>
-          eztz.rpc.getBalance(pkh)
+          this.tzclient.faucet()
+          .then(() => this.tzclient.balance())
           .then(x => {
-            self.balance = (x / 100).toFixed(2)
+            this.view.balance = TZClient.tz2r(x)
           }))
       },
-      tez_faucet: function(){
-        const self = this
-        const pkh = this.keys.pkh
-        rpc(() =>
-          eztz.alphanet.faucet(pkh)
-          .then(x =>
-            eztz.rpc.getBalance(pkh)
-            .then(function(x){
-              self.balance = (x / 100).toFixed(2)
-            })
-          ))
-      },
-      gen_access_code: function(){
+      gen_access_code() {
         const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
-        this.access_code = LocalCrypto.to_base64(random_iv)
-        this.$refs.accessCodeNode.innerHTML = this.access_code
+        this.plugin.access_code = LocalCrypto.to_base64(random_iv)
+        this.$refs.accessCodeNode.innerHTML = this.plugin.access_code
 
-        LocalCrypto.encrypt(this.access_code, JSON.stringify(this.keys))
+        LocalCrypto.encrypt(this.plugin.access_code, this.tzclient.key_pair.secret_key)
         .then(x => {
           setLocal('__', JSON.stringify(x))
         })
@@ -163,9 +150,9 @@
         selection.addRange(range)
         document.execCommand("copy")
 
-        this.loading = 'ACCESS CODE COPIED'
+        this.view.loading = 'ACCESS CODE COPIED'
         setTimeout(() => {
-          this.loading = ''
+          this.view.loading = ''
         }, 2000)
       }
     }

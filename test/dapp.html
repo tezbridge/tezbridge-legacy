@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <title>Dapp Demo</title>
+    <script src="codemirror.js"></script>
+    <script src="cm-javascript.js"></script>
+    <link rel="stylesheet" href="codemirror.css">
+    <script src="../plugin.js"></script>
+    <style>
+      body { padding-bottom: 128px }
+      h3 { margin: 16px 0 8px; }
+      .CodeMirror {
+        border: 1px solid #eee;
+        max-height: 150px;
+        font-size: 16px;
+        margin: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h3>Get public key hash</h3>
+      <textarea id="pkh_script">
+tezbridge({method: 'public_key_hash'})
+.then(x => {
+  pkh.innerHTML = x
+})
+      </textarea>
+      <div>
+        <button onclick="eval(pkh_cm.getValue())">get public key hash</button>
+        public key hash:<b id="pkh"></b>
+      </div>
+    </div>
+
+    <div>
+      <h3>Get balance</h3>
+      <textarea id="balance_script">
+tezbridge({
+  method: 'balance',
+  contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+})
+.then(x => {
+  balance.innerHTML = x
+})
+      </textarea>
+      <div>
+        <button onclick="eval(balance_cm.getValue())">get balance</button>
+        balance:<b id="balance"></b>
+      </div>
+    </div>
+
+    <div>
+        <h3>Transfer</h3>
+        <textarea id="transfer_script">
+tezbridge({
+  method: 'transfer',
+  amount: 13.001001,
+  destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+})
+.then(x => {
+  transfer.innerHTML = JSON.stringify(x)
+})
+        </textarea>
+        <div>
+          <button onclick="eval(transfer_cm.getValue())">transfer</button>
+          transfer:<b id="transfer"></b>
+        </div>
+    </div>
+
+    <div>
+        <h3>Originate</h3>
+        <textarea id="originate_script">
+tezbridge({
+  method: 'originate',
+  balance: 2.001001
+})
+.then(x => {
+  originate.innerHTML = JSON.stringify(x)
+})
+        </textarea>
+        <div>
+          <button onclick="eval(originate_cm.getValue())">originate</button>
+          originate:<b id="originate"></b>
+        </div>
+    </div>
+
+    <div>
+        <h3>Contract info</h3>
+        <textarea id="contract_script">
+tezbridge({
+  method: 'contract',
+  contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+})
+.then(x => {
+  contract.innerHTML = JSON.stringify(x)
+})
+        </textarea>
+        <div>
+          <button onclick="eval(contract_cm.getValue())">contract</button>
+          contract:<b id="contract"></b>
+        </div>
+    </div>
+  </body>
+  <script>
+    window.pkh_cm = CodeMirror.fromTextArea(pkh_script)
+    window.balance_cm = CodeMirror.fromTextArea(balance_script)
+    window.transfer_cm = CodeMirror.fromTextArea(transfer_script)
+    window.originate_cm = CodeMirror.fromTextArea(originate_script)
+    window.contract_cm = CodeMirror.fromTextArea(contract_script)
+  </script>
+</html>

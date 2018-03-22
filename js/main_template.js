@@ -1,27 +1,26 @@
 const main_template = `
 <div class="main">
-  <div id="loading" v-if="loading"><span>{{loading}}</span></div>
+  <div id="loading" v-if="view.loading"><span>{{view.loading}}</span></div>
     <div v-if="!view.entry">
       <p>ACCOUNT:</p>
-      <p class="indent">{{keys.pkh}}</p>
+      <p class="indent">{{tzclient.key_pair.public_key_hash}}</p>
       <p>SECRET KEY:</p>
-      <p class="indent" @click="show_sk = !show_sk">
-        {{show_sk ? keys.sk : '*****'}}
+      <p class="indent" @click="view.show_sk = !view.show_sk">
+        {{view.show_sk ? tzclient.key_pair.secret_key : '*****'}}
       </p>
       <p>BALANCE:</p>
-      <p class="indent">{{balance || 'UNKNOWN'}}</p>
+      <p class="indent">{{view.balance || 'UNKNOWN'}}</p>
       <p>ACCESS CODE:</p>
-      <p class="indent" ref="accessCodeNode">{{access_code || 'NONE'}}</p>
+      <p class="indent" ref="accessCodeNode">{{plugin.access_code || 'NONE'}}</p>
       <p>OPTIONS:</p>
       <P class="indent">
-        <label><input type="checkbox" v-model="mute" /> <span>Mute for non-spending operations</span></label>
+        <label><input type="checkbox" v-model="plugin.mute" /> <span>Mute for non-spending operations</span></label>
         <br>
-        <label><input type="checkbox" v-model="plugin_timeout" /> <span>Limit session lifetime of plugin to 30 minutes</span></label>
+        <label><input type="checkbox" v-model="plugin.timeout" /> <span>Limit session lifetime of plugin to 30 minutes</span></label>
         <br>
         <span>HOST: </span>
         <select v-model="host">
-          <option value="https://teznode.catsigma.com">alphanet</option>
-          <option value="https://teznode-main.catsigma.com">mainnet</option>
+          <option value="https://zeronet.catsigma.com">zeronet</option>
         </select>
       </P>
       <p>OPERATIONS:</p>
@@ -43,7 +42,7 @@ const main_template = `
     </div>
     <div v-if="view.entry === 'without-key'">
       <label>
-        <input type="radio" name="subentry" @click="view.subentry = 'import'" />
+        <input type="radio" name="subentry" @click="switch_to_import" />
         <span>IMPORT</span>
       </label>
       <label>
@@ -73,32 +72,38 @@ const main_template = `
 
         <p>USING MNEMONIC</p>
         <p class="indent">
-          <input placeholder="put mnemonic word here" v-model="import_mnemonic" /> <br>
-          <input type="password" placeholder="type passphrase here" v-model="import_passphrase" />
+          <input placeholder="put mnemonic word here" v-model="key_import.mnemonic" /> <br>
+          <input type="password" placeholder="type passphrase here" v-model="key_import.password" />
         </p>
         <br>
 
         <p>USING SECRET KEY</p>
         <p class="indent">
-          <input placeholder="put secret key here" v-model="import_sk" />
+          <input placeholder="put secret key here" v-model="key_import.secret_key" />
+        </p>
+        <br>
+
+        <p>USING SEED</p>
+        <p class="indent">
+          <input placeholder="put seed here" v-model="key_import.seed" />
         </p>
         <br>
 
         <button @click="import_key">IMPORT</button>
       </div>
       <div v-if="view.subentry === 'generate'" class="group">
-        <div v-if="!keys.sk">
-          <p>{{mnemonic}}</p>
-          <input type="password" placeholder="set passphrase here" v-model="passphrase" />
+        <div v-if="!tzclient.key_pair.secret_key">
+          <p>{{key_import.mnemonic}}</p>
+          <input type="password" placeholder="set passphrase here" v-model="key_import.password" />
           <br>
           <button @click="generate_next">NEXT</button>
         </div>
-        <div v-if="keys.sk">
+        <div v-if="tzclient.key_pair.secret_key">
           <p>SECRET KEY:</p>
-          <p class="indent">{{keys.sk}}</p>
+          <p class="indent">{{tzclient.key_pair.secret_key}}</p>
           <input type="password" placeholder="type local secure password" v-model="localpwd" />
           <br>
-          <button @click="use_this_account" v-if="keys.sk">USE THIS ACCOUNT</button>
+          <button @click="use_this_account" v-if="tzclient.key_pair.secret_key">USE THIS ACCOUNT</button>
         </div>
       </div>
     </div>
