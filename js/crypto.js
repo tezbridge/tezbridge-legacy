@@ -1,3 +1,5 @@
+// const sodium = require('libsodium-wrappers')
+
 const to_hex = input => {
   return [].map.call(input, x => {
     const hex = x.toString(16)
@@ -14,10 +16,18 @@ const to_base64 = x => {
 }
 
 const getKey = (password, salt) => {
+  // return Promise.resolve(sodium.crypto_pwhash(
+  //   64,
+  //   password,
+  //   salt,
+  //   4,
+  //   1024 * 2048,
+  //   sodium.crypto_pwhash_ALG_ARGON2I13
+  // ))
   return argon2.hash({
       pass: password,
       salt: salt,
-      time: 8,
+      time: 4,
       mem: 2048,
       hashLen: 64,
       parallelism: 1,
@@ -35,7 +45,7 @@ const encrypt = (password, content) => {
   .then(key => miscreant.AEAD.importKey(key, 'AES-PMAC-SIV'))
   .then(x => x.seal(new TextEncoder('utf-8').encode(content), iv))
   .then(x => ({
-    v: 0.23,
+    v: 0.31,
     salt: to_hex(salt),
     iv: to_hex(iv),
     ciphertext: to_hex(x)
@@ -43,7 +53,7 @@ const encrypt = (password, content) => {
 }
 
 const decrypt = (password, cipherobj) => {
-  if (cipherobj.v !== 0.23) {
+  if (cipherobj.v !== 0.31) {
     alert('The crypto system has been updated\nPlease clear your account and reimport it again')
     return Promise.reject()
   }

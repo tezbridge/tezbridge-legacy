@@ -32,15 +32,7 @@ const prefix = {
 class TZClient {
   constructor(params = {}) {
     this.host = params.host || 'https://zeronet.catsigma.com'
-    this.key_pair = {}
-
-    if (params.seed) {
-      this.key_pair = TZClient.getKeysFromSeed(params.seed)
-    }
-
-    if (params.mnemonic && params.password) {
-      this.key_pair = TZClient.getKeysFromSeed(TZClient.getSeedFromMnemonic(params.mnemonic, params.password))
-    }
+    this.importKey(params)
   }
 
   static enc58(prefix, input) {
@@ -55,7 +47,7 @@ class TZClient {
     return '' + Math.round(input * 1000000)
   }
   static tz2r(input) {
-    return input / 1000000
+    return input / 1000000 + ''
   }
 
   static getKeysFromSeed(seed) {
@@ -74,6 +66,27 @@ class TZClient {
 
   static getSeedFromMnemonic(mnemonic, password) {
     return TZClient.enc58(prefix.secret_key, bip39.mnemonicToSeed(mnemonic, password).slice(0, 32))
+  }
+
+  importKey(params) {
+    this.key_pair = {}
+
+    if (params.seed) {
+      this.key_pair = TZClient.getKeysFromSeed(params.seed)
+    }
+
+    if (params.mnemonic && params.password) {
+      this.key_pair = TZClient.getKeysFromSeed(TZClient.getSeedFromMnemonic(params.mnemonic, params.password))
+    }
+
+    if (params.secret_key) {
+      const raw_public_key = TZClient.dec58(prefix.secret_key, params.secret_key).slice(32)
+      this.key_pair = {
+        secret_key: params.secret_key,
+        public_key: TZClient.enc58(prefix.public_key, raw_public_key),
+        public_key_hash: TZClient.enc58(prefix.identity, sodium.crypto_generichash(20, raw_public_key))
+      }
+    }
   }
 
   call(path, data = {}) {
@@ -196,43 +209,46 @@ class TZClient {
   }
 }
 
-sodium.ready.then(() => {
-  window.TZClient = TZClient
+module.exports = TZClient
 
-  // const tzc = new TZClient({
-  //   seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
-  // })
 
-  const tzc = new TZClient({
-    mnemonic: TZClient.genMnemonic(),
-    password: 'abcdefg'
-  })
+// sodium.ready.then(() => {
+//   window.TZClient = TZClient
 
-  tzc.balance()
-  .then(balance => {
-    return tzc.faucet()
-    .then(() => tzc.balance())
-    .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
-  })
-  .then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
-  .then(balances => {
-    return tzc.transfer({
-      destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
-      amount: 13.001001
-    })
-    .then(() => {
-      return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
-      .then(new_balances => {
-        console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
-      })
-    })
-  })
-  .then(() => {
-    return tzc.originate({
-      balance: 2.01
-    })
-    .then(x => tzc.balance(x[0][0]))
-    .then(x => console.log('originate test:', TZClient.tz2r(x)))
-  })
+//   // const tzc = new TZClient({
+//   //   seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
+//   // })
 
-})
+//   const tzc = new TZClient({
+//     mnemonic: TZClient.genMnemonic(),
+//     password: 'abcdefg'
+//   })
+
+//   tzc.balance()
+//   .then(balance => {
+//     return tzc.faucet()
+//     .then(() => tzc.balance())
+//     .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
+//   })
+//   .then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
+//   .then(balances => {
+//     return tzc.transfer({
+//       destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
+//       amount: 13.001001
+//     })
+//     .then(() => {
+//       return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
+//       .then(new_balances => {
+//         console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
+//       })
+//     })
+//   })
+//   .then(() => {
+//     return tzc.originate({
+//       balance: 2.01
+//     })
+//     .then(x => tzc.balance(x[0][0]))
+//     .then(x => console.log('originate test:', TZClient.tz2r(x)))
+//   })
+
+// })
