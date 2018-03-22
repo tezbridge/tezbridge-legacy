@@ -76,8 +76,5 @@ If this project help you reduce time to develop, you can buy me a cup of milk ðŸ
 
 BTC: `1L1Kbm7SmmzVLAAaZi9pQdtMnR2SDERZFc`
 
-## Credits
-[https://github.com/stephenandrews/eztz](https://github.com/stephenandrews/eztz) (Easy Tezos JS Library)
-
 ## License
 MIT
