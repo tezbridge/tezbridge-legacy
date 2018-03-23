@@ -278,7 +278,7 @@ const main_template = `
       <p>OPERATIONS:</p>
       <p class="indent">
         <button @click="refresh_balance">REFRESH BALANCE</button> <br>
-        <button @click="tez_faucet">+ BALANCE (ONLY IN ALPHANET)</button> <br>
+        <button @click="tez_faucet">+ BALANCE (ONLY FOR TESTNET)</button> <br>
         <button @click="clear">CLEAR</button> <br>
         <button @click="gen_access_code">GET ACCESS CODE</button> <br>
       </p>
