@@ -158,8 +158,7 @@ module.exports = {
     originate: {
       confirm(e) {
         return `originate contract for ${e.data.balance}tz
-          with code:${!!e.data.script || !!e.data.code_raw}
-          with init:${!!e.data.init_raw}`
+          with code:${!!e.data.script || !!e.data.code_raw}`
       },
       handler(e) {
         return rpc(() => {
