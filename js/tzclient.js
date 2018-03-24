@@ -128,7 +128,7 @@ class TZClient {
     delegate,
     script
   }) {
-    return this.makeOperation([{
+    return this.makeOperations([{
       kind: 'reveal',
       public_key: this.key_pair.public_key
     }, {
@@ -149,7 +149,7 @@ class TZClient {
     destination,
     parameters
   }) {
-    return this.makeOperation([{
+    return this.makeOperations([{
       kind: 'reveal',
       public_key: this.key_pair.public_key
     }, {
@@ -161,7 +161,7 @@ class TZClient {
   }
 
   faucet() {
-    return this.makeOperation([{
+    return this.makeOperations([{
       kind: 'faucet',
       id: this.key_pair.public_key_hash,
       nonce: sodium.to_hex(sodium.crypto_generichash(32, '' + new Date() + Math.random()))
@@ -173,7 +173,7 @@ class TZClient {
     }))
   }
 
-  makeOperation(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
+  makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
     return Promise.all([this.predecessor(), this.counter(additional_forge_data.source)])
     .then(([predecessor, counter]) => {
       const post_data = {
