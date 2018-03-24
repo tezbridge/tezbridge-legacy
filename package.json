@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "tezbridge is the one that allows you to visit the decentralized application of tomorrow in your browser and mobile today",
   "scripts": {
-    "build": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js && browserify js/indexapp.js -o js/build/indexapp.js && browserify js/plugin.js -o js/build/plugin.js"
+    "b_index": "browserify js/indexapp.js -o js/build/indexapp.js",
+    "b_plugin": "browserify js/plugin.js -o js/build/plugin.js",
+    "b_m_tzclient": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js && minify js/build/tzclient.js --outFile js/build/tzclient.min.js",
+    "build": "npm run b_index && npm run b_plugin && npm run b_m_tzclient"
   },
   "repository": {
     "type": "git",

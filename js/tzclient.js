@@ -129,6 +129,9 @@ class TZClient {
     script
   }) {
     return this.makeOperation([{
+      kind: 'reveal',
+      public_key: this.key_pair.public_key
+    }, {
       kind: 'origination',
       managerPubkey: this.key_pair.public_key_hash,
       balance: TZClient.r2tz(balance),
