@@ -176,11 +176,21 @@ with code:${!!e.data.script}`
     operations: {
       confirm(e) {
         return `run operations list below:
-${e.data.operations.map(x => x.kind + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
+${e.data.operations.map(x => x.kind + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
       },
       handler(e) {
         return rpc(() => {
-          const ops = e.data.operations.filter(x => x.kind === 'transaction' || x.kind === 'originate')
+          const ops = e.data.operations
+          .filter(x => x.kind === 'transaction' || x.kind === 'originate')
+          .map(x => {
+            if (x.amount)
+              x.amount = TZClient.r2tz(x.amount)
+
+            if (x.balance)
+              x.balance = TZClient.r2tz(x.balance)
+
+            return x
+          })
           return tzclient.makeOperations([{
             kind: 'reveal',
             public_key: tzclient.key_pair.public_key
