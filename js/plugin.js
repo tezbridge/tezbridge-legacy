@@ -98,7 +98,7 @@ with code:${!!e.data.script}`
     operations: {
       confirm(e) {
         return `run operations list below:
-${e.data.operations.map(x => x.kind + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
+${e.data.operations.map(x => x.kind + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
       },
       handler(e) {
         return rpc(() => {
@@ -110,7 +110,7 @@ ${e.data.operations.map(x => x.kind + ' with ' + (x.amount || x.balance) + 'tz')
 
             if (x.balance)
               x.balance = TZClient.r2tz(x.balance)
-            
+
             return x
           })
           return tzclient.makeOperations([{
