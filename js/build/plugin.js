@@ -140,7 +140,7 @@ module.exports = {
     },
     transfer: {
       confirm(e) {
-        return `transfer ${e.data.amount} to ${e.data.destination} with parameter
+        return `transfer ${e.data.amount}tz to ${e.data.destination} with parameter
           ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
@@ -158,7 +158,7 @@ module.exports = {
     originate: {
       confirm(e) {
         return `originate contract for ${e.data.balance}tz
-          with code:${!!e.data.script || !!e.data.code_raw}`
+          with code:${!!e.data.script}`
       },
       handler(e) {
         return rpc(() => {
@@ -169,6 +169,22 @@ module.exports = {
             script: e.data.script,
             delegate: e.data.delegate
           })
+          .then(x => ({result: x}))
+        })
+      }
+    },
+    operations: {
+      confirm(e) {
+        return `run operations list below:
+                ${e.data.operations.map(x => x.kind + ' with ' + (x.amount || x.balance) + 'tz\n')}`
+      },
+      handler(e) {
+        return rpc(() => {
+          const ops = e.data.operations.filter(x => x.kind === 'transaction' || x.kind === 'originate')
+          return tzclient.makeOperations([{
+            kind: 'reveal',
+            public_key: this.key_pair.public_key
+          }].concat(ops), 0)
           .then(x => ({result: x}))
         })
       }

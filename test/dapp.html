@@ -48,7 +48,7 @@ tezbridge({
       </textarea>
       <div>
         <button onclick="eval(balance_cm.getValue())">get balance</button>
-        balance:<b id="balance_el"></b>
+        result:<b id="balance_el"></b>
       </div>
     </div>
 
@@ -66,7 +66,7 @@ tezbridge({
         </textarea>
         <div>
           <button onclick="eval(transfer_cm.getValue())">transfer</button>
-          transfer:<b id="transfer_el"></b>
+          result:<b id="transfer_el"></b>
         </div>
     </div>
 
@@ -83,7 +83,7 @@ tezbridge({
         </textarea>
         <div>
           <button onclick="eval(originate_cm.getValue())">originate</button>
-          originate:<b id="originate_el"></b>
+          result:<b id="originate_el"></b>
         </div>
     </div>
 
@@ -100,7 +100,39 @@ tezbridge({
         </textarea>
         <div>
           <button onclick="eval(contract_cm.getValue())">contract</button>
-          contract:<b id="contract_el"></b>
+          result:<b id="contract_el"></b>
+        </div>
+    </div>
+
+
+    <div>
+        <h3>Operation sequence</h3>
+        <textarea id="operations_script">
+tezbridge({
+  method: 'operations',
+  operations: [{
+    kind: 'transaction',
+    amount: 5.8,
+    destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+  }, {
+    kind: 'originate',
+    balance: 3.14
+  }, {
+    kind: 'transaction',
+    amount: 9.9001,
+    destination: 'tz1arTB62j93WZ4pJiDdB4NMfFhsXN5vLyVh'
+  }, {
+    kind: 'originate',
+    balance: 2.02
+  }]
+})
+.then(x => {
+  operations_el.innerHTML = JSON.stringify(x)
+})
+        </textarea>
+        <div>
+          <button onclick="eval(operations_cm.getValue())">contract</button>
+          result:<b id="operations_el"></b>
         </div>
     </div>
   </body>
@@ -110,5 +142,6 @@ tezbridge({
     window.transfer_cm = CodeMirror.fromTextArea(transfer_script)
     window.originate_cm = CodeMirror.fromTextArea(originate_script)
     window.contract_cm = CodeMirror.fromTextArea(contract_script)
+    window.operations_cm = CodeMirror.fromTextArea(operations_script)
   </script>
 </html>
