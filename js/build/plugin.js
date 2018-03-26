@@ -163,6 +163,7 @@ with code:${!!e.data.script}`
       handler(e) {
         return rpc(() => {
           return tzclient.originate({
+            source: e.data.source,
             balance: e.data.balance,
             spendable: !!e.data.spendable,
             delegatable: !!e.data.delegatable,
@@ -176,25 +177,34 @@ with code:${!!e.data.script}`
     operations: {
       confirm(e) {
         return `run operations list below:
-${e.data.operations.map(x => x.kind + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
+${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
       },
       handler(e) {
         return rpc(() => {
           const ops = e.data.operations
-          .filter(x => x.kind === 'transaction' || x.kind === 'origination')
+          .filter(x => x.method === 'transfer' || x.method === 'originate')
           .map(x => {
-            if (x.amount)
-              x.amount = TZClient.r2tz(x.amount)
-
-            if (x.balance)
-              x.balance = TZClient.r2tz(x.balance)
-
-            return x
+            if (x.method === 'transfer') {
+              return tzclient.transfer({
+                amount: x.amount,
+                source: x.source,
+                destination: x.destination,
+                parameters: x.parameters
+              }, true)
+            } else {
+              return tzclient.originate({
+                balance: x.balance,
+                spendable: !!x.spendable,
+                delegatable: !!x.delegatable,
+                script: x.script,
+                delegate: x.delegate
+              }, true)
+            }
           })
           return tzclient.makeOperations([{
             kind: 'reveal',
             public_key: tzclient.key_pair.public_key
-          }].concat(ops), 0)
+          }].concat(ops), 0, e.data.source && {source: e.data.source})
           .then(x => ({result: x}))
         })
       }

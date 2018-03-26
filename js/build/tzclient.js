@@ -22937,12 +22937,10 @@ class TZClient {
     spendable = false,
     delegatable = false,
     delegate,
+    source,
     script
-  }) {
-    return this.makeOperations([{
-      kind: 'reveal',
-      public_key: this.key_pair.public_key
-    }, {
+  }, only_return_op = false) {
+    const op = {
       kind: 'origination',
       managerPubkey: this.key_pair.public_key_hash,
       balance: TZClient.r2tz(balance),
@@ -22950,7 +22948,15 @@ class TZClient {
       delegatable,
       delegate,
       script
-    }], fee)
+    }
+
+    if (only_return_op)
+      return op
+    else
+      return this.makeOperations([{
+        kind: 'reveal',
+        public_key: this.key_pair.public_key
+      }, op], fee, source && {source})
   }
 
   transfer({
@@ -22959,16 +22965,21 @@ class TZClient {
     source,
     destination,
     parameters
-  }) {
-    return this.makeOperations([{
-      kind: 'reveal',
-      public_key: this.key_pair.public_key
-    }, {
+  }, only_return_op = false) {
+    const op = {
       kind: 'transaction',
       amount: TZClient.r2tz(amount),
       destination,
       parameters
-    }], fee, source && {source})
+    }
+
+    if (only_return_op)
+      return op
+    else
+      return this.makeOperations([{
+        kind: 'reveal',
+        public_key: this.key_pair.public_key
+      }, op], fee, source && {source})
   }
 
   faucet() {
