@@ -111,18 +111,19 @@ tezbridge({
 tezbridge({
   method: 'operations',
   operations: [{
-    kind: 'transaction',
+    method: 'transfer',
     amount: 5.8,
     destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
   }, {
-    kind: 'origination',
-    balance: 3.14
+    method: 'originate',
+    balance: 100.001,
+    spendable: true
   }, {
-    kind: 'transaction',
+    method: 'transfer',
     amount: 9.9001,
     destination: 'tz1arTB62j93WZ4pJiDdB4NMfFhsXN5vLyVh'
   }, {
-    kind: 'origination',
+    method: 'originate',
     balance: 2.02
   }]
 })
