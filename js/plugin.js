@@ -103,7 +103,7 @@ ${e.data.operations.map(x => x.kind + (x.destination ? `(${x.destination})` : ''
       handler(e) {
         return rpc(() => {
           const ops = e.data.operations
-          .filter(x => x.kind === 'transaction' || x.kind === 'originate')
+          .filter(x => x.kind === 'transaction' || x.kind === 'origination')
           .map(x => {
             if (x.amount)
               x.amount = TZClient.r2tz(x.amount)
