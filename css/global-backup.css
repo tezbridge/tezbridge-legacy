@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'metropolisbold';
+    src: url('metropolis-bold-webfont.woff2') format('woff2'),
+         url('metropolis-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'metropolisregular';
+    src: url('metropolis-regular-webfont.woff2') format('woff2'),
+         url('metropolis-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.watermark { color: #ccc; bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
+.watermark:visited { color: #ccc; }
+.watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
+
+* { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 13px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
+p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }
+p.indent { padding-left: 8px; }
+
+button { background: rgb(113,113,113); color: #ddd; box-shadow: #333 2px 2px 0; padding: 4px 8px; margin: 4px; border: 0}
+button:active {box-shadow: #333 0 0 0; color: white;}
+td { text-align: right }
+
+#loading { color: black; position: fixed; top: 0; left: 0; width: 100%; text-align: center}
+#loading span { padding: 4px 8px; background: #eee; border-radius: 0 0 8px 8px; }
+
+
+body { opacity: 0; padding: 4px ; background: #333; color: #ccc; transition: opacity 1s; -webkit-transition: opacity 1s;}
+.group { padding: 6px; margin: 6px; background: rgba(108,108,108,0.5) }
+
+.group input::placeholder { color: #aaa; }
+.group input { color: white; background: transparent; border-radius: 5px; border: 0; border-bottom: 1px solid #ccc; width: 240px; padding: 4px; margin: 4px;}
+
+.compatibility ul {padding-left: 16px;}
