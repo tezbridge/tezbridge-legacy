@@ -2,8 +2,9 @@ const components = require('./components')
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
+    components,
     el: '#app',
-    template: `<div><q-btn label="Test2" class="shadow-1" /></div>`,
+    template: `<account-list />`,
     data() {
       return {
 
