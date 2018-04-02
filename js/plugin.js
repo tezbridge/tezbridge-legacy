@@ -151,7 +151,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
 
       } else {
         const key = prompt('Input the access code')
-        require('./crypto').decrypt(key, JSON.parse(encrypted_keys))
+        require('./localcrypto').decrypt(key, JSON.parse(encrypted_keys))
         .then(x => {
           tzclient.importKey({secret_key: x})
 

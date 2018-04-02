@@ -1,6 +1,7 @@
 const bs58check = require('bs58check')
 const sodium = require('libsodium-wrappers')
 const bip39 = require('bip39')
+const localcrypto = require('./localcrypto')
 
 const combineUint8Array = (x, y) => {
   const tmp = new Uint8Array(x.length + y.length)
@@ -87,6 +88,10 @@ class TZClient {
         public_key_hash: TZClient.enc58(prefix.identity, sodium.crypto_generichash(20, raw_public_key))
       }
     }
+  }
+
+  exportCipherData(password) {
+    return localcrypto.encrypt(password, this.key_pair.secret_key)
   }
 
   call(path, data = {}) {
@@ -232,35 +237,35 @@ module.exports = TZClient
 //   seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
 // })
 
-const tzc = new TZClient({
-  mnemonic: TZClient.genMnemonic(),
-  password: 'abcdefg'
-})
+// const tzc = new TZClient({
+//   mnemonic: TZClient.genMnemonic(),
+//   password: 'abcdefg'
+// })
 
-tzc.balance()
-.then(balance => {
-  return tzc.faucet()
-  .then(() => tzc.balance())
-  .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
-})
-.then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
-.then(balances => {
-  return tzc.transfer({
-    destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
-    amount: 13.001001
-  })
-  .then(() => {
-    return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
-    .then(new_balances => {
-      console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
-    })
-  })
-})
-.then(() => {
-  return tzc.originate({
-    balance: 2.01
-  })
-  .then(x => tzc.balance(x[0][0]))
-  .then(x => console.log('originate test:', TZClient.tz2r(x)))
-})
+// tzc.balance()
+// .then(balance => {
+//   return tzc.faucet()
+//   .then(() => tzc.balance())
+//   .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
+// })
+// .then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
+// .then(balances => {
+//   return tzc.transfer({
+//     destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
+//     amount: 13.001001
+//   })
+//   .then(() => {
+//     return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
+//     .then(new_balances => {
+//       console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
+//     })
+//   })
+// })
+// .then(() => {
+//   return tzc.originate({
+//     balance: 2.01
+//   })
+//   .then(x => tzc.balance(x[0][0]))
+//   .then(x => console.log('originate test:', TZClient.tz2r(x)))
+// })
 

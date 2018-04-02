@@ -5,8 +5,10 @@
   "scripts": {
     "b_app": "browserify js/app.js -o js/build/app.js",
     "b_plugin": "browserify js/plugin.js -o js/build/plugin.js",
+    "b_tzclient": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js",
     "b_m_tzclient": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js && minify js/build/tzclient.js --outFile js/build/tzclient.min.js",
-    "build": "npm run b_app && npm run b_plugin && npm run b_m_tzclient"
+    "build_prod": "npm run b_app && npm run b_plugin && npm run b_m_tzclient",
+    "build": "npm run b_app && npm run b_plugin && npm run b_tzclient"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,6 @@
   "dependencies": {
     "bip39": "^2.5.0",
     "bs58check": "^2.1.1",
-    "libsodium-wrappers": "0.5.4"
+    "libsodium-wrappers": "^0.7.3"
   }
 }
