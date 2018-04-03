@@ -29,9 +29,9 @@
 }
 
 @font-face {
-    font-family: 'montserrat-bold';
+    font-family: 'montserrat';
     src: url('montserrat-bold-webfont.woff2') format('woff2');
-    font-weight: normal;
+    font-weight: 700;
     font-style: normal;
 }
 
@@ -43,7 +43,7 @@
 }
 
 * {font-family: 'montserrat';}
-b {font-family: 'montserrat-bold';}
+p.ellipsis {text-overflow: ellipsis; overflow: hidden;}
 
 body .q-stepper-dot {width: 32px; height: 32px; margin-top: -4px; margin-left: -4px;}
 

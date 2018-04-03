@@ -22964,6 +22964,13 @@ class TZClient {
     return localcrypto.encrypt(password, this.key_pair.secret_key)
   }
 
+  importCipherData(cipherdata, password) {
+    return localcrypto.decrypt(password, cipherdata).then(x => {
+      this.importKey({secret_key: x})
+      return true
+    })
+  }
+
   call(path, data = {}) {
     return RPCall(this.host + path, data)
   }
@@ -23098,6 +23105,13 @@ class TZClient {
     .then(([contracts, x]) => [contracts, x.injectedOperation])
     .catch(err => console.log(err))
   }
+}
+
+TZClient.libs = {
+  bs58check,
+  sodium,
+  bip39,
+  localcrypto
 }
 
 module.exports = TZClient
