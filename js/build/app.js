@@ -5,7 +5,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
     components,
     el: '#app',
-    template: `<account-list />`,
+    template: `
+      <div>
+        <div>
+          Logo
+          <setting-modal ref="setting" />
+          <q-btn icon="settings" @click="$refs.setting.opened = true" />
+        </div>
+        <account-list />
+      </div>
+    `,
     data() {
       return {
 
@@ -20,10 +29,11 @@ const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
 const removeLocal = (x, y) => window.localStorage.removeItem(x)
 
 // init
-const current_version = 0.11
+const current_version = 0.12
 const version = getLocal('v')
 if (version < current_version) {
   setLocal('_', {})
+  setLocal('*', {})
   removeLocal('__')
   setLocal('v', current_version)
 }
@@ -255,6 +265,69 @@ components.NewAccountGuide = Vue.component('new-account-guide', {
       } else {
         this.current_step = 'account_name'
       }
+    }
+  }
+})
+
+
+const domain = 'zeronet.catsigma.com'
+components.SettingModal = Vue.component('setting-modal', {
+  template: `
+    <q-modal v-model="opened" content-css="padding: 24px">
+      <q-select v-model="host" :options="hosts" float-label="Host"/>
+      <q-list link>
+        <q-item tag="label">
+          <q-item-side>
+            <q-checkbox v-model="mute"/>
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>Mute</q-item-tile>
+            <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
+          </q-item-main>
+        </q-item>
+        <q-item tag="label">
+          <q-item-side>
+            <q-checkbox v-model="timeout"  />
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>Timeout</q-item-tile>
+            <q-item-tile sublabel>Limit session lifetime of plugin to 30 minutes</q-item-tile>
+          </q-item-main>
+        </q-item>
+      </q-list>
+
+      <q-btn flat @click="opened = false" label="Close" />
+    </q-modal>
+  `,
+  data() {
+    return {
+      opened: false,
+
+      mute: !!getLocal('*').mute,
+      timeout: !!getLocal('*').timeout,
+      host: getLocal('*').host || domain,
+      hosts: [{
+        label: domain,
+        value: domain
+      }]
+    }
+  },
+  watch: {
+    mute(v) {
+      this.valChange('mute', v)
+    },
+    timeout(v) {
+      this.valChange('timeout', v)
+    },
+    host(v) {
+      this.valChange('host', v)
+    }
+  },
+  methods: {
+    valChange(name, value) {
+      const setting = getLocal('*')
+      setting[name] = value
+      setLocal('*', setting)
     }
   }
 })
