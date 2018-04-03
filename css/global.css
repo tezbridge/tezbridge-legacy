@@ -43,7 +43,7 @@
 }
 
 * {font-family: 'montserrat'; font-size: 14px;}
-p.ellipsis {text-overflow: ellipsis; overflow: hidden;}
+p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
 body .q-stepper-dot i {font-size: 18px;}
 
