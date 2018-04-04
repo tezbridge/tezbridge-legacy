@@ -45,6 +45,7 @@
 * {font-family: 'montserrat'; font-size: 14px;}
 p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
+body {max-width: 640px;}
 body .q-stepper-dot i {font-size: 18px;}
 
 .mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}

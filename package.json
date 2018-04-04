@@ -6,8 +6,7 @@
     "b_app": "browserify js/app.js -o js/build/app.js",
     "b_plugin": "browserify js/plugin.js -o js/build/plugin.js",
     "b_tzclient": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js",
-    "b_m_tzclient": "browserify js/tzclient.js --standalone TZClient -o js/build/tzclient.js && minify js/build/tzclient.js --outFile js/build/tzclient.min.js",
-    "build_prod": "npm run b_app && npm run b_plugin && npm run b_m_tzclient",
+    "minify": "minify js/build/plugin.js --outFile js/build/plugin.js && minify js/build/app.js --outFile js/build/app.js && minify js/build/tzclient.js --outFile js/build/tzclient.js",
     "build": "npm run b_app && npm run b_plugin && npm run b_tzclient"
   },
   "repository": {

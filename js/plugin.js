@@ -1,8 +1,9 @@
 ((window) => {
   const TZClient = window.TZClient
 
-  const getLocal = x => window.localStorage.getItem(x)
-  const setLocal = (x, y) => window.localStorage.setItem(x, y)
+  const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+  const removeLocal = x => window.localStorage.removeItem(x)
+
   const rpc = function(promise_fn){
     if (rpc.locked) return
     rpc.locked = true
@@ -136,13 +137,13 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
   const dispatcher = (e) => {
     if (!e.data.tezbridge) return
 
-    const host = getLocal('host')
+    const host = getLocal('*').host
     if (host)
       tzclient.host = host
 
     if (!tzclient.key_pair.secret_key) {
       const encrypted_keys = getLocal('__')
-      setLocal('__', '')
+      removeLocal('__')
       if (!encrypted_keys) {
         e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
         alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
@@ -151,11 +152,9 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
 
       } else {
         const key = prompt('Input the access code')
-        require('./localcrypto').decrypt(key, JSON.parse(encrypted_keys))
-        .then(x => {
-          tzclient.importKey({secret_key: x})
-
-          if (getLocal('timeout')) {
+        tzclient.importCipherData(encrypted_keys, key)
+        .then(() => {
+          if (getLocal('*').timeout) {
             const start_date = +new Date()
 
             const timer = setInterval(() => {
@@ -178,7 +177,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
       }
     } else {
       if (!export_functions[e.data.method]) return
-      if (!export_functions[e.data.method].mute || !getLocal('mute'))
+      if (!export_functions[e.data.method].mute || !getLocal('*').mute)
         if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
           e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, '*')
           return

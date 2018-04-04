@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 },{"./components":2}],2:[function(require,module,exports){
 const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
-const removeLocal = (x, y) => window.localStorage.removeItem(x)
+const removeLocal = x => window.localStorage.removeItem(x)
 
 // init
 const current_version = 0.12
@@ -84,7 +84,7 @@ components.Account = Vue.component('account', {
             <q-item-side icon="account_balance_wallet" />
             <q-item-main>
               <q-item-tile label>Balance</q-item-tile>
-              <q-item-tile sublabel>{{balance}}tz</q-item-tile>
+              <q-item-tile sublabel><b>{{balance}}</b>tz</q-item-tile>
             </q-item-main>
             </q-item>
             <q-item>
@@ -103,6 +103,9 @@ components.Account = Vue.component('account', {
             </q-item>
         </q-list>
         <q-btn @click="lock" label="Lock" icon="lock" />
+        <q-btn push rounded @click="faucet" label="Faucet" icon="opacity" />
+        <q-inner-loading :visible="loading">
+        </q-inner-loading>
       </div>
     </div>
   `,
@@ -110,11 +113,12 @@ components.Account = Vue.component('account', {
   data() {
     return {
       locked: true,
+      loading: false,
       tzclient: new TZClient(),
       password: '',
       password_error: '',
 
-      balance: 0,
+      balance: '0',
       public_key_hash: '',
       access_code: getLocal('__') ? 'Generated' : 'Ready to generate'
     }
@@ -157,6 +161,15 @@ components.Account = Vue.component('account', {
     lock() {
       Object.assign(this.$data, this.$options.data())
     },
+    faucet() {
+      this.loading = true
+      this.tzclient.faucet()
+      .then(() => this.tzclient.balance())
+      .then(x => {
+        this.balance = TZClient.tz2r(x)
+        this.loading = false
+      })
+    },
     unlock() {
       const tzclient = new TZClient()
       tzclient.importCipherData(this.account.cipherdata, this.password)
@@ -165,7 +178,7 @@ components.Account = Vue.component('account', {
         this.tzclient = tzclient
 
         this.public_key_hash = this.tzclient.key_pair.public_key_hash
-        this.tzclient.balance().then(x => this.balance = x)
+        this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
       })
       .catch(err => {
         this.password_error = 'Password incorrect'
@@ -182,7 +195,7 @@ components.AccountList = Vue.component('account-list', {
         <account :account="account" />
       </q-collapsible>
       <q-collapsible icon="add" label="Add account" v-model="collapse.add">
-        <new-account-guide @finish="newAccountFinish" />
+        <gen-new-account @finish="newAccountFinish" />
       </q-collapsible>
     </q-list>
   `,
@@ -247,124 +260,21 @@ const genTZclient = (tzclient_param, account_name, password) => {
   }
 }
 
-components.ImportAccount = Vue.component('import-account', {
-  template: `
-    <div>
-      <q-field :error="!!account_name_error" :error-label="account_name_error">
-        <q-input v-model="account_name"  float-label="Account name" />
-      </q-field>
-      <q-tabs inverted align="justify">
-        <q-tab default name="mnemonic" slot="title" label="Mnemonic" />
-        <q-tab name="secret_key" slot="title" label="Secret key" />
-        <q-tab name="seed" slot="title" label="Seed" />
-
-        <q-tab-pane name="mnemonic">
-          <q-field :error="!!mnemonic_error" :error-label="mnemonic_error">
-            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
-            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_password"  float-label="Password" />
-          </q-field>
-          <q-btn @click="importMnemonic" label="Import" />
-        </q-tab-pane>
-
-        <q-tab-pane name="secret_key">
-          <q-field :error="!!secret_key_error" :error-label="secret_key_error">
-            <q-input @keyup.enter="importSecretKey" v-model="secret_key"  float-label="Secret key" />
-          </q-field>
-          <q-btn @click="importSecretKey" label="Import" />
-        </q-tab-pane>
-
-        <q-tab-pane name="seed">
-          <q-field :error="!!seed_error" :error-label="seed_error">
-            <q-input @keyup.enter="importSeed" v-model="seed"  float-label="Secret key" />
-          </q-field>
-          <q-btn @click="importSeed" label="Import" />
-        </q-tab-pane>
-      </q-tabs>
-
-    </div>
-  `,
-  data() {
-    return {
-      account_name: '',
-      password: '',
-
-      mnemonic_word: '',
-      mnemonic_password: '',
-      secret_key: '',
-      seed: '',
-
-      account_name_error: '',
-      mnemonic_error: '',
-      secret_key_error: '',
-      seed_error: ''
-    }
-  },
-  methods: {
-    accountNameCheck() {
-      const accounts = getLocal('_')
-
-      if (this.account_name.length === 0) {
-        this.account_name_error = 'Please input your account name'
-        return false
-      }
-      else if (this.account_name in accounts) {
-        this.account_name_error = 'This account name has already been used'
-        return false
-      }
-      this.account_name_error = ''
-      return true
-    },
-    accountGen(params) {
-      return genTZclient(params, this.account_name, this.password)
-      .then(() => {
-        this.$emit('finish')
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
-    importSeed() {
-      if (!this.accountNameCheck()) return
-      if (!this.seed) {
-        this.seed_error = 'Please input seed'
-        return
-      }
-
-      this.accountGen({
-        seed: this.seed
-      })
-      .catch(err => this.seed_error = err)
-    },
-    importMnemonic() {
-      if (!this.accountNameCheck()) return
-      if (!this.mnemonic_word || !this.mnemonic_password) {
-        this.mnemonic_error = 'Please input words and password'
-        return
-      }
-
-      this.accountGen({
-        mnemonic: this.mnemonic_word,
-        password: this.mnemonic_password
-      })
-      .catch(err => this.mnemonic_error = err)
-    },
-    importSecretKey() {
-      if (!this.accountNameCheck()) return
-      if (!this.secret_key) {
-        this.secret_key_error = 'Please input secret key'
-        return
-      }
-
-      this.accountGen({
-        secret_key: this.secret_key,
-      })
-      .catch(err => this.secret_key_error = err)
-    }
-  }
-})
 
 components.GenNewAccount = Vue.component('gen-new-account', {
   template: `
     <q-stepper v-model="current_step" vertical>
-      <q-step default name="password" title="Set password" active-icon="edit" icon="lock">
+
+      <q-step default name="account_name" title="Set account name" active-icon="edit" icon="perm_identity">
+        <q-field :error="!!account_name_error" :error-label="account_name_error">
+          <q-input @keyup.enter="setAccountName" v-model="account_name" float-label="Account name" />
+        </q-field>
+        <q-stepper-navigation>
+          <q-btn @click="setAccountName" label="Next" />
+        </q-stepper-navigation>
+      </q-step>
+
+      <q-step name="password" title="Set password" active-icon="edit" icon="lock">
         <q-field :error="!!password_error" :error-label="password_error">
           <q-input @keyup.enter="confirmPassword" v-model="password" type="password" float-label="Password" />
           <q-input @keyup.enter="confirmPassword" v-model="password_confirm" type="password" float-label="Password confirm"  />
@@ -374,21 +284,57 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         </q-stepper-navigation>
       </q-step>
 
-      <q-step name="account_name" title="Set account name" active-icon="edit" icon="perm_identity">
-        <q-field :error="!!account_name_error" :error-label="account_name_error">
-          <q-input @keyup.enter="setAccountName" v-model="account_name" float-label="Account name" />
-        </q-field>
-        <q-stepper-navigation>
-          <q-btn @click="setAccountName" label="Next" />
-        </q-stepper-navigation>
+      <q-step name="op_selection" title="Import or generate" active-icon="edit" icon="device hub">
+        <div class="gutter-sm">
+          <q-field label="Import" icon="move to inbox">
+            <q-option-group
+              type="radio"
+              v-model="op_selection"
+              :options="[
+                { label: 'Mnemonic', value: 'mnemonic' },
+                { label: 'Secret key', value: 'secret_key' },
+                { label: 'Seed', value: 'seed' }
+              ]"
+            />
+          </q-field>
+          <q-field label="Generate" icon="person add">
+            <q-radio v-model="op_selection" val="gen_mnemonic" label="Mnemonic" />
+          </q-field>
+        </div>
       </q-step>
 
-      <q-step name="mnemonic" title="Write down mnemonic" active-icon="edit" icon="assignment">
-        <b class="mnemonic" v-for="word in mnemonic">{{word}}</b>
-        <q-stepper-navigation>
-          <q-btn @click="finish" label="Finish" />
-        </q-stepper-navigation>
+      <q-step name="process" title="Process" active-icon="edit" icon="assignment">
+        <div v-if="op_selection === 'gen_mnemonic'">
+          <b class="mnemonic" v-for="word in gen_mnemonic">{{word}}</b>
+          <q-field :error="!!gen_mnemonic_error" :error-label="gen_mnemonic_error">
+            <q-input @keyup.enter="genMnemonic" v-model="gen_mnemonic_passphrase" type="password" float-label="Passphrase" />
+          </q-field>
+          <q-stepper-navigation>
+            <q-btn @click="genMnemonic" label="Generate" />
+          </q-stepper-navigation>
+        </div>
+        <div v-if="op_selection === 'mnemonic'">
+          <q-field :error="!!mnemonic_error" :error-label="mnemonic_error">
+            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
+            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_passphrase"  float-label="Passphrase" />
+          </q-field>
+          <q-btn @click="importMnemonic" label="Import" />
+        </div>
+        <div v-if="op_selection === 'secret_key'">
+          <q-field :error="!!secret_key_error" :error-label="secret_key_error">
+            <q-input @keyup.enter="importSecretKey" v-model="secret_key"  float-label="Secret key" />
+          </q-field>
+          <q-btn @click="importSecretKey" label="Import" />
+        </div>
+        <div v-if="op_selection === 'seed'">
+          <q-field :error="!!seed_error" :error-label="seed_error">
+            <q-input @keyup.enter="importSeed" v-model="seed"  float-label="Seed" />
+          </q-field>
+          <q-btn @click="importSeed" label="Import" />
+        </div>
+
       </q-step>
+
     </q-stepper>
   `,
   data() {
@@ -400,20 +346,85 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       account_name: '',
       account_name_error: '',
 
-      mnemonic: [],
-      current_step: 'password'
+      op_selection: '',
+
+      gen_mnemonic: [],
+      gen_mnemonic_error: '',
+      gen_mnemonic_passphrase: '',
+
+      mnemonic_error: '',
+      mnemonic_word: '',
+      mnemonic_passphrase: '',
+
+      secret_key_error: '',
+      secret_key: '',
+
+      seed_error: '',
+      seed: '',
+
+      current_step: 'account_name'
+    }
+  },
+  watch: {
+    op_selection(v) {
+      if (this.current_step !== 'op_selection') return
+
+      (({
+        'gen_mnemonic': () => {
+          this.gen_mnemonic = TZClient.genMnemonic().split(' ')
+        }
+      })[v] || (() => {}))()
+      this.current_step = 'process'
     }
   },
   methods: {
-    finish() {
-      genTZclient({
-        mnemonic: this.mnemonic.join(' '),
-        password: this.password
-      }, this.account_name, this.password)
+    accountGen(params) {
+      return genTZclient(params, this.account_name, this.password)
       .then(() => {
         this.$emit('finish')
         Object.assign(this.$data, this.$options.data())
       })
+    },
+    importSeed() {
+      if (!this.seed) {
+        this.seed_error = 'Please input seed'
+        return
+      }
+
+      this.accountGen({
+        seed: this.seed
+      })
+      .catch(err => this.seed_error = err)
+    },
+    importSecretKey() {
+      if (!this.secret_key) {
+        this.secret_key_error = 'Please input secret key'
+        return
+      }
+
+      this.accountGen({
+        secret_key: this.secret_key,
+      })
+      .catch(err => this.secret_key_error = err)
+    },
+    importMnemonic() {
+      if (!this.mnemonic_word || !this.mnemonic_password) {
+        this.mnemonic_error = 'Please input words and password'
+        return
+      }
+
+      this.accountGen({
+        mnemonic: this.mnemonic_word,
+        password: this.mnemonic_password
+      })
+      .catch(err => this.mnemonic_error = err)
+    },
+    genMnemonic() {
+      this.accountGen({
+        mnemonic: this.gen_mnemonic.join(' '),
+        password: this.gen_mnemonic_passphrase
+      })
+      .catch(err => this.gen_mnemonic_error = err)
     },
     setAccountName() {
       const accounts = getLocal('_')
@@ -425,8 +436,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       }
       else {
         this.account_name_error = ''
-        this.mnemonic = TZClient.genMnemonic().split(' ')
-        this.current_step = 'mnemonic'
+        this.current_step = 'password'
       }
     },
     confirmPassword() {
@@ -435,7 +445,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       else if (this.password !== this.password_confirm) {
         this.password_error = 'The two passwords are not equal'
       } else {
-        this.current_step = 'account_name'
+        this.current_step = 'op_selection'
       }
     }
   }
