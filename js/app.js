@@ -5,11 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     components,
     el: '#app',
     template: `
-      <div>
-        <div>
-          Logo
+      <div class="body-wrapper">
+        <div class="header">
+          <b>Logo</b>
           <setting-modal ref="setting" />
-          <q-btn icon="settings" @click="$refs.setting.opened = true" />
+          <q-btn icon="settings" outline round @click="$refs.setting.opened = true" size="sm" />
         </div>
         <account-list />
       </div>

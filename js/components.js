@@ -19,10 +19,12 @@ components.Account = Vue.component('account', {
   template: `
     <div>
       <div v-if="locked">
-        <q-field :error="!!password_error" :error-label="password_error">
-          <q-input @keyup.enter="unlock" v-model="password" type="password" float-label="Password" />
+        <q-field :error="!!password_error" :error-label="password_error" helper="Password for account decryption">
+          <q-input @keyup.enter="unlock" v-model="password" type="password" color="cyan-8" float-label="Password" />
         </q-field>
-        <q-btn @click="unlock" label="Unlock" icon="lock open" />
+        <div class="center-wrapper">
+          <q-btn @click="unlock" label="Unlock" icon="lock open" outline color="cyan-8" />
+        </div>
       </div>
       <div v-if="!locked">
         <q-list>
@@ -237,25 +239,25 @@ const genTZclient = (tzclient_param, account_name, password) => {
 
 components.GenNewAccount = Vue.component('gen-new-account', {
   template: `
-    <q-stepper v-model="current_step" vertical>
+    <q-stepper v-model="current_step" vertical color="cyan-8">
 
       <q-step default name="account_name" title="Set account name" active-icon="edit" icon="perm_identity">
-        <q-field :error="!!account_name_error" :error-label="account_name_error">
-          <q-input @keyup.enter="setAccountName" v-model="account_name" float-label="Account name" />
+        <q-field :error="!!account_name_error" :error-label="account_name_error" helper="Set the account display name">
+          <q-input color="cyan-8" @keyup.enter="setAccountName" v-model="account_name" float-label="Account name" />
         </q-field>
-        <q-stepper-navigation>
-          <q-btn @click="setAccountName" label="Next" />
-        </q-stepper-navigation>
+        <div class="center-wrapper">
+          <q-btn outline color="cyan-8" @click="setAccountName" label="Next" icon="arrow downward" />
+        </div>
       </q-step>
 
       <q-step name="password" title="Set password" active-icon="edit" icon="lock">
-        <q-field :error="!!password_error" :error-label="password_error">
-          <q-input @keyup.enter="confirmPassword" v-model="password" type="password" float-label="Password" />
+        <q-field :error="!!password_error" :error-label="password_error" helper="Set the account encryption password">
+          <q-input v-model="password" type="password" float-label="Password" />
           <q-input @keyup.enter="confirmPassword" v-model="password_confirm" type="password" float-label="Password confirm"  />
         </q-field>
-        <q-stepper-navigation>
-          <q-btn @click="confirmPassword" label="Next" />
-        </q-stepper-navigation>
+        <div class="center-wrapper">
+          <q-btn outline color="cyan-8" @click="confirmPassword" label="Next" icon="arrow downward" />
+        </div>
       </q-step>
 
       <q-step name="op_selection" title="Import or generate" active-icon="edit" icon="device hub">
@@ -280,31 +282,37 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       <q-step name="process" title="Process" active-icon="edit" icon="assignment">
         <div v-if="op_selection === 'gen_mnemonic'">
           <b class="mnemonic" v-for="word in gen_mnemonic">{{word}}</b>
-          <q-field :error="!!gen_mnemonic_error" :error-label="gen_mnemonic_error">
+          <q-field :error="!!gen_mnemonic_error" :error-label="gen_mnemonic_error" helper="Set the mnemonic passphrase">
             <q-input @keyup.enter="genMnemonic" v-model="gen_mnemonic_passphrase" type="password" float-label="Passphrase" />
           </q-field>
-          <q-stepper-navigation>
-            <q-btn @click="genMnemonic" label="Generate" />
-          </q-stepper-navigation>
+          <div class="center-wrapper">
+            <q-btn outline color="cyan-8" @click="genMnemonic" label="Generate" />
+          </div>
         </div>
         <div v-if="op_selection === 'mnemonic'">
-          <q-field :error="!!mnemonic_error" :error-label="mnemonic_error">
+          <q-field :error="!!mnemonic_error" :error-label="mnemonic_error" helper="Mnemonic and passphrase for account import">
             <q-input @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
             <q-input @keyup.enter="importMnemonic" v-model="mnemonic_passphrase"  float-label="Passphrase" />
           </q-field>
-          <q-btn @click="importMnemonic" label="Import" />
+          <div class="center-wrapper">
+            <q-btn outline color="cyan-8" @click="importMnemonic" label="Import" />
+          </div>
         </div>
         <div v-if="op_selection === 'secret_key'">
-          <q-field :error="!!secret_key_error" :error-label="secret_key_error">
+          <q-field :error="!!secret_key_error" :error-label="secret_key_error" helper="A string of length 98 starts with edsk">
             <q-input @keyup.enter="importSecretKey" v-model="secret_key"  float-label="Secret key" />
           </q-field>
-          <q-btn @click="importSecretKey" label="Import" />
+          <div class="center-wrapper">
+            <q-btn outline color="cyan-8" @click="importSecretKey" label="Import" />
+          </div>
         </div>
         <div v-if="op_selection === 'seed'">
-          <q-field :error="!!seed_error" :error-label="seed_error">
+          <q-field :error="!!seed_error" :error-label="seed_error" helper="A string of length 54 starts with edsk">
             <q-input @keyup.enter="importSeed" v-model="seed"  float-label="Seed" />
           </q-field>
-          <q-btn @click="importSeed" label="Import" />
+          <div class="center-wrapper">
+            <q-btn outline color="cyan-8" @click="importSeed" label="Import" />
+          </div>
         </div>
 
       </q-step>
@@ -394,6 +402,11 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       .catch(err => this.mnemonic_error = err)
     },
     genMnemonic() {
+      if (!this.gen_mnemonic_passphrase) {
+        this.gen_mnemonic_error = 'Please input password'
+        return
+      }
+
       this.accountGen({
         mnemonic: this.gen_mnemonic.join(' '),
         password: this.gen_mnemonic_passphrase
