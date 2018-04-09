@@ -51,6 +51,7 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 .header img {width: 128px;}
 .center-wrapper {margin: 16px 0; text-align: center}
 .center-wrapper > * {margin: 0 2px;}
+body .q-input {margin: 8px 0}
 
 /* --- override quasar --- */
 body .q-list {border: 0}
