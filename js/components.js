@@ -20,10 +20,11 @@ components.Account = Vue.component('account', {
     <div>
       <div v-if="locked">
         <q-field :error="!!password_error" :error-label="password_error" helper="Password for account decryption">
-          <q-input @keyup.enter="unlock" v-model="password" type="password" color="cyan-8" float-label="Password" />
+          <q-input color="cyan-8" @keyup.enter="unlock" v-model="password" type="password" float-label="Password" />
         </q-field>
         <div class="center-wrapper">
-          <q-btn @click="unlock" label="Unlock" icon="lock open" outline color="cyan-8" />
+          <q-btn color="cyan-8" @click="unlock" label="Unlock" icon="lock open" outline />
+          <q-btn color="red-6" @click="remove" label="Remove" icon="delete forever" outline />
         </div>
       </div>
       <div v-if="!locked">
@@ -78,8 +79,10 @@ components.Account = Vue.component('account', {
               </q-item-side>
             </q-item>
         </q-list>
-        <q-btn @click="lock" label="Lock" icon="lock" />
-        <q-btn push rounded @click="faucet" label="Faucet" icon="opacity" />
+        <div class="center-wrapper">
+          <q-btn color="cyan-8" outline @click="lock" label="Lock" icon="lock" />
+          <q-btn push @click="faucet" label="Faucet" icon="opacity" />
+        </div>
         <q-inner-loading :visible="loading">
         </q-inner-loading>
       </div>
@@ -146,6 +149,9 @@ components.Account = Vue.component('account', {
         this.loading = false
       })
     },
+    remove() {
+      this.$emit('remove')
+    },
     unlock() {
       const tzclient = new TZClient()
       tzclient.importCipherData(this.account.cipherdata, this.password)
@@ -168,7 +174,7 @@ components.AccountList = Vue.component('account-list', {
   template: `
     <q-list>
       <q-collapsible icon="account circle" :label="account.name" :key="account.name" v-for="account in accounts">
-        <account :account="account" />
+        <account :account="account" @remove="removeAccount(account)" />
       </q-collapsible>
       <q-collapsible icon="add" label="Add account" v-model="collapse.add">
         <gen-new-account @finish="newAccountFinish" />
@@ -184,6 +190,19 @@ components.AccountList = Vue.component('account-list', {
     }
   },
   methods: {
+    removeAccount(account) {
+      this.$q.dialog({
+        title: 'Removal confirmation',
+        message: `Remove current account named ${account.name}?`,
+        ok: 'OK',
+        cancel: 'CANCEL'
+      }).then(() => {
+        const accounts = getLocal('_')
+        delete accounts[account.name]
+        setLocal('_', accounts)
+        this.accounts = accounts
+      }).catch(() => {})
+    },
     newAccountFinish() {
       this.collapse.add = false
       this.accounts = getLocal('_')
@@ -239,24 +258,24 @@ const genTZclient = (tzclient_param, account_name, password) => {
 
 components.GenNewAccount = Vue.component('gen-new-account', {
   template: `
-    <q-stepper v-model="current_step" vertical color="cyan-8">
+    <q-stepper color="cyan-8" v-model="current_step" vertical>
 
       <q-step default name="account_name" title="Set account name" active-icon="edit" icon="perm_identity">
         <q-field :error="!!account_name_error" :error-label="account_name_error" helper="Set the account display name">
           <q-input color="cyan-8" @keyup.enter="setAccountName" v-model="account_name" float-label="Account name" />
         </q-field>
         <div class="center-wrapper">
-          <q-btn outline color="cyan-8" @click="setAccountName" label="Next" icon="arrow downward" />
+          <q-btn color="cyan-8" outline @click="setAccountName" label="Next" icon="arrow downward" />
         </div>
       </q-step>
 
       <q-step name="password" title="Set password" active-icon="edit" icon="lock">
         <q-field :error="!!password_error" :error-label="password_error" helper="Set the account encryption password">
-          <q-input v-model="password" type="password" float-label="Password" />
-          <q-input @keyup.enter="confirmPassword" v-model="password_confirm" type="password" float-label="Password confirm"  />
+          <q-input color="cyan-8" v-model="password" type="password" float-label="Password" />
+          <q-input color="cyan-8" @keyup.enter="confirmPassword" v-model="password_confirm" type="password" float-label="Password confirm"  />
         </q-field>
         <div class="center-wrapper">
-          <q-btn outline color="cyan-8" @click="confirmPassword" label="Next" icon="arrow downward" />
+          <q-btn color="cyan-8" outline @click="confirmPassword" label="Next" icon="arrow downward" />
         </div>
       </q-step>
 
@@ -264,6 +283,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         <div class="gutter-sm">
           <q-field label="Import" icon="move to inbox">
             <q-option-group
+              color="cyan-8"
               type="radio"
               v-model="op_selection"
               :options="[
@@ -274,7 +294,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
             />
           </q-field>
           <q-field label="Generate" icon="person add">
-            <q-radio v-model="op_selection" val="gen_mnemonic" label="Mnemonic" />
+            <q-radio color="cyan-8" v-model="op_selection" val="gen_mnemonic" label="Mnemonic" />
           </q-field>
         </div>
       </q-step>
@@ -283,35 +303,35 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         <div v-if="op_selection === 'gen_mnemonic'">
           <b class="mnemonic" v-for="word in gen_mnemonic">{{word}}</b>
           <q-field :error="!!gen_mnemonic_error" :error-label="gen_mnemonic_error" helper="Set the mnemonic passphrase">
-            <q-input @keyup.enter="genMnemonic" v-model="gen_mnemonic_passphrase" type="password" float-label="Passphrase" />
+            <q-input color="cyan-8" @keyup.enter="genMnemonic" v-model="gen_mnemonic_passphrase" type="password" float-label="Passphrase" />
           </q-field>
           <div class="center-wrapper">
-            <q-btn outline color="cyan-8" @click="genMnemonic" label="Generate" />
+            <q-btn color="cyan-8" outline @click="genMnemonic" label="Generate" />
           </div>
         </div>
         <div v-if="op_selection === 'mnemonic'">
           <q-field :error="!!mnemonic_error" :error-label="mnemonic_error" helper="Mnemonic and passphrase for account import">
-            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
-            <q-input @keyup.enter="importMnemonic" v-model="mnemonic_passphrase"  float-label="Passphrase" />
+            <q-input color="cyan-8" @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
+            <q-input color="cyan-8" @keyup.enter="importMnemonic" v-model="mnemonic_passphrase"  float-label="Passphrase" />
           </q-field>
           <div class="center-wrapper">
-            <q-btn outline color="cyan-8" @click="importMnemonic" label="Import" />
+            <q-btn color="cyan-8" outline @click="importMnemonic" label="Import" />
           </div>
         </div>
         <div v-if="op_selection === 'secret_key'">
           <q-field :error="!!secret_key_error" :error-label="secret_key_error" helper="A string of length 98 starts with edsk">
-            <q-input @keyup.enter="importSecretKey" v-model="secret_key"  float-label="Secret key" />
+            <q-input color="cyan-8" @keyup.enter="importSecretKey" v-model="secret_key"  float-label="Secret key" />
           </q-field>
           <div class="center-wrapper">
-            <q-btn outline color="cyan-8" @click="importSecretKey" label="Import" />
+            <q-btn color="cyan-8" outline @click="importSecretKey" label="Import" />
           </div>
         </div>
         <div v-if="op_selection === 'seed'">
           <q-field :error="!!seed_error" :error-label="seed_error" helper="A string of length 54 starts with edsk">
-            <q-input @keyup.enter="importSeed" v-model="seed"  float-label="Seed" />
+            <q-input color="cyan-8" @keyup.enter="importSeed" v-model="seed"  float-label="Seed" />
           </q-field>
           <div class="center-wrapper">
-            <q-btn outline color="cyan-8" @click="importSeed" label="Import" />
+            <q-btn color="cyan-8" outline @click="importSeed" label="Import" />
           </div>
         </div>
 
@@ -349,13 +369,16 @@ components.GenNewAccount = Vue.component('gen-new-account', {
   },
   watch: {
     op_selection(v) {
-      if (this.current_step !== 'op_selection') return
+      if (this.current_step !== 'op_selection')
+        return false
 
-      (({
+      const pre_process = ({
         'gen_mnemonic': () => {
           this.gen_mnemonic = TZClient.genMnemonic().split(' ')
         }
-      })[v] || (() => {}))()
+      })[v]
+
+      if (pre_process) pre_process()
       this.current_step = 'process'
     }
   },
@@ -443,11 +466,11 @@ const domain = 'zeronet.catsigma.com'
 components.SettingModal = Vue.component('setting-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px">
-      <q-select v-model="host" :options="hosts" float-label="Host"/>
+      <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
       <q-list link>
         <q-item tag="label">
           <q-item-side>
-            <q-checkbox v-model="mute"/>
+            <q-checkbox color="cyan-8" v-model="mute"/>
           </q-item-side>
           <q-item-main>
             <q-item-tile label>Mute</q-item-tile>
@@ -456,7 +479,7 @@ components.SettingModal = Vue.component('setting-modal', {
         </q-item>
         <q-item tag="label">
           <q-item-side>
-            <q-checkbox v-model="timeout"  />
+            <q-checkbox color="cyan-8" v-model="timeout"  />
           </q-item-side>
           <q-item-main>
             <q-item-tile label>Timeout</q-item-tile>
@@ -465,7 +488,7 @@ components.SettingModal = Vue.component('setting-modal', {
         </q-item>
       </q-list>
 
-      <q-btn @click="opened = false" label="Close" />
+      <q-btn color="cyan-8" outline icon="close" @click="opened = false" label="Close" />
     </q-modal>
   `,
   data() {

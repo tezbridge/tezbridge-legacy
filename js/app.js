@@ -7,17 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     template: `
       <div class="body-wrapper">
         <div class="header">
-          <b>Logo</b>
+          <img src="css/logo.png" />
           <setting-modal ref="setting" />
-          <q-btn icon="settings" outline round @click="$refs.setting.opened = true" size="sm" />
+          <q-btn icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
         </div>
         <account-list />
       </div>
     `,
     data() {
       return {
-
       }
+    },
+    methods: {
     }
   })
 })
