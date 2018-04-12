@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="header">
           <img src="css/logo.png" />
           <setting-modal ref="setting" />
-          <q-btn icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
+          <q-btn color="grey-6" icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
         </div>
         <account-list />
       </div>

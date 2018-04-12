@@ -55,10 +55,11 @@ body .q-input {margin: 8px 0}
 /* --- override quasar --- */
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}
+body .q-stepper {box-shadow: 0 1px 1px rgba(0,0,0,.2)}
 /* === override quasar === */
 
-@media 
-(-webkit-min-device-pixel-ratio: 2), 
-(min-resolution: 192dpi) { 
+@media
+(-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
 .header img {width: 32px}
 }
