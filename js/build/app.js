@@ -109,6 +109,7 @@ components.Account = Vue.component('account', {
         <div class="center-wrapper">
           <q-btn color="cyan-8" outline @click="lock" label="Lock" icon="lock" />
           <q-btn push @click="faucet" label="Faucet" icon="opacity" />
+          <q-btn color="cyan-8" outline @click="accountExport" label="Export" icon="directions" />
         </div>
         <q-inner-loading :visible="loading">
         </q-inner-loading>
@@ -149,6 +150,11 @@ components.Account = Vue.component('account', {
       setTimeout(() => {
         this.$refs.sk_content.innerHTML = '******'
       }, 2000)
+    },
+    accountExport() {
+      this.$refs.sk_content.innerHTML = JSON.stringify(this.account.cipherdata)
+      this.copyToClipboard(this.$refs.sk_content, 'Encrypted account data')
+      this.$refs.sk_content.innerHTML = '******'
     },
     copyToClipboard(elem, name) {
       const range = document.createRange()
@@ -237,32 +243,6 @@ components.AccountList = Vue.component('account-list', {
   }
 })
 
-components.NewAccountGuide = Vue.component('new-account-guide', {
-  components,
-  template: `
-    <q-tabs inverted align="justify">
-      <q-tab default name="import" slot="title" icon="move to inbox" label="Import" />
-      <q-tab name="generate" slot="title" icon="person add" label="Generate" />
-
-      <q-tab-pane name="import">
-        <import-account @finish="finish"/>
-      </q-tab-pane>
-      <q-tab-pane name="generate">
-        <gen-new-account @finish="finish"/>
-      </q-tab-pane>
-    </q-tabs>
-  `,
-  data() {
-    return {
-
-    }
-  },
-  methods: {
-    finish() {
-      this.$emit('finish')
-    }
-  }
-})
 
 const genTZclient = (tzclient_param, account_name, password) => {
   try {
@@ -316,7 +296,8 @@ components.GenNewAccount = Vue.component('gen-new-account', {
               :options="[
                 { label: 'Mnemonic', value: 'mnemonic' },
                 { label: 'Secret key', value: 'secret_key' },
-                { label: 'Seed', value: 'seed' }
+                { label: 'Seed', value: 'seed' },
+                { label: 'TezBridge Encrypted account', value: 'tezbridge' }
               ]"
             />
           </q-field>
@@ -361,6 +342,14 @@ components.GenNewAccount = Vue.component('gen-new-account', {
             <q-btn color="cyan-8" outline @click="importSeed" label="Import" />
           </div>
         </div>
+        <div v-if="op_selection === 'tezbridge'">
+          <q-field :error="!!tezbridge_error" :error-label="tezbridge_error" helper="Notice: you should use the original password to unlock this account">
+            <q-input color="cyan-8" v-model="tezbridge_cipher"  float-label="Encrypted account data" />
+          </q-field>
+          <div class="center-wrapper">
+            <q-btn color="cyan-8" outline @click="importTezbridge" label="Import" />
+          </div>
+        </div>
 
       </q-step>
 
@@ -391,6 +380,9 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       seed_error: '',
       seed: '',
 
+      tezbridge_error: '',
+      tezbridge_cipher: '',
+
       current_step: 'account_name'
     }
   },
@@ -416,6 +408,29 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         this.$emit('finish')
         Object.assign(this.$data, this.$options.data())
       })
+    },
+    importTezbridge() {
+      if (!this.tezbridge_cipher) {
+        this.tezbridge_error = 'Please input exported account data'
+        return
+      }
+
+      try {
+        const accounts = getLocal('_')
+        accounts[this.account_name] = {
+          name: this.account_name,
+          cipherdata: JSON.parse(this.tezbridge_cipher)
+        }
+        setLocal('_', accounts)
+
+        this.$emit('finish')
+        Object.assign(this.$data, this.$options.data())
+
+      } catch(err) {
+        this.tezbridge_error = 'The data should be a valid JSON string'
+        return
+      }
+
     },
     importSeed() {
       if (!this.seed) {
