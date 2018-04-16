@@ -1,3 +1,4 @@
+
 const bs58check = require('bs58check')
 const sodium = require('libsodium-wrappers')
 const bip39 = require('bip39')
@@ -208,7 +209,7 @@ class TZClient {
         operations: ops
       }
 
-      return this.call(`/blocks/prevalidation/proto/helpers/forge/forge/operations`, Object.assign(post_data, additional_forge_data))
+      return this.call(`/blocks/prevalidation/proto/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))
       .then(x => {
         const sig = sodium.crypto_sign_detached(sodium.from_hex(x.operation), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = x.operation + sodium.to_hex(sig)
@@ -233,7 +234,6 @@ class TZClient {
       return Promise.all([x.contracts, this.call('/inject_operation', post_data)])
     })
     .then(([contracts, x]) => [contracts, x.injectedOperation])
-    .catch(err => console.log(err))
   }
 }
 
@@ -245,6 +245,94 @@ TZClient.libs = {
 }
 
 module.exports = TZClient
+
+;(() => {
+  self.importScripts && self.importScripts('miscreant.js')
+
+  const instance = new TZClient()
+
+  const handler = {
+    setHost(host) {
+      instance.host = host
+      return true
+    },
+    importKey(params) {
+      try {
+        instance = new TZClient()
+        instance.importKey(params)
+        return Promise.resolve(true)
+      } catch (err) {
+        return Promise.reject(false)
+      }
+    },
+    importCipherData(args) {
+      return instance.importCipherData.apply(instance, args)
+    },
+    cleanKey() {
+      instance = new TZClient()
+      return true
+    },
+    public_key_hash() {
+      return instance.key_pair.public_key_hash
+    },
+    balance(contract) {
+      return instance.balance(contract)
+    },
+    head() {
+      return instance.head()
+    },
+    contract(contract) {
+      return instance.contract(contract)
+    },
+    transfer(params) {
+      return instance.transfer(params)
+    },
+    originate(params) {
+      return instance.originate(params)
+    },
+    makeOperations(args) {
+      args[0] = args[0].map(x => {
+        if (x.method === 'transfer') {
+          return instance.transfer({
+            amount: x.amount,
+            source: x.source,
+            destination: x.destination,
+            parameters: x.parameters
+          }, true)
+        } else {
+          return instance.originate({
+            balance: x.balance,
+            spendable: !!x.spendable,
+            delegatable: !!x.delegatable,
+            script: x.script,
+            delegate: x.delegate
+          }, true)
+        }
+      })
+
+      const init_op = [{
+        kind: 'reveal',
+        public_key: instance.key_pair.public_key
+      }]
+      args[0] = init_op.concat(args[0])
+      return instance.makeOperations.apply(instance, args)
+    }
+  }
+
+  onmessage = (e) => {
+    if (!e.data.tezbridge_workerid) return
+
+    const result = handler[e.data.method](e.data.params)
+
+    ;(result instanceof Promise ? result : Promise.resolve(result))
+    .then(result => {
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, result})
+    })
+    .catch(error => {
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error})
+    })
+  }
+})()
 
 
 // const tzc = new TZClient({

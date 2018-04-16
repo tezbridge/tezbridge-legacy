@@ -162,6 +162,7 @@ components.Account = Vue.component('account', {
       const tzclient = new TZClient()
       tzclient.importCipherData(this.account.cipherdata, this.password)
       .then(() => {
+        this.password = ''
         this.locked = false
         this.tzclient = tzclient
 

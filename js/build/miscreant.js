@@ -942,7 +942,7 @@ const aes_1 = require("./webcrypto/aes");
 const aes_ctr_1 = require("./webcrypto/aes_ctr");
 /** Placeholder backend for using pure JavaScript crypto implementations */
 class WebCryptoProvider {
-    constructor(crypto = window.crypto) {
+    constructor(crypto = self.crypto) {
         this.crypto = crypto;
     }
     importBlockCipherKey(keyData) {

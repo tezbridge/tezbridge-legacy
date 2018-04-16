@@ -17,7 +17,32 @@
     })
   }
 
-  const tzclient = new TZClient()
+  const tzclient_worker = new Worker('js/build/tzclient.js')
+  const tzclient_pm = (() => {
+    let id = 1
+    const resolves = {}
+    const rejects = {}
+    tzclient_worker.onmessage = e => {
+      if (e.data.tezbridge_workerid) {
+        if (e.data.error)
+          rejects[e.data.tezbridge_workerid] && rejects[e.data.tezbridge_workerid](e.data.error)
+        else
+          resolves[e.data.tezbridge_workerid] && resolves[e.data.tezbridge_workerid](e.data.result)
+
+        delete resolves[e.data.tezbridge_workerid]
+        delete rejects[e.data.tezbridge_workerid]
+      }
+    }
+
+    return (method, params) => {
+      const mid = id++
+      tzclient_worker.postMessage({tezbridge_workerid: mid, method, params})
+      return new Promise((resolve, reject) => {
+        resolves[mid] = resolve
+        reject[mid] = reject
+      })
+    }
+  })()
 
   const export_functions = {
     public_key_hash: {
@@ -26,7 +51,7 @@
         return `get public key hash`
       },
       handler(e) {
-        return Promise.resolve({result: tzclient.key_pair.public_key_hash})
+        return tzclient_pm('public_key_hash')
       }
     },
     balance: {
@@ -36,8 +61,8 @@
       },
       handler(e) {
         return rpc(() =>
-          tzclient.balance(e.data.contract)
-          .then(x => ({result: TZClient.tz2r(x)}))
+          tzclient_pm('balance', e.data.contract)
+          .then(x => TZClient.tz2r(x))
         )
       }
     },
@@ -47,7 +72,7 @@
         return `get block head of node`
       },
       handler(e) {
-        return rpc(() => tzclient.head().then(x => ({result: x})))
+        return rpc(() => tzclient_pm('head'))
       }
     },
     contract: {
@@ -57,8 +82,7 @@
       },
       handler(e) {
         return rpc(() =>
-          tzclient.contract(e.data.contract)
-          .then(x => ({result: x}))
+          tzclient_pm('contract', e.data.contract)
         )
       }
     },
@@ -69,13 +93,12 @@ ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
         return rpc(() =>
-          tzclient.transfer({
+          tzclient_pm('transfer', {
             amount: e.data.amount,
             source: e.data.source,
             destination: e.data.destination,
             parameters: e.data.parameters
           })
-          .then(x => ({result: x}))
         )
       }
     },
@@ -86,7 +109,7 @@ with code:${!!e.data.script}`
       },
       handler(e) {
         return rpc(() => {
-          return tzclient.originate({
+          return tzclient_pm('originate', {
             source: e.data.source,
             balance: e.data.balance,
             spendable: !!e.data.spendable,
@@ -94,7 +117,6 @@ with code:${!!e.data.script}`
             script: e.data.script,
             delegate: e.data.delegate
           })
-          .then(x => ({result: x}))
         })
       }
     },
@@ -105,31 +127,8 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
       },
       handler(e) {
         return rpc(() => {
-          const ops = e.data.operations
-          .filter(x => x.method === 'transfer' || x.method === 'originate')
-          .map(x => {
-            if (x.method === 'transfer') {
-              return tzclient.transfer({
-                amount: x.amount,
-                source: x.source,
-                destination: x.destination,
-                parameters: x.parameters
-              }, true)
-            } else {
-              return tzclient.originate({
-                balance: x.balance,
-                spendable: !!x.spendable,
-                delegatable: !!x.delegatable,
-                script: x.script,
-                delegate: x.delegate
-              }, true)
-            }
-          })
-          return tzclient.makeOperations([{
-            kind: 'reveal',
-            public_key: tzclient.key_pair.public_key
-          }].concat(ops), 0, e.data.source && {source: e.data.source})
-          .then(x => ({result: x}))
+          const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
+          return tzclient_pm('makeOperations', [ops, 0, e.data.source && {source: e.data.source}])
         })
       }
     }
@@ -140,60 +139,64 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
 
     const host = getLocal('*').host
     if (host)
-      tzclient.host = host
+      tzclient_pm('setHost', host)
 
-    if (!tzclient.key_pair.secret_key) {
-      const encrypted_keys = getLocal('__')
-      removeLocal('__')
-      if (!encrypted_keys) {
-        e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
-        alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
+    tzclient_pm('public_key_hash')
+    .then(x => {
+      if (!x) {
+        const encrypted_keys = getLocal('__')
+        removeLocal('__')
+        if (!encrypted_keys) {
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
+          alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
 
-        window.open('https://tezbridge.github.io/')
+          window.open('https://tezbridge.github.io/')
 
-      } else {
-        const key = prompt('Input the access code')
-        tzclient.importCipherData(encrypted_keys, key)
-        .then(() => {
-          if (getLocal('*').timeout) {
-            const start_date = +new Date()
+        } else {
+          const key = prompt('Input the access code')
+          tzclient_pm('importCipherData', [encrypted_keys, key])
+          .then(() => {
+            if (getLocal('*').timeout) {
+              const start_date = +new Date()
 
-            const timer = setInterval(() => {
-              if (new Date() - start_date >= 1000 * 60 * 30) {
-                reset()
+              const timer = setInterval(() => {
+                if (new Date() - start_date >= 1000 * 60 * 30) {
+                  reset()
+                }
+              }, 5000)
+
+              const reset = () => {
+                tzclient_pm('cleanKey')
+                clearInterval(timer)
               }
-            }, 5000)
-
-            const reset = () => {
-              tzclient.key_pair = {}
-              clearInterval(timer)
             }
+
+            dispatcher(e)
+          })
+          .catch(() => {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, '*')
+          })
+        }
+      } else {
+        if (!export_functions[e.data.method]) return
+        if (!export_functions[e.data.method].mute || !getLocal('*').mute)
+          if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, '*')
+            return
           }
 
-          dispatcher(e)
-        })
-        .catch(() => {
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, '*')
-        })
+        const p = export_functions[e.data.method].handler(e)
+        if (p)
+          p.then(x => {
+            const result = {result: x}
+            result.tezbridge = e.data.tezbridge
+            e.source.postMessage(result, '*')
+          })
+          .catch(err => {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, '*')
+          })
       }
-    } else {
-      if (!export_functions[e.data.method]) return
-      if (!export_functions[e.data.method].mute || !getLocal('*').mute)
-        if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, '*')
-          return
-        }
-
-      const p = export_functions[e.data.method].handler(e)
-      if (p)
-        p.then(x => {
-          x.tezbridge = e.data.tezbridge
-          e.source.postMessage(x, '*')
-        })
-        .catch(function(err){
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, '*')
-        })
-    }
+    })
   }
 
   const main = () => {
