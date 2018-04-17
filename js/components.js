@@ -180,16 +180,22 @@ components.AccountList = Vue.component('account-list', {
   components,
   template: `
     <q-list>
-      <q-collapsible icon="account circle" :label="account.name" :key="account.name" v-for="account in accounts">
-        <account :account="account" @remove="removeAccount(account)" />
+      <q-collapsible popup icon="account circle" :label="account.name" :key="account.name"
+          @show="account_opacity = Object.assign({}, account_opacity, {[account.name]: 1})"
+          @hide="account_opacity = Object.assign({}, account_opacity, {[account.name]: 0})"
+          v-for="account in accounts">
+        <account :account="account" @remove="removeAccount(account)" class="fade" :style="{opacity: account_opacity[account.name] || 0}" />
       </q-collapsible>
-      <q-collapsible icon="add" label="Add account" v-model="collapse.add">
-        <gen-new-account @finish="newAccountFinish" />
+      <q-collapsible popup icon="add" label="Add account" v-model="collapse.add" @show="gen_opacity = 1" @hide="gen_opacity = 0">
+        <gen-new-account @finish="newAccountFinish" class="fade" :style="{opacity: gen_opacity}" />
       </q-collapsible>
     </q-list>
   `,
   data() {
     return {
+      account_opacity: {},
+      gen_opacity: 0,
+
       collapse: {
         add: false
       },
@@ -197,6 +203,7 @@ components.AccountList = Vue.component('account-list', {
     }
   },
   methods: {
+
     removeAccount(account) {
       this.$q.dialog({
         title: 'Removal confirmation',
@@ -271,7 +278,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
                 { label: 'Mnemonic', value: 'mnemonic' },
                 { label: 'Secret key', value: 'secret_key' },
                 { label: 'Seed', value: 'seed' },
-                { label: 'TezBridge Encrypted account', value: 'tezbridge' }
+                { label: 'TezBridge encrypted account', value: 'tezbridge' }
               ]"
             />
           </q-field>

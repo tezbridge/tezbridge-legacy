@@ -51,11 +51,15 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 .center-wrapper {margin: 16px 0; text-align: center}
 .center-wrapper > * {margin: 0 2px;}
 body .q-input {margin: 8px 0}
+.fade {transition: opacity 0.5s}
+
 
 /* --- override quasar --- */
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}
-body .q-stepper {box-shadow: 0 1px 1px rgba(0,0,0,.2)}
+body .q-stepper {box-shadow: none}
+body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #f8f8f8;}
+body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
 /* === override quasar === */
 
 @media
