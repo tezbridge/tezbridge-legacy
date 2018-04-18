@@ -84,7 +84,7 @@ components.Account = Vue.component('account', {
           <q-btn color="cyan-8" outline @click="accountExport" label="Export" icon="directions" />
         </div>
         <div class="center-wrapper">
-          <q-btn push @click="activate" label="Activate account" />
+          <q-btn push @click="activate" label="Activate account" icon="verified user" :disable="balance !== '0'" />
         </div>
         <q-inner-loading :visible="loading">
         </q-inner-loading>
@@ -161,12 +161,14 @@ components.Account = Vue.component('account', {
         .then(x => {
           this.$q.notify({
             color: 'positive',
+            icon: 'done',
             message: 'Activation success'
           })
         })
         .catch(err => {
           this.$q.notify({
             color: 'negative',
+            icon: 'error',
             message: err
           })
         })
