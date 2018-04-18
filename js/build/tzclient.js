@@ -22884,13 +22884,17 @@ const combineUint8Array = (x, y) => {
 const RPCall = (url, data) => {
   return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest()
-    req.addEventListener('load', resolve)
+    req.addEventListener('load', pe => {
+      if (req.status === 200)
+        resolve(JSON.parse(pe.target.responseText))
+      else
+        reject(pe.target.responseText)
+    })
     req.addEventListener('error', reject)
     req.addEventListener('abort', reject)
     req.open('POST', url)
     req.send(typeof data === 'object' ? JSON.stringify(data) : data)
   })
-  .then(pe => JSON.parse(pe.target.responseText))
 }
 
 const prefix = {
@@ -23048,6 +23052,14 @@ class TZClient {
         kind: 'reveal',
         public_key: this.key_pair.public_key
       }, op], fee, source && {source})
+  }
+
+  activate(secret) {
+    return this.makeOperations([{
+      kind: 'activation',
+      secret,
+      pkh: this.key_pair.public_key_hash
+    }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
   }
 
   // faucet() {

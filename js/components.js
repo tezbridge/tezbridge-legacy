@@ -83,6 +83,9 @@ components.Account = Vue.component('account', {
           <q-btn color="cyan-8" outline @click="lock" label="Lock" icon="lock" />
           <q-btn color="cyan-8" outline @click="accountExport" label="Export" icon="directions" />
         </div>
+        <div class="center-wrapper">
+          <q-btn push @click="activate" label="Activate account" />
+        </div>
         <q-inner-loading :visible="loading">
         </q-inner-loading>
       </div>
@@ -140,6 +143,37 @@ components.Account = Vue.component('account', {
         icon: 'done',
         timeout: 1500,
         message: name + ' copied'
+      })
+    },
+    activate() {
+      this.loading = true
+      this.$q.dialog({
+        title: 'Activation',
+        message: 'Please input the secret',
+        prompt: {
+          model: '',
+          type: 'text'
+        },
+        cancel: true
+      })
+      .then(secret => {
+        return this.tzclient.activate(secret)
+        .then(x => {
+          this.$q.notify({
+            color: 'positive',
+            message: 'Activation success'
+          })
+        })
+        .catch(err => {
+          this.$q.notify({
+            color: 'negative',
+            message: err
+          })
+        })
+      })
+      .catch(() => {})
+      .finally(() => {
+        this.loading = false
       })
     },
     lock() {
