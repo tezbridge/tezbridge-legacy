@@ -6,8 +6,8 @@
 
   const createIframe = () => {
     const iframe = document.createElement('iframe')
-    // iframe.src = 'http://127.0.0.1:8080/plugin.html'
-    iframe.src = 'https://tezbridge.github.io/plugin.html'
+    iframe.src = 'http://127.0.0.1:8080/plugin.html'
+    // iframe.src = 'https://tezbridge.github.io/plugin.html'
     iframe.style.display = 'none'
     iframe.onload = () => {
       bridge_fn = (params) => {

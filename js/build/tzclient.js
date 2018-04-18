@@ -22976,13 +22976,9 @@ class TZClient {
     return RPCall(this.host + path, data)
   }
 
-  predecessor() {
-    return this.call('/blocks/prevalidation/predecessor')
-    .then(x => x.predecessor)
-  }
-
-  prevalidation() {
-    return this.call('/blocks/prevalidation')
+  head_hash() {
+    return this.call('/blocks/head/hash')
+    .then(x => x.hash)
   }
 
   head() {
@@ -22990,17 +22986,17 @@ class TZClient {
   }
 
   balance(key_hash) {
-    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
+    return this.call(`/blocks/head/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
     .then(x => x.balance)
   }
 
   counter(key_hash) {
-    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/counter`)
+    return this.call(`/blocks/head/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/counter`)
     .then(x => x.counter)
   }
 
   contract(key_hash) {
-    return this.call(`/blocks/prevalidation/proto/context/contracts/${key_hash}`)
+    return this.call(`/blocks/head/proto/context/contracts/${key_hash}`)
   }
 
   originate({
@@ -23054,24 +23050,24 @@ class TZClient {
       }, op], fee, source && {source})
   }
 
-  faucet() {
-    return this.makeOperations([{
-      kind: 'faucet',
-      id: this.key_pair.public_key_hash,
-      nonce: sodium.to_hex(sodium.crypto_generichash(32, '' + new Date() + Math.random()))
-    }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
-    .then(x => this.transfer({
-      amount: 100000,
-      source: x[0][0],
-      destination: this.key_pair.public_key_hash
-    }))
-  }
+  // faucet() {
+  //   return this.makeOperations([{
+  //     kind: 'faucet',
+  //     id: this.key_pair.public_key_hash,
+  //     nonce: sodium.to_hex(sodium.crypto_generichash(32, '' + new Date() + Math.random()))
+  //   }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
+  //   .then(x => this.transfer({
+  //     amount: 100000,
+  //     source: x[0][0],
+  //     destination: this.key_pair.public_key_hash
+  //   }))
+  // }
 
   makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
-    return Promise.all([this.predecessor(), this.counter(additional_forge_data.source)])
-    .then(([predecessor, counter]) => {
+    return Promise.all([this.head_hash(), this.counter(additional_forge_data.source)])
+    .then(([head_hash, counter]) => {
       const post_data = {
-        branch: predecessor,
+        branch: head_hash,
         kind: 'manager',
         source: this.key_pair.public_key_hash,
         fee: TZClient.r2tz(fee),
@@ -23079,20 +23075,20 @@ class TZClient {
         operations: ops
       }
 
-      return this.call(`/blocks/prevalidation/proto/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))
+      return this.call(`/blocks/head/proto/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))
       .then(x => {
         const sig = sodium.crypto_sign_detached(sodium.from_hex(x.operation), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = x.operation + sodium.to_hex(sig)
 
         const post_data = {
-          pred_block: predecessor,
+          pred_block: head_hash,
           operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, sodium.from_hex(with_signature ? signed_operation : x.operation))),
           forged_operation: x.operation,
           signature: with_signature ? TZClient.enc58(prefix.signature, sig) : undefined
         }
 
         return Promise.all([
-          this.call(`/blocks/prevalidation/proto/helpers/apply_operation`, post_data),
+          this.call(`/blocks/head/proto/helpers/apply_operation`, post_data),
           with_signature ? signed_operation : x.operation
         ])
       })
@@ -23117,7 +23113,9 @@ TZClient.libs = {
 module.exports = TZClient
 
 ;(() => {
-  self.importScripts && self.importScripts('miscreant.js')
+  if (!self.importScripts) return false
+
+  self.importScripts('miscreant.js')
 
   const instance = new TZClient()
 

@@ -108,7 +108,6 @@ components.Account = Vue.component('account', {
         </q-list>
         <div class="center-wrapper">
           <q-btn color="cyan-8" outline @click="lock" label="Lock" icon="lock" />
-          <q-btn push @click="faucet" label="Faucet" icon="opacity" />
           <q-btn color="cyan-8" outline @click="accountExport" label="Export" icon="directions" />
         </div>
         <q-inner-loading :visible="loading">
@@ -172,15 +171,6 @@ components.Account = Vue.component('account', {
     },
     lock() {
       Object.assign(this.$data, this.$options.data())
-    },
-    faucet() {
-      this.loading = true
-      this.tzclient.faucet()
-      .then(() => this.tzclient.balance())
-      .then(x => {
-        this.balance = TZClient.tz2r(x)
-        this.loading = false
-      })
     },
     remove() {
       this.$emit('remove')
@@ -463,14 +453,14 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       .catch(err => this.secret_key_error = err)
     },
     importMnemonic() {
-      if (!this.mnemonic_word || !this.mnemonic_password) {
-        this.mnemonic_error = 'Please input words and password'
+      if (!this.mnemonic_word || !this.mnemonic_passphrase) {
+        this.mnemonic_error = 'Please input words and passphrase'
         return
       }
 
       this.accountGen({
         mnemonic: this.mnemonic_word,
-        password: this.mnemonic_password
+        password: this.mnemonic_passphrase
       })
       .catch(err => this.mnemonic_error = err)
     },

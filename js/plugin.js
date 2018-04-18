@@ -4,18 +4,6 @@
   const getLocal = x => JSON.parse(window.localStorage.getItem(x))
   const removeLocal = x => window.localStorage.removeItem(x)
 
-  const rpc = function(promise_fn){
-    if (rpc.locked) return
-    rpc.locked = true
-    return promise_fn().then(function(x) {
-      rpc.locked = false
-      return Promise.resolve(x)
-    }).catch(function(err) {
-      rpc.locked = false
-      return Promise.reject(err)
-    })
-  }
-
   const tzclient_worker = new Worker('js/build/tzclient.js')
   const tzclient_pm = (() => {
     let id = 1
@@ -59,10 +47,8 @@
         return `get balance`
       },
       handler(e) {
-        return rpc(() =>
-          tzclient_pm('balance', e.data.contract)
+        return tzclient_pm('balance', e.data.contract)
           .then(x => TZClient.tz2r(x))
-        )
       }
     },
     block_head: {
@@ -71,7 +57,7 @@
         return `get block head of node`
       },
       handler(e) {
-        return rpc(() => tzclient_pm('head'))
+        return tzclient_pm('head')
       }
     },
     contract: {
@@ -80,9 +66,7 @@
         return `get info for contract:${e.data.contract}`
       },
       handler(e) {
-        return rpc(() =>
-          tzclient_pm('contract', e.data.contract)
-        )
+        return tzclient_pm('contract', e.data.contract)
       }
     },
     transfer: {
@@ -91,14 +75,12 @@
 ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
-        return rpc(() =>
-          tzclient_pm('transfer', {
-            amount: e.data.amount,
-            source: e.data.source,
-            destination: e.data.destination,
-            parameters: e.data.parameters
-          })
-        )
+        return tzclient_pm('transfer', {
+          amount: e.data.amount,
+          source: e.data.source,
+          destination: e.data.destination,
+          parameters: e.data.parameters
+        })
       }
     },
     originate: {
@@ -107,15 +89,13 @@ ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
 with code:${!!e.data.script}`
       },
       handler(e) {
-        return rpc(() => {
-          return tzclient_pm('originate', {
-            source: e.data.source,
-            balance: e.data.balance,
-            spendable: !!e.data.spendable,
-            delegatable: !!e.data.delegatable,
-            script: e.data.script,
-            delegate: e.data.delegate
-          })
+        return tzclient_pm('originate', {
+          source: e.data.source,
+          balance: e.data.balance,
+          spendable: !!e.data.spendable,
+          delegatable: !!e.data.delegatable,
+          script: e.data.script,
+          delegate: e.data.delegate
         })
       }
     },
@@ -125,10 +105,8 @@ with code:${!!e.data.script}`
 ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
       },
       handler(e) {
-        return rpc(() => {
-          const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
-          return tzclient_pm('makeOperations', [ops, 0, e.data.source && {source: e.data.source}])
-        })
+        const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
+        return tzclient_pm('makeOperations', [ops, 0, e.data.source && {source: e.data.source}])
       }
     }
   }
