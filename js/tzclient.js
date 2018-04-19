@@ -110,6 +110,11 @@ class TZClient {
     return RPCall(this.host + path, data)
   }
 
+  predecessor() {
+    return this.call('/blocks/head/predecessor')
+    .then(x => x.predecessor)
+  }
+
   head_hash() {
     return this.call('/blocks/head/hash')
     .then(x => x.hash)
@@ -206,8 +211,8 @@ class TZClient {
   // }
 
   makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
-    return Promise.all([this.head_hash(), this.counter(additional_forge_data.source)])
-    .then(([head_hash, counter]) => {
+    return Promise.all([this.head_hash(), this.predecessor(), this.counter(additional_forge_data.source)])
+    .then(([head_hash, predecessor, counter]) => {
       const post_data = {
         branch: head_hash,
         kind: 'manager',
@@ -223,7 +228,7 @@ class TZClient {
         const signed_operation = x.operation + sodium.to_hex(sig)
 
         const post_data = {
-          pred_block: head_hash,
+          pred_block: predecessor,
           operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, sodium.from_hex(with_signature ? signed_operation : x.operation))),
           forged_operation: x.operation,
           signature: with_signature ? TZClient.enc58(prefix.signature, sig) : undefined
@@ -279,7 +284,7 @@ module.exports = TZClient
       return instance.importCipherData.apply(instance, args)
     },
     cleanKey() {
-      instance = new TZClient()
+      instance.key_pair = {}
       return true
     },
     public_key_hash() {
