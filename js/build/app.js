@@ -123,7 +123,7 @@ components.Account = Vue.component('account', {
                 </q-item-tile>
               </q-item-main>
               <q-item-side>
-                <q-btn flat @click="genAccessCode" icon="replay" />
+                <q-btn flat @click="genAccessCode" icon="unarchive" />
               </q-item-side>
             </q-item>
         </q-list>
@@ -155,7 +155,9 @@ components.Account = Vue.component('account', {
   },
   methods: {
     refreshBalance() {
+      this.loading = true
       this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+      .finally(() => this.loading = false)
     },
     genAccessCode() {
       const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
@@ -355,7 +357,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
                 { label: 'Secret key', value: 'secret_key' },
                 { label: 'Seed', value: 'seed' },
                 { label: 'Faucet', value: 'faucet' },
-                { label: 'TezBridge encrypted account', value: 'tezbridge' }
+                { label: 'TezBridge export', value: 'tezbridge' }
               ]"
             />
           </q-field>
