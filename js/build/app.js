@@ -1,6 +1,10 @@
 (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 const components = require('./components')
 
+const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
+const removeLocal = x => window.localStorage.removeItem(x)
+
 document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
     components,
@@ -20,6 +24,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
     methods: {
+    },
+    beforeMount() {
+      // init
+      const current_version = 0.14
+      const version = getLocal('v')
+
+      if (version < current_version) {
+        this.$q.dialog({
+          title: 'Reset warning',
+          message: 'TezBridge needs to reset everything stored for updating.\n(Never store the account only in TezBridge.)',
+          ok: 'OK',
+          cancel: 'NO, KEEP MY DATA'
+        })
+        .then(() => {
+          setLocal('_', {})
+          setLocal('*', {mute: true, timeout: true})
+          removeLocal('__')
+          setLocal('v', current_version)
+          location.reload()
+        })
+        .catch(() => {})
+      }
     }
   })
 })
@@ -29,17 +55,9 @@ const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
 const removeLocal = x => window.localStorage.removeItem(x)
 
-// init
-const current_version = 0.12
-const version = getLocal('v')
-if (version < current_version) {
-  setLocal('_', {})
-  setLocal('*', {})
-  removeLocal('__')
-  setLocal('v', current_version)
-}
-
 const components = {}
+
+const temp_secrets = {}
 
 components.Account = Vue.component('account', {
   components,
@@ -90,6 +108,9 @@ components.Account = Vue.component('account', {
               <q-item-tile label>Balance</q-item-tile>
               <q-item-tile sublabel><b>{{balance}}</b>tz</q-item-tile>
             </q-item-main>
+            <q-item-side>
+              <q-btn flat @click="refreshBalance" icon="refresh" />
+            </q-item-side>
             </q-item>
             <q-item>
               <q-item-side icon="vpn key" />
@@ -102,7 +123,7 @@ components.Account = Vue.component('account', {
                 </q-item-tile>
               </q-item-main>
               <q-item-side>
-                <q-btn flat @click="genAccessCode" icon="refresh" />
+                <q-btn flat @click="genAccessCode" icon="replay" />
               </q-item-side>
             </q-item>
         </q-list>
@@ -133,6 +154,9 @@ components.Account = Vue.component('account', {
     }
   },
   methods: {
+    refreshBalance() {
+      this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+    },
     genAccessCode() {
       const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
       this.access_code = TZClient.libs.sodium.to_base64(random_iv)
@@ -178,7 +202,7 @@ components.Account = Vue.component('account', {
         title: 'Activation',
         message: 'Please input the secret',
         prompt: {
-          model: '',
+          model: temp_secrets[this.account.name],
           type: 'text'
         },
         cancel: true
@@ -256,7 +280,6 @@ components.AccountList = Vue.component('account-list', {
     }
   },
   methods: {
-
     removeAccount(account) {
       this.$q.dialog({
         title: 'Removal confirmation',
@@ -331,6 +354,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
                 { label: 'Mnemonic', value: 'mnemonic' },
                 { label: 'Secret key', value: 'secret_key' },
                 { label: 'Seed', value: 'seed' },
+                { label: 'Faucet', value: 'faucet' },
                 { label: 'TezBridge encrypted account', value: 'tezbridge' }
               ]"
             />
@@ -384,6 +408,14 @@ components.GenNewAccount = Vue.component('gen-new-account', {
             <q-btn color="cyan-8" outline @click="importTezbridge" label="Import" />
           </div>
         </div>
+        <div v-if="op_selection === 'faucet'">
+          <q-field :error="!!faucet_error" :error-label="faucet_error" helper="Input the whole JSON data from faucet">
+            <q-input color="cyan-8" v-model="faucet_data"  float-label="Faucet data" />
+          </q-field>
+          <div class="center-wrapper">
+            <q-btn color="cyan-8" outline @click="importFaucetAccount" label="Import" />
+          </div>
+        </div>
 
       </q-step>
 
@@ -417,6 +449,9 @@ components.GenNewAccount = Vue.component('gen-new-account', {
       tezbridge_error: '',
       tezbridge_cipher: '',
 
+      faucet_error: '',
+      faucet_data: '',
+
       current_step: 'account_name'
     }
   },
@@ -442,6 +477,26 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         this.$emit('finish')
         Object.assign(this.$data, this.$options.data())
       })
+    },
+    importFaucetAccount() {
+      if (!this.faucet_data) {
+        this.faucet_error = 'Please input faucet JSON data'
+        return
+      }
+
+      try {
+        const data = JSON.parse(this.faucet_data)
+        temp_secrets[this.account_name] = data.secret
+
+        this.accountGen({
+          mnemonic: data.mnemonic.join(' '),
+          password: data.email + data.password
+        })
+        .catch(err => this.faucet_error = err)
+      } catch(err) {
+        this.faucet_error = 'The data should be a valid faucet JSON string'
+        return
+      }
     },
     importTezbridge() {
       if (!this.tezbridge_cipher) {
