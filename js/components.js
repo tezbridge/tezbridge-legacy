@@ -212,7 +212,7 @@ components.AccountList = Vue.component('account-list', {
           v-for="account in accounts">
         <account :account="account" @remove="removeAccount(account)" class="fade" :style="{opacity: account_opacity[account.name] || 0}" />
       </q-collapsible>
-      <q-collapsible popup icon="add" label="Add account" v-model="collapse.add" @show="gen_opacity = 1" @hide="gen_opacity = 0">
+      <q-collapsible popup icon="add circle" label="Add account" v-model="collapse.add" @show="gen_opacity = 1" @hide="gen_opacity = 0">
         <gen-new-account @finish="newAccountFinish" class="fade" :style="{opacity: gen_opacity}" />
       </q-collapsible>
     </q-list>
