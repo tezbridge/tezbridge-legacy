@@ -58,7 +58,7 @@ body .q-input {margin: 8px 0}
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}
 body .q-stepper {box-shadow: none}
-body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #f8f8f8;}
+body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #eee;}
 body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
 /* === override quasar === */
 

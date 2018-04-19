@@ -26,25 +26,30 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     beforeMount() {
       // init
-      const current_version = 0.14
+      const current_version = 0.15
       const version = getLocal('v')
 
-      if (version < current_version) {
+      const reset = () => {
+        setLocal('_', {})
+        setLocal('*', {mute: true, timeout: true})
+        removeLocal('__')
+        setLocal('v', current_version)
+      }
+
+      if (version < current_version && getLocal('_')) {
         this.$q.dialog({
           title: 'Reset warning',
-          message: 'TezBridge needs to reset everything stored for updating.\n(Never store the account only in TezBridge.)',
+          message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
           ok: 'OK',
           cancel: 'NO, KEEP MY DATA'
         })
         .then(() => {
-          setLocal('_', {})
-          setLocal('*', {mute: true, timeout: true})
-          removeLocal('__')
-          setLocal('v', current_version)
+          reset()
           location.reload()
         })
         .catch(() => {})
-      }
+      } else
+        reset()
     }
   })
 })
