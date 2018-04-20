@@ -1,4 +1,15 @@
-(function(){function b(d,e,g){function a(j,i){if(!e[j]){if(!d[j]){var k="function"==typeof require&&require;if(!i&&k)return k(j,!0);if(h)return h(j,!0);var c=new Error("Cannot find module '"+j+"'");throw c.code="MODULE_NOT_FOUND",c}var l=e[j]={exports:{}};d[j][0].call(l.exports,function(b){var c=d[j][1][b];return a(c||b)},l,l.exports,b,d,e,g)}return e[j].exports}for(var h="function"==typeof require&&require,c=0;c<g.length;c++)a(g[c]);return a}return b})()({1:[function(a){const b=a("./components"),c=(a)=>JSON.parse(window.localStorage.getItem(a)),d=(a,b)=>window.localStorage.setItem(a,JSON.stringify(b)),e=(a)=>window.localStorage.removeItem(a);document.addEventListener("DOMContentLoaded",()=>{new Vue({components:b,el:"#app",template:`
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const components = require('./components')
+
+const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
+const removeLocal = x => window.localStorage.removeItem(x)
+
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new Vue({
+    components,
+    el: '#app',
+    template: `
       <div class="body-wrapper">
         <div class="header">
           <img src="css/logo.png" />
@@ -7,7 +18,58 @@
         </div>
         <account-list />
       </div>
-    `,data(){return{}},methods:{},beforeMount(){const a=.15,b=c("v"),f=()=>{d("_",{}),d("*",{mute:!0,timeout:!0}),e("__"),d("v",a)};return!(b>=a)&&void(c("_")?this.$q.dialog({title:"Reset warning",message:"TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)",ok:"OK",cancel:"NO, KEEP MY DATA"}).then(()=>{f(),location.reload()}).catch(()=>{}):f())}})})},{"./components":2}],2:[function(a,b){const c=(a)=>JSON.parse(window.localStorage.getItem(a)),d=(a,b)=>window.localStorage.setItem(a,JSON.stringify(b)),e={},f={};e.Account=Vue.component("account",{components:e,template:`
+    `,
+    data() {
+      return {
+      }
+    },
+    methods: {
+    },
+    beforeMount() {
+      // init
+      const current_version = 0.15
+      const version = getLocal('v')
+
+      const reset = () => {
+        setLocal('_', {})
+        setLocal('*', {mute: true, timeout: true})
+        removeLocal('__')
+        setLocal('v', current_version)
+      }
+
+      if (version >= current_version)
+        return false
+
+      if (getLocal('_')) {
+        this.$q.dialog({
+          title: 'Reset warning',
+          message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
+          ok: 'OK',
+          cancel: 'NO, KEEP MY DATA'
+        })
+        .then(() => {
+          reset()
+          location.reload()
+        })
+        .catch(() => {})
+      } else
+        reset()
+    }
+  })
+})
+
+},{"./components":2}],2:[function(require,module,exports){
+const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
+const removeLocal = x => window.localStorage.removeItem(x)
+
+const components = {}
+
+const temp_secrets = {}
+
+components.Account = Vue.component('account', {
+  components,
+  template: `
     <div>
       <div v-if="locked">
         <q-field :error="!!password_error" :error-label="password_error" helper="Password for account decryption">
@@ -84,7 +146,126 @@
         </q-inner-loading>
       </div>
     </div>
-  `,props:["account"],data(){return{locked:!0,loading:!1,tzclient:new TZClient,password:"",password_error:"",balance:"0",public_key_hash:"",access_code:c("__")?"Generated":"Ready to generate"}},methods:{refreshBalance(){this.loading=!0,this.tzclient.balance().then((a)=>this.balance=TZClient.tz2r(a)).finally(()=>this.loading=!1)},genAccessCode(){const a=window.crypto.getRandomValues(new Uint8Array(12));this.access_code=TZClient.libs.sodium.to_base64(a),this.$refs.access_code.innerHTML=this.access_code,this.tzclient.exportCipherData(this.access_code).then((a)=>{d("__",a)}).catch(()=>alert("Encryption failed")),this.copyToClipboard(this.$refs.access_code,"Access code")},copySecretKey(){this.$refs.sk_content.innerHTML=this.tzclient.key_pair.secret_key,this.copyToClipboard(this.$refs.sk_content,"Secret Key"),setTimeout(()=>{this.$refs.sk_content.innerHTML="******"},2e3)},accountExport(){this.$refs.sk_content.innerHTML=JSON.stringify(this.account.cipherdata),this.copyToClipboard(this.$refs.sk_content,"Encrypted account data"),this.$refs.sk_content.innerHTML="******"},copyToClipboard(a,b){const c=document.createRange(),d=window.getSelection();c.selectNodeContents(a),d.removeAllRanges(),d.addRange(c),document.execCommand("copy"),this.$q.notify({color:"positive",icon:"done",timeout:1500,message:b+" copied"})},activate(){this.loading=!0,this.$q.dialog({title:"Activation",message:"Please input the secret",prompt:{model:f[this.account.name],type:"text"},cancel:!0}).then((a)=>this.tzclient.activate(a).then(()=>{this.$q.notify({color:"positive",icon:"done",message:"Activation success"})}).catch((a)=>{this.$q.notify({color:"negative",icon:"error",message:a})})).catch(()=>{}).finally(()=>{this.loading=!1})},lock(){Object.assign(this.$data,this.$options.data())},remove(){this.$emit("remove")},unlock(){const a=new TZClient;a.importCipherData(this.account.cipherdata,this.password).then(()=>{this.password="",this.locked=!1,this.tzclient=a,this.public_key_hash=this.tzclient.key_pair.public_key_hash,this.tzclient.balance().then((a)=>this.balance=TZClient.tz2r(a))}).catch(()=>{this.password_error="Password incorrect"})}}}),e.AccountList=Vue.component("account-list",{components:e,template:`
+  `,
+  props: ['account'],
+  data() {
+    return {
+      locked: true,
+      loading: false,
+      tzclient: new TZClient(),
+      password: '',
+      password_error: '',
+
+      balance: '0',
+      public_key_hash: '',
+      access_code: getLocal('__') ? 'Generated' : 'Ready to generate'
+    }
+  },
+  methods: {
+    refreshBalance() {
+      this.loading = true
+      this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+      .finally(() => this.loading = false)
+    },
+    genAccessCode() {
+      const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
+      this.access_code = TZClient.libs.sodium.to_base64(random_iv)
+      this.$refs.access_code.innerHTML = this.access_code
+
+      this.tzclient.exportCipherData(this.access_code)
+      .then(x => {
+        setLocal('__', x)
+      })
+      .catch(() => alert('Encryption failed'))
+
+      this.copyToClipboard(this.$refs.access_code, 'Access code')
+    },
+    copySecretKey() {
+      this.$refs.sk_content.innerHTML = this.tzclient.key_pair.secret_key
+      this.copyToClipboard(this.$refs.sk_content, 'Secret Key')
+      setTimeout(() => {
+        this.$refs.sk_content.innerHTML = '******'
+      }, 2000)
+    },
+    accountExport() {
+      this.$refs.sk_content.innerHTML = JSON.stringify(this.account.cipherdata)
+      this.copyToClipboard(this.$refs.sk_content, 'Encrypted account data')
+      this.$refs.sk_content.innerHTML = '******'
+    },
+    copyToClipboard(elem, name) {
+      const range = document.createRange()
+      const selection = window.getSelection()
+      range.selectNodeContents(elem)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      document.execCommand("copy")
+      this.$q.notify({
+        color: 'positive',
+        icon: 'done',
+        timeout: 1500,
+        message: name + ' copied'
+      })
+    },
+    activate() {
+      this.loading = true
+      this.$q.dialog({
+        title: 'Activation',
+        message: 'Please input the secret',
+        prompt: {
+          model: temp_secrets[this.account.name],
+          type: 'text'
+        },
+        cancel: true
+      })
+      .then(secret => {
+        return this.tzclient.activate(secret)
+        .then(x => {
+          this.$q.notify({
+            color: 'positive',
+            icon: 'done',
+            message: 'Activation success'
+          })
+        })
+        .catch(err => {
+          this.$q.notify({
+            color: 'negative',
+            icon: 'error',
+            message: err
+          })
+        })
+      })
+      .catch(() => {})
+      .finally(() => {
+        this.loading = false
+      })
+    },
+    lock() {
+      Object.assign(this.$data, this.$options.data())
+    },
+    remove() {
+      this.$emit('remove')
+    },
+    unlock() {
+      const tzclient = new TZClient()
+      tzclient.importCipherData(this.account.cipherdata, this.password)
+      .then(() => {
+        this.password = ''
+        this.locked = false
+        this.tzclient = tzclient
+
+        this.public_key_hash = this.tzclient.key_pair.public_key_hash
+        this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+      })
+      .catch(err => {
+        this.password_error = 'Password incorrect'
+      })
+    }
+  }
+})
+
+components.AccountList = Vue.component('account-list', {
+  components,
+  template: `
     <q-list>
       <q-collapsible popup icon="account circle" :label="account.name" :key="account.name"
           @show="account_opacity = Object.assign({}, account_opacity, {[account.name]: 1})"
@@ -96,7 +277,61 @@
         <gen-new-account @finish="newAccountFinish" class="fade" :style="{opacity: gen_opacity}" />
       </q-collapsible>
     </q-list>
-  `,data(){return{account_opacity:{},gen_opacity:0,collapse:{add:!1},accounts:c("_")}},methods:{removeAccount(a){this.$q.dialog({title:"Removal confirmation",message:`Remove current account named ${a.name}?`,ok:"OK",cancel:"CANCEL"}).then(()=>{const b=c("_");delete b[a.name],d("_",b),this.accounts=b}).catch(()=>{})},newAccountFinish(){this.collapse.add=!1,this.accounts=c("_")}}});const g=(a,b,e)=>{try{const f=new TZClient(a);return f.exportCipherData(e).then((a)=>{const e=c("_");e[b]={name:b,cipherdata:a},d("_",e)})}catch(a){return Promise.reject(a.toString())}};e.GenNewAccount=Vue.component("gen-new-account",{template:`
+  `,
+  data() {
+    return {
+      account_opacity: {},
+      gen_opacity: 0,
+
+      collapse: {
+        add: false
+      },
+      accounts: getLocal('_')
+    }
+  },
+  methods: {
+    removeAccount(account) {
+      this.$q.dialog({
+        title: 'Removal confirmation',
+        message: `Remove current account named ${account.name}?`,
+        ok: 'OK',
+        cancel: 'CANCEL'
+      }).then(() => {
+        const accounts = getLocal('_')
+        delete accounts[account.name]
+        setLocal('_', accounts)
+        this.accounts = accounts
+      }).catch(() => {})
+    },
+    newAccountFinish() {
+      this.collapse.add = false
+      this.accounts = getLocal('_')
+    }
+  }
+})
+
+
+const genTZclient = (tzclient_param, account_name, password) => {
+  try {
+    const tzclient = new TZClient(tzclient_param)
+
+    return tzclient.exportCipherData(password)
+    .then(result => {
+      const accounts = getLocal('_')
+      accounts[account_name] = {
+        name: account_name,
+        cipherdata: result
+      }
+      setLocal('_', accounts)
+    })
+  } catch (err) {
+    return Promise.reject(err.toString())
+  }
+}
+
+
+components.GenNewAccount = Vue.component('gen-new-account', {
+  template: `
     <q-stepper color="cyan-8" v-model="current_step" vertical>
 
       <q-step default name="account_name" title="Set account name" active-icon="edit" icon="perm_identity">
@@ -195,7 +430,182 @@
       </q-step>
 
     </q-stepper>
-  `,data(){return{password:"",password_confirm:"",password_error:"",account_name:"",account_name_error:"",op_selection:"",gen_mnemonic:[],gen_mnemonic_error:"",gen_mnemonic_passphrase:"",mnemonic_error:"",mnemonic_word:"",mnemonic_passphrase:"",secret_key_error:"",secret_key:"",seed_error:"",seed:"",tezbridge_error:"",tezbridge_cipher:"",faucet_error:"",faucet_data:"",current_step:"account_name"}},watch:{op_selection(a){if("op_selection"!==this.current_step)return!1;const b={gen_mnemonic:()=>{this.gen_mnemonic=TZClient.genMnemonic().split(" ")}}[a];b&&b(),this.current_step="process"}},methods:{accountGen(a){return g(a,this.account_name,this.password).then(()=>{this.$emit("finish"),Object.assign(this.$data,this.$options.data())})},importFaucetAccount(){if(!this.faucet_data)return void(this.faucet_error="Please input faucet JSON data");try{const a=JSON.parse(this.faucet_data);f[this.account_name]=a.secret,this.accountGen({mnemonic:a.mnemonic.join(" "),password:a.email+a.password}).catch((a)=>this.faucet_error=a)}catch(a){return void(this.faucet_error="The data should be a valid faucet JSON string")}},importTezbridge(){if(!this.tezbridge_cipher)return void(this.tezbridge_error="Please input exported account data");try{const a=c("_");a[this.account_name]={name:this.account_name,cipherdata:JSON.parse(this.tezbridge_cipher)},d("_",a),this.$emit("finish"),Object.assign(this.$data,this.$options.data())}catch(a){return void(this.tezbridge_error="The data should be a valid JSON string")}},importSeed(){return this.seed?void this.accountGen({seed:this.seed}).catch((a)=>this.seed_error=a):void(this.seed_error="Please input seed")},importSecretKey(){return this.secret_key?void this.accountGen({secret_key:this.secret_key}).catch((a)=>this.secret_key_error=a):void(this.secret_key_error="Please input secret key")},importMnemonic(){return this.mnemonic_word&&this.mnemonic_passphrase?void this.accountGen({mnemonic:this.mnemonic_word,password:this.mnemonic_passphrase}).catch((a)=>this.mnemonic_error=a):void(this.mnemonic_error="Please input words and passphrase")},genMnemonic(){return this.gen_mnemonic_passphrase?void this.accountGen({mnemonic:this.gen_mnemonic.join(" "),password:this.gen_mnemonic_passphrase}).catch((a)=>this.gen_mnemonic_error=a):void(this.gen_mnemonic_error="Please input password")},setAccountName(){const a=c("_");0===this.account_name.length?this.account_name_error="Please input your account name":this.account_name in a?this.account_name_error="This account name has already been used":(this.account_name_error="",this.current_step="password")},confirmPassword(){0===this.password.length?this.password_error="Please input your password":this.password===this.password_confirm?this.current_step="op_selection":this.password_error="The two passwords are not equal"}}});const h="zeronet.catsigma.com";e.SettingModal=Vue.component("setting-modal",{template:`
+  `,
+  data() {
+    return {
+      password: '',
+      password_confirm: '',
+      password_error: '',
+
+      account_name: '',
+      account_name_error: '',
+
+      op_selection: '',
+
+      gen_mnemonic: [],
+      gen_mnemonic_error: '',
+      gen_mnemonic_passphrase: '',
+
+      mnemonic_error: '',
+      mnemonic_word: '',
+      mnemonic_passphrase: '',
+
+      secret_key_error: '',
+      secret_key: '',
+
+      seed_error: '',
+      seed: '',
+
+      tezbridge_error: '',
+      tezbridge_cipher: '',
+
+      faucet_error: '',
+      faucet_data: '',
+
+      current_step: 'account_name'
+    }
+  },
+  watch: {
+    op_selection(v) {
+      if (this.current_step !== 'op_selection')
+        return false
+
+      const pre_process = ({
+        'gen_mnemonic': () => {
+          this.gen_mnemonic = TZClient.genMnemonic().split(' ')
+        }
+      })[v]
+
+      if (pre_process) pre_process()
+      this.current_step = 'process'
+    }
+  },
+  methods: {
+    accountGen(params) {
+      return genTZclient(params, this.account_name, this.password)
+      .then(() => {
+        this.$emit('finish')
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
+    importFaucetAccount() {
+      if (!this.faucet_data) {
+        this.faucet_error = 'Please input faucet JSON data'
+        return
+      }
+
+      try {
+        const data = JSON.parse(this.faucet_data)
+        temp_secrets[this.account_name] = data.secret
+
+        this.accountGen({
+          mnemonic: data.mnemonic.join(' '),
+          password: data.email + data.password
+        })
+        .catch(err => this.faucet_error = err)
+      } catch(err) {
+        this.faucet_error = 'The data should be a valid faucet JSON string'
+        return
+      }
+    },
+    importTezbridge() {
+      if (!this.tezbridge_cipher) {
+        this.tezbridge_error = 'Please input exported account data'
+        return
+      }
+
+      try {
+        const accounts = getLocal('_')
+        accounts[this.account_name] = {
+          name: this.account_name,
+          cipherdata: JSON.parse(this.tezbridge_cipher)
+        }
+        setLocal('_', accounts)
+
+        this.$emit('finish')
+        Object.assign(this.$data, this.$options.data())
+
+      } catch(err) {
+        this.tezbridge_error = 'The data should be a valid JSON string'
+        return
+      }
+
+    },
+    importSeed() {
+      if (!this.seed) {
+        this.seed_error = 'Please input seed'
+        return
+      }
+
+      this.accountGen({
+        seed: this.seed
+      })
+      .catch(err => this.seed_error = err)
+    },
+    importSecretKey() {
+      if (!this.secret_key) {
+        this.secret_key_error = 'Please input secret key'
+        return
+      }
+
+      this.accountGen({
+        secret_key: this.secret_key,
+      })
+      .catch(err => this.secret_key_error = err)
+    },
+    importMnemonic() {
+      if (!this.mnemonic_word || !this.mnemonic_passphrase) {
+        this.mnemonic_error = 'Please input words and passphrase'
+        return
+      }
+
+      this.accountGen({
+        mnemonic: this.mnemonic_word,
+        password: this.mnemonic_passphrase
+      })
+      .catch(err => this.mnemonic_error = err)
+    },
+    genMnemonic() {
+      if (!this.gen_mnemonic_passphrase) {
+        this.gen_mnemonic_error = 'Please input password'
+        return
+      }
+
+      this.accountGen({
+        mnemonic: this.gen_mnemonic.join(' '),
+        password: this.gen_mnemonic_passphrase
+      })
+      .catch(err => this.gen_mnemonic_error = err)
+    },
+    setAccountName() {
+      const accounts = getLocal('_')
+
+      if (this.account_name.length === 0)
+        this.account_name_error = 'Please input your account name'
+      else if (this.account_name in accounts) {
+        this.account_name_error = 'This account name has already been used'
+      }
+      else {
+        this.account_name_error = ''
+        this.current_step = 'password'
+      }
+    },
+    confirmPassword() {
+      if (this.password.length === 0)
+        this.password_error = 'Please input your password'
+      else if (this.password !== this.password_confirm) {
+        this.password_error = 'The two passwords are not equal'
+      } else {
+        this.current_step = 'op_selection'
+      }
+    }
+  }
+})
+
+
+const domain = 'zeronet.catsigma.com'
+components.SettingModal = Vue.component('setting-modal', {
+  template: `
     <q-modal v-model="opened" content-css="padding: 24px">
       <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
       <q-list link>
@@ -221,4 +631,40 @@
 
       <q-btn color="cyan-8" outline icon="close" @click="opened = false" label="Close" />
     </q-modal>
-  `,data(){return{opened:!1,mute:!!c("*").mute,timeout:!!c("*").timeout,host:c("*").host||h,hosts:[{label:h,value:h}]}},watch:{mute(a){this.valChange("mute",a)},timeout(a){this.valChange("timeout",a)},host(a){this.valChange("host",a)}},methods:{valChange(a,b){const e=c("*");e[a]=b,d("*",e)}}}),b.exports=e},{}]},{},[1]);
+  `,
+  data() {
+    return {
+      opened: false,
+
+      mute: !!getLocal('*').mute,
+      timeout: !!getLocal('*').timeout,
+      host: getLocal('*').host || domain,
+      hosts: [{
+        label: domain,
+        value: domain
+      }]
+    }
+  },
+  watch: {
+    mute(v) {
+      this.valChange('mute', v)
+    },
+    timeout(v) {
+      this.valChange('timeout', v)
+    },
+    host(v) {
+      this.valChange('host', v)
+    }
+  },
+  methods: {
+    valChange(name, value) {
+      const setting = getLocal('*')
+      setting[name] = value
+      setLocal('*', setting)
+    }
+  }
+})
+
+module.exports = components
+
+},{}]},{},[1]);

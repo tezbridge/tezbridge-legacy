@@ -1,4 +1,185 @@
-(function(){function b(d,e,g){function a(j,i){if(!e[j]){if(!d[j]){var k="function"==typeof require&&require;if(!i&&k)return k(j,!0);if(h)return h(j,!0);var c=new Error("Cannot find module '"+j+"'");throw c.code="MODULE_NOT_FOUND",c}var l=e[j]={exports:{}};d[j][0].call(l.exports,function(b){var c=d[j][1][b];return a(c||b)},l,l.exports,b,d,e,g)}return e[j].exports}for(var h="function"==typeof require&&require,c=0;c<g.length;c++)a(g[c]);return a}return b})()({1:[function(){((a)=>{const b=a.TZClient,c=(b)=>JSON.parse(a.localStorage.getItem(b)),d=(b)=>a.localStorage.removeItem(b),e=new Worker("js/build/tzclient.js"),f=(()=>{let a=1;const b={},c={};return e.onmessage=(a)=>{a.data.tezbridge_workerid&&(a.data.error?c[a.data.tezbridge_workerid]&&c[a.data.tezbridge_workerid](a.data.error):b[a.data.tezbridge_workerid]&&b[a.data.tezbridge_workerid](a.data.result),delete b[a.data.tezbridge_workerid],delete c[a.data.tezbridge_workerid])},(c,d)=>{const f=a++;return e.postMessage({tezbridge_workerid:f,method:c,params:d}),new Promise((a,c)=>{b[f]=a,c[f]=c})}})(),g={public_key_hash:{mute:!0,confirm(){return`get public key hash`},handler(){return f("public_key_hash")}},balance:{mute:!0,confirm(){return`get balance`},handler(a){return f("balance",a.data.contract).then((a)=>b.tz2r(a))}},block_head:{mute:!0,confirm(){return`get block head of node`},handler(){return f("head")}},contract:{mute:!0,confirm(a){return`get info for contract:${a.data.contract}`},handler(a){return f("contract",a.data.contract)}},transfer:{confirm(a){return`transfer ${a.data.amount}tz to ${a.data.destination} with parameter
-${a.data.parameters&&JSON.stringify(a.data.parameters)||"Unit"}`},handler(a){return f("transfer",{amount:a.data.amount,source:a.data.source,destination:a.data.destination,parameters:a.data.parameters})}},originate:{confirm(a){return`originate contract for ${a.data.balance}tz
-with code:${!!a.data.script}`},handler(a){return f("originate",{source:a.data.source,balance:a.data.balance,spendable:!!a.data.spendable,delegatable:!!a.data.delegatable,script:a.data.script,delegate:a.data.delegate})}},operations:{confirm(a){return`run operations list below:
-${a.data.operations.map((a)=>a.method+(a.destination?`(${a.destination})`:"")+" with "+(a.amount||a.balance)+"tz").join("\n")}`},handler(a){const b=a.data.operations.filter((a)=>"transfer"===a.method||"originate"===a.method);return f("makeOperations",[b,0,a.data.source&&{source:a.data.source}])}}},h=(b)=>{if(b.data.tezbridge){const e=c("*").host;e&&f("setHost",e),f("public_key_hash").then((e)=>{if(!e){const e=c("__");if(d("__"),!e)b.source.postMessage({tezbridge:b.data.tezbridge,error:"no account found"},"*"),alert("CurrentHost:["+a.location.host+"]\nAccount is inaccessible\nPlease get your access code"),a.open("https://tezbridge.github.io/");else{const a=prompt("Input the access code");f("importCipherData",[e,a]).then(()=>{if(c("*").timeout){const a=+new Date,b=setInterval(()=>{1800000<=new Date-a&&c()},5e3),c=()=>{f("cleanKey"),clearInterval(b)}}h(b)}).catch(()=>{b.source.postMessage({tezbridge:b.data.tezbridge,error:"Decryption failed"},"*")})}}else{if(!g[b.data.method])return;if((!g[b.data.method].mute||!c("*").mute)&&!confirm(`Allow ${b.origin} to \n${g[b.data.method].confirm(b)}`))return void b.source.postMessage({tezbridge:b.data.tezbridge,error:"unpass confirmation"},"*");const a=g[b.data.method].handler(b);a&&a.then((a)=>{const c={result:a};c.tezbridge=b.data.tezbridge,b.source.postMessage(c,"*")}).catch((a)=>{b.source.postMessage({tezbridge:b.data.tezbridge,error:a},"*")})}})}};(()=>{a.addEventListener("message",h)})()})(window)},{}]},{},[1]);
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+((window) => {
+  const TZClient = window.TZClient
+
+  const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+  const removeLocal = x => window.localStorage.removeItem(x)
+
+  const tzclient_worker = new Worker('js/build/tzclient.js')
+  const tzclient_pm = (() => {
+    let id = 1
+    const resolves = {}
+    const rejects = {}
+    tzclient_worker.onmessage = e => {
+      if (e.data.tezbridge_workerid) {
+        if (e.data.error)
+          rejects[e.data.tezbridge_workerid] && rejects[e.data.tezbridge_workerid](e.data.error)
+        else
+          resolves[e.data.tezbridge_workerid] && resolves[e.data.tezbridge_workerid](e.data.result)
+
+        delete resolves[e.data.tezbridge_workerid]
+        delete rejects[e.data.tezbridge_workerid]
+      }
+    }
+
+    return (method, params) => {
+      const mid = id++
+      tzclient_worker.postMessage({tezbridge_workerid: mid, method, params})
+      return new Promise((resolve, reject) => {
+        resolves[mid] = resolve
+        reject[mid] = reject
+      })
+    }
+  })()
+
+  const export_functions = {
+    public_key_hash: {
+      mute: true,
+      confirm(e) {
+        return `get public key hash`
+      },
+      handler(e) {
+        return tzclient_pm('public_key_hash')
+      }
+    },
+    balance: {
+      mute: true,
+      confirm(e) {
+        return `get balance`
+      },
+      handler(e) {
+        return tzclient_pm('balance', e.data.contract)
+          .then(x => TZClient.tz2r(x))
+      }
+    },
+    block_head: {
+      mute: true,
+      confirm(e) {
+        return `get block head of node`
+      },
+      handler(e) {
+        return tzclient_pm('head')
+      }
+    },
+    contract: {
+      mute: true,
+      confirm(e) {
+        return `get info for contract:${e.data.contract}`
+      },
+      handler(e) {
+        return tzclient_pm('contract', e.data.contract)
+      }
+    },
+    transfer: {
+      confirm(e) {
+        return `transfer ${e.data.amount}tz to ${e.data.destination} with parameter
+${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
+      },
+      handler(e) {
+        return tzclient_pm('transfer', {
+          amount: e.data.amount,
+          source: e.data.source,
+          destination: e.data.destination,
+          parameters: e.data.parameters
+        })
+      }
+    },
+    originate: {
+      confirm(e) {
+        return `originate contract for ${e.data.balance}tz
+with code:${!!e.data.script}`
+      },
+      handler(e) {
+        return tzclient_pm('originate', {
+          source: e.data.source,
+          balance: e.data.balance,
+          spendable: !!e.data.spendable,
+          delegatable: !!e.data.delegatable,
+          script: e.data.script,
+          delegate: e.data.delegate
+        })
+      }
+    },
+    operations: {
+      confirm(e) {
+        return `run operations list below:
+${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
+      },
+      handler(e) {
+        const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
+        return tzclient_pm('makeOperations', [ops, 0, e.data.source && {source: e.data.source}])
+      }
+    }
+  }
+
+  const dispatcher = (e) => {
+    if (!e.data.tezbridge) return
+
+    const host = getLocal('*').host
+    if (host)
+      tzclient_pm('setHost', host)
+
+    tzclient_pm('public_key_hash')
+    .then(x => {
+      if (!x) {
+        const encrypted_keys = getLocal('__')
+        removeLocal('__')
+        if (!encrypted_keys) {
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
+          alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
+
+          window.open('https://tezbridge.github.io/')
+
+        } else {
+          const key = prompt('Input the access code')
+          tzclient_pm('importCipherData', [encrypted_keys, key])
+          .then(() => {
+            if (getLocal('*').timeout) {
+              const start_date = +new Date()
+
+              const timer = setInterval(() => {
+                if (new Date() - start_date >= 1000 * 60 * 30) {
+                  reset()
+                }
+              }, 5000)
+
+              const reset = () => {
+                tzclient_pm('cleanKey')
+                clearInterval(timer)
+              }
+            }
+
+            dispatcher(e)
+          })
+          .catch(() => {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, '*')
+          })
+        }
+      } else {
+        if (!export_functions[e.data.method]) return
+        if (!export_functions[e.data.method].mute || !getLocal('*').mute)
+          if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, '*')
+            return
+          }
+
+        const p = export_functions[e.data.method].handler(e)
+        if (p)
+          p.then(x => {
+            const result = {result: x}
+            result.tezbridge = e.data.tezbridge
+            e.source.postMessage(result, '*')
+          })
+          .catch(err => {
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, '*')
+          })
+      }
+    })
+  }
+
+  const main = () => {
+    window.addEventListener('message', dispatcher)
+  }
+  main()
+})(window)
+},{}]},{},[1]);
