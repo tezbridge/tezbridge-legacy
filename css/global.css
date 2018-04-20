@@ -1,39 +1,70 @@
 @font-face {
-    font-family: 'metropolisbold';
-    src: url('metropolis-bold-webfont.woff2') format('woff2'),
-         url('metropolis-bold-webfont.woff') format('woff');
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url('material-icon.woff2') format('woff2');
+}
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+@font-face {
+    font-family: 'montserrat';
+    src: url('montserrat-regular-webfont.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'metropolisregular';
-    src: url('metropolis-regular-webfont.woff2') format('woff2'),
-         url('metropolis-regular-webfont.woff') format('woff');
+    font-family: 'montserrat';
+    src: url('montserrat-bold-webfont.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserrat-extralight';
+    src: url('montserrat-extralight-webfont.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
 
-.watermark { color: #ccc; bottom: -28px; left: 4px; position: fixed; font-size: 72px; z-index: -1000; opacity: 0.15; font-family: metropolisbold, Helvetica, Arial, sans-serif; }
-.watermark:visited { color: #ccc; }
-.watermark span { font-family: metropolisbold, Helvetica, Arial, sans-serif; position: absolute; top: -49px; left: 0; font-size: 72px;}
+* {font-family: 'montserrat';}
+p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
-* { font-family: metropolisregular, Helvetica, Arial, sans-serif; font-size: 13px; vertical-align: middle; font-weight: 400; margin: 0; padding: 0; }
-p { line-height: 1.6; text-overflow: ellipsis; overflow: hidden }
-p.indent { padding-left: 8px; }
-
-button { background: rgb(113,113,113); color: #ddd; box-shadow: #333 2px 2px 0; padding: 4px 8px; margin: 4px; border: 0}
-button:active {box-shadow: #333 0 0 0; color: white;}
-td { text-align: right }
-
-#loading { color: black; position: fixed; top: 0; left: 0; width: 100%; text-align: center}
-#loading span { padding: 4px 8px; background: #eee; border-radius: 0 0 8px 8px; }
+.body-wrapper {max-width: 640px; margin: 0 auto;}
+.mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}
+.header {padding: 16px 8px 0; display: flex; justify-content: space-between; align-items: center}
+.center-wrapper {margin: 16px 0; text-align: center}
+.center-wrapper > * {margin: 0 2px;}
+body .q-input {margin: 8px 0}
+.fade {transition: opacity 0.5s}
 
 
-body { opacity: 0; padding: 4px ; background: #333; color: #ccc; transition: opacity 1s; -webkit-transition: opacity 1s;}
-.group { padding: 6px; margin: 6px; background: rgba(108,108,108,0.5) }
+/* --- override quasar --- */
+body .q-list {border: 0}
+body .q-stepper-dot i {font-size: 18px;}
+body .q-stepper {box-shadow: none}
+body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #eee;}
+body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
+/* === override quasar === */
 
-.group input::placeholder { color: #aaa; }
-.group input { color: white; background: transparent; border-radius: 5px; border: 0; border-bottom: 1px solid #ccc; width: 240px; padding: 4px; margin: 4px;}
-
-.compatibility ul {padding-left: 16px;}
+@media
+(-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+.header {padding-left: 16px}
+.header img {width: 32px}
+}
