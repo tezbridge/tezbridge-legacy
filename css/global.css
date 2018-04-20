@@ -47,7 +47,7 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
 .body-wrapper {max-width: 640px; margin: 0 auto;}
 .mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}
-.header {padding: 16px 8px 0 16px; display: flex; justify-content: space-between; align-items: center}
+.header {padding: 16px 8px 0; display: flex; justify-content: space-between; align-items: center}
 .center-wrapper {margin: 16px 0; text-align: center}
 .center-wrapper > * {margin: 0 2px;}
 body .q-input {margin: 8px 0}
@@ -65,5 +65,6 @@ body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
 @media
 (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
+.header {padding-left: 16px}
 .header img {width: 32px}
 }

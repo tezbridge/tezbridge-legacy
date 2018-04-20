@@ -36,7 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setLocal('v', current_version)
       }
 
-      if (version < current_version && getLocal('_')) {
+      if (version >= current_version)
+        return false
+
+      if (getLocal('_')) {
         this.$q.dialog({
           title: 'Reset warning',
           message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
