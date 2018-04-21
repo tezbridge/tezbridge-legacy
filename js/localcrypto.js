@@ -1,4 +1,4 @@
-const sodium = require('libsodium-wrappers')
+const sodium = require('./libsodium-wrappers')
 
 const getKey = (password, salt) => {
   return Promise.resolve(sodium.crypto_pwhash(

@@ -1,6 +1,6 @@
 
 const bs58check = require('bs58check')
-const sodium = require('libsodium-wrappers')
+const sodium = require('./libsodium-wrappers')
 const bip39 = require('bip39')
 const localcrypto = require('./localcrypto')
 
