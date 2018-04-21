@@ -10,7 +10,7 @@ TezBridge is the one that allows you to visit the decentralized application of t
 * Chrome 49+
 * Firefox 52+
 * Safari 11+ (Safari > Preferences > Privacy > Cookies and website data > Always allow)
-* iOS 11.3+ (Settings > Safari > Prevent Cross-Site Tracking > Off)
+* iOS 11+ (Settings > Safari > Prevent Cross-Site Tracking > Off)
 * Android Browser 56+
 * Android Chrome 61+
 
