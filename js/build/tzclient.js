@@ -18,17 +18,6 @@ const getKey = (password, salt) => {
     1024 * 2048,
     sodium.crypto_pwhash_ALG_ARGON2I13
   ))
-  // return argon2.hash({
-  //     pass: password,
-  //     salt: salt,
-  //     time: 4,
-  //     mem: 2048,
-  //     hashLen: 64,
-  //     parallelism: 1,
-  //     type: argon2.ArgonType.Argon2i,
-  //     distPath: './js'
-  // })
-  // .then(x => x.hash)
 }
 
 const encrypt = (password, content) => {
@@ -421,43 +410,6 @@ module.exports = TZClient
     })
   }
 })()
-
-
-// const tzc = new TZClient({
-//   seed: 'edsk3iQYm63d83jdgNpciMAKW1tgUyr2uJDJESAwbADhg8LTdumoF9'
-// })
-
-// const tzc = new TZClient({
-//   mnemonic: TZClient.genMnemonic(),
-//   password: 'abcdefg'
-// })
-
-// tzc.balance()
-// .then(balance => {
-//   return tzc.faucet()
-//   .then(() => tzc.balance())
-//   .then(x => console.log('faucet test:', TZClient.tz2r(x - balance)))
-// })
-// .then(() => Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')]))
-// .then(balances => {
-//   return tzc.transfer({
-//     destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r',
-//     amount: 13.001001
-//   })
-//   .then(() => {
-//     return Promise.all([tzc.balance(), tzc.balance('tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r')])
-//     .then(new_balances => {
-//       console.log('trransfer test:',TZClient.tz2r(new_balances[0] - balances[0]), TZClient.tz2r(new_balances[1] - balances[1]))
-//     })
-//   })
-// })
-// .then(() => {
-//   return tzc.originate({
-//     balance: 2.01
-//   })
-//   .then(x => tzc.balance(x[0][0]))
-//   .then(x => console.log('originate test:', TZClient.tz2r(x)))
-// })
 
 
 },{"./libsodium-wrappers":1,"./localcrypto":3,"bip39":6,"bs58check":17}],5:[function(require,module,exports){

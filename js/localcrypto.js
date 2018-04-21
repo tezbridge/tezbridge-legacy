@@ -9,17 +9,6 @@ const getKey = (password, salt) => {
     1024 * 2048,
     sodium.crypto_pwhash_ALG_ARGON2I13
   ))
-  // return argon2.hash({
-  //     pass: password,
-  //     salt: salt,
-  //     time: 4,
-  //     mem: 2048,
-  //     hashLen: 64,
-  //     parallelism: 1,
-  //     type: argon2.ArgonType.Argon2i,
-  //     distPath: './js'
-  // })
-  // .then(x => x.hash)
 }
 
 const encrypt = (password, content) => {
