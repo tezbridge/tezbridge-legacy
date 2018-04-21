@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     template: `
       <div class="body-wrapper">
         <div class="header">
-          <img src="css/logo.png" />
+          <b><img src="css/logo.png" /></b>
           <setting-modal ref="setting" />
           <q-btn color="grey-6" icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
         </div>
