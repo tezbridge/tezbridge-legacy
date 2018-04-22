@@ -10,14 +10,27 @@
 const sodium = require('./libsodium-wrappers')
 
 const getKey = (password, salt) => {
-  return Promise.resolve(sodium.crypto_pwhash(
-    64,
-    password,
-    salt,
-    4,
-    1024 * 2048,
-    sodium.crypto_pwhash_ALG_ARGON2I13
-  ))
+  try {
+    const key = sodium.crypto_pwhash(
+      64,
+      password,
+      salt,
+      4,
+      1024 * 2048,
+      sodium.crypto_pwhash_ALG_ARGON2I13
+    )
+    return Promise.resolve(key)
+  } catch(err) {
+    return Promise.reject(err)
+  }
+}
+
+const getAES = key => {
+  try {
+    return miscreant.AEAD.importKey(key, 'AES-PMAC-SIV')
+  } catch(err) {
+    return Promise.reject(err)
+  }
 }
 
 const encrypt = (password, content) => {
@@ -25,7 +38,7 @@ const encrypt = (password, content) => {
   const iv = window.crypto.getRandomValues(new Uint8Array(16))
 
   return getKey(password, salt)
-  .then(key => miscreant.AEAD.importKey(key, 'AES-PMAC-SIV'))
+  .then(key => getAES(key))
   .then(x => x.seal(new TextEncoder('utf-8').encode(content), iv))
   .then(x => ({
     v: 0.41,
@@ -46,7 +59,7 @@ const decrypt = (password, cipherobj) => {
   const ciphertext = sodium.from_hex(cipherobj.ciphertext)
 
   return getKey(password, salt)
-  .then(key => miscreant.AEAD.importKey(key, 'AES-PMAC-SIV'))
+  .then(key => getAES(key))
   .then(x => x.open(ciphertext, iv))
   .then(x => new TextDecoder('utf-8').decode(x))
 }
