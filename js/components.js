@@ -426,6 +426,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         this.$emit('finish')
         Object.assign(this.$data, this.$options.data())
       })
+      .catch(err => Promise.reject(err.toString()))
     },
     importFaucetAccount() {
       if (!this.faucet_data) {
