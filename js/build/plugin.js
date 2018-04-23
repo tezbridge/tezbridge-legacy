@@ -27,7 +27,7 @@
       tzclient_worker.postMessage({tezbridge_workerid: mid, method, params})
       return new Promise((resolve, reject) => {
         resolves[mid] = resolve
-        reject[mid] = reject
+        rejects[mid] = reject
       })
     }
   })()
