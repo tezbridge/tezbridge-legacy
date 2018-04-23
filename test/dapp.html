@@ -28,6 +28,9 @@ tezbridge({method: 'public_key_hash'})
 .then(x => {
   public_key_hash_el.innerHTML = x
 })
+.catch(err => {
+  public_key_hash_el.innerHTML = err
+})
       </textarea>
       <div>
         <button onclick="eval(pkh_cm.getValue())">get public key hash</button>
@@ -44,6 +47,9 @@ tezbridge({
 })
 .then(x => {
   balance_el.innerHTML = x
+})
+.catch(err => {
+  balance_el.innerHTML = err
 })
       </textarea>
       <div>
@@ -63,6 +69,9 @@ tezbridge({
 .then(x => {
   transfer_el.innerHTML = JSON.stringify(x)
 })
+.catch(err => {
+  transfer_el.innerHTML = err
+})
         </textarea>
         <div>
           <button onclick="eval(transfer_cm.getValue())">transfer</button>
@@ -80,6 +89,9 @@ tezbridge({
 .then(x => {
   originate_el.innerHTML = JSON.stringify(x)
 })
+.catch(err => {
+  originate_el.innerHTML = err
+})
         </textarea>
         <div>
           <button onclick="eval(originate_cm.getValue())">originate</button>
@@ -96,6 +108,9 @@ tezbridge({
 })
 .then(x => {
   contract_el.innerHTML = JSON.stringify(x)
+})
+.catch(err => {
+  contract_el.innerHTML = err
 })
         </textarea>
         <div>
@@ -129,6 +144,9 @@ tezbridge({
 })
 .then(x => {
   operations_el.innerHTML = JSON.stringify(x)
+})
+.catch(err => {
+  operations_el.innerHTML = err
 })
         </textarea>
         <div>
