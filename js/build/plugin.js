@@ -114,6 +114,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
 
   const dispatcher = (e) => {
     if (!e.data.tezbridge) return
+    const origin = e.origin
 
     const host = getLocal('*').host
     if (host)
@@ -125,7 +126,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
         const encrypted_keys = getLocal('__')
         removeLocal('__')
         if (!encrypted_keys) {
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, '*')
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, origin)
           alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
 
           window.open('https://tezbridge.github.io/')
@@ -152,14 +153,14 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
             dispatcher(e)
           })
           .catch(() => {
-            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, '*')
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Decryption failed'}, origin)
           })
         }
       } else {
         if (!export_functions[e.data.method]) return
         if (!export_functions[e.data.method].mute || !getLocal('*').mute)
           if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
-            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, '*')
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, origin)
             return
           }
 
@@ -168,10 +169,10 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
           p.then(x => {
             const result = {result: x}
             result.tezbridge = e.data.tezbridge
-            e.source.postMessage(result, '*')
+            e.source.postMessage(result, origin)
           })
           .catch(err => {
-            e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, '*')
+            e.source.postMessage({tezbridge: e.data.tezbridge, error: err}, origin)
           })
       }
     })

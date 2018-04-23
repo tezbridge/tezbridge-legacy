@@ -3,18 +3,19 @@
   let bridge_fn = null
   const resolves = {}
   const rejects = {}
+  const origin = 'https://tezbridge.github.io'
+  // const origin = 'http://127.0.0.1:8080'
 
   const createIframe = () => {
     const iframe = document.createElement('iframe')
-    // iframe.src = 'http://127.0.0.1:8080/plugin.html'
-    iframe.src = 'https://tezbridge.github.io/plugin.html'
+    iframe.src = origin + '/plugin.html'
     iframe.style.display = 'none'
     iframe.onload = () => {
       bridge_fn = (params) => {
         return new Promise((resolve, reject) => {
           const mid = message_id++
           params.tezbridge = mid
-          iframe.contentWindow.postMessage(params, '*')
+          iframe.contentWindow.postMessage(params, origin)
           resolves[mid] = resolve
           rejects[mid] = reject
         })
