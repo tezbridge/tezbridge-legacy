@@ -23,11 +23,12 @@
 
     return (method, params) => {
       const mid = id++
-      tzclient_worker.postMessage({tezbridge_workerid: mid, method, params})
-      return new Promise((resolve, reject) => {
+      const p = new Promise((resolve, reject) => {
         resolves[mid] = resolve
         rejects[mid] = reject
       })
+      tzclient_worker.postMessage({tezbridge_workerid: mid, method, params})
+      return p
     }
   })()
 
