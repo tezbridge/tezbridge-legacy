@@ -334,20 +334,17 @@ module.exports = TZClient
     }
   }
 
-  let incoming = Promise.resolve()
   onmessage = (e) => {
     if (!e.data.tezbridge_workerid) return
 
-    incoming.finally(() => {
-      const result = handler[e.data.method](e.data.params)
+    const result = handler[e.data.method](e.data.params)
+    const result_promise = result instanceof Promise ? result : Promise.resolve(result)
 
-      incoming = result instanceof Promise ? result : Promise.resolve(result)
-      incoming.then(result => {
-        postMessage({tezbridge_workerid: e.data.tezbridge_workerid, result})
-      })
-      .catch(error => {
-        postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error})
-      })
+    result_promise.then(result => {
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, result})
+    })
+    .catch(error => {
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error})
     })
   }
 })()
