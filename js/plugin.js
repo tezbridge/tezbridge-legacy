@@ -135,11 +135,12 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
           const key = prompt('Input the access code')
           tzclient_pm('importCipherData', [encrypted_keys, key])
           .then(() => {
-            if (getLocal('*').timeout) {
+            const relock = getLocal('*').relock || 0
+            if (relock) {
               const start_date = +new Date()
 
               const timer = setInterval(() => {
-                if (new Date() - start_date >= 1000 * 60 * 30) {
+                if (new Date() - start_date >= 1000 * 60 * relock) {
                   reset()
                 }
               }, 5000)

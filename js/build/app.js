@@ -32,28 +32,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const reset = () => {
         setLocal('_', {})
-        setLocal('*', {mute: true, timeout: true})
+        setLocal('*', {mute: true, relock: 20})
         removeLocal('__')
         setLocal('v', current_version)
       }
 
-      if (version >= current_version)
-        return false
-
-      if (getLocal('_')) {
-        this.$q.dialog({
-          title: 'Reset warning',
-          message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
-          ok: 'OK',
-          cancel: 'NO, KEEP MY DATA'
-        })
-        .then(() => {
+      if (version >= current_version) {
+        const settings = getLocal('*')
+        if (!('relock' in settings))
+          setLocal('*', Object.assign(settings, {relock: 20}))
+      } else {
+        if (getLocal('_')) {
+          this.$q.dialog({
+            title: 'Reset warning',
+            message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
+            ok: 'OK',
+            cancel: 'NO, KEEP MY DATA'
+          })
+          .then(() => {
+            reset()
+            location.reload()
+          })
+          .catch(() => {})
+        } else
           reset()
-          location.reload()
-        })
-        .catch(() => {})
-      } else
-        reset()
+      }
     }
   })
 })
@@ -152,6 +155,8 @@ components.Account = Vue.component('account', {
     return {
       locked: true,
       loading: false,
+      relock_timer: 0,
+
       tzclient: new TZClient(),
       password: '',
       password_error: '',
@@ -249,6 +254,13 @@ components.Account = Vue.component('account', {
       const tzclient = new TZClient()
       tzclient.importCipherData(this.account.cipherdata, this.password)
       .then(() => {
+        clearTimeout(this.relock_timer)
+        const relock_setting = getLocal('*').relock
+        if (relock_setting)
+          this.relock_timer = setTimeout(() => {
+            this.lock()
+          }, 60 * 1000 * relock_setting)
+
         this.password = ''
         this.locked = false
         this.tzclient = tzclient
@@ -608,8 +620,15 @@ const domain = 'zeronet.catsigma.com'
 components.SettingModal = Vue.component('setting-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px">
-      <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
-      <q-list link>
+      <q-list>
+        <q-item>
+          <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
+        </q-item>
+        <q-item>
+          <q-field helper="This works both for home and plugin.">
+            <q-input color="cyan-8" type="number" v-model.number="relock" float-label="Minutes to relock (0 for never relock)" />
+          </q-field>
+        </q-item>
         <q-item tag="label">
           <q-item-side>
             <q-checkbox color="cyan-8" v-model="mute"/>
@@ -617,15 +636,6 @@ components.SettingModal = Vue.component('setting-modal', {
           <q-item-main>
             <q-item-tile label>Mute</q-item-tile>
             <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
-          </q-item-main>
-        </q-item>
-        <q-item tag="label">
-          <q-item-side>
-            <q-checkbox color="cyan-8" v-model="timeout"  />
-          </q-item-side>
-          <q-item-main>
-            <q-item-tile label>Timeout</q-item-tile>
-            <q-item-tile sublabel>Limit session lifetime of plugin to 30 minutes</q-item-tile>
           </q-item-main>
         </q-item>
       </q-list>
@@ -638,7 +648,7 @@ components.SettingModal = Vue.component('setting-modal', {
       opened: false,
 
       mute: !!getLocal('*').mute,
-      timeout: !!getLocal('*').timeout,
+      relock: getLocal('*').relock || 0,
       host: getLocal('*').host || domain,
       hosts: [{
         label: domain,
@@ -650,8 +660,8 @@ components.SettingModal = Vue.component('setting-modal', {
     mute(v) {
       this.valChange('mute', v)
     },
-    timeout(v) {
-      this.valChange('timeout', v)
+    relock(v) {
+      this.valChange('relock', v)
     },
     host(v) {
       this.valChange('host', v)

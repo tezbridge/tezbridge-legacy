@@ -31,28 +31,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const reset = () => {
         setLocal('_', {})
-        setLocal('*', {mute: true, timeout: true})
+        setLocal('*', {mute: true, relock: 20})
         removeLocal('__')
         setLocal('v', current_version)
       }
 
-      if (version >= current_version)
-        return false
-
-      if (getLocal('_')) {
-        this.$q.dialog({
-          title: 'Reset warning',
-          message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
-          ok: 'OK',
-          cancel: 'NO, KEEP MY DATA'
-        })
-        .then(() => {
+      if (version >= current_version) {
+        const settings = getLocal('*')
+        if (!('relock' in settings))
+          setLocal('*', Object.assign(settings, {relock: 20}))
+      } else {
+        if (getLocal('_')) {
+          this.$q.dialog({
+            title: 'Reset warning',
+            message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
+            ok: 'OK',
+            cancel: 'NO, KEEP MY DATA'
+          })
+          .then(() => {
+            reset()
+            location.reload()
+          })
+          .catch(() => {})
+        } else
           reset()
-          location.reload()
-        })
-        .catch(() => {})
-      } else
-        reset()
+      }
     }
   })
 })
