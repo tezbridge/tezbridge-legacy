@@ -197,19 +197,6 @@ class TZClient {
     }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
   }
 
-  // faucet() {
-  //   return this.makeOperations([{
-  //     kind: 'faucet',
-  //     id: this.key_pair.public_key_hash,
-  //     nonce: sodium.to_hex(sodium.crypto_generichash(32, '' + new Date() + Math.random()))
-  //   }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
-  //   .then(x => this.transfer({
-  //     amount: 100000,
-  //     source: x[0][0],
-  //     destination: this.key_pair.public_key_hash
-  //   }))
-  // }
-
   makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
     return Promise.all([this.head_hash(), this.predecessor(), this.counter(additional_forge_data.source)])
     .then(([head_hash, predecessor, counter]) => {
