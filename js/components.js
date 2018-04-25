@@ -562,7 +562,7 @@ components.SettingModal = Vue.component('setting-modal', {
         </q-item>
         <q-item>
           <q-field helper="This works both for home and plugin.">
-            <q-input color="cyan-8" type="number" v-model.number="relock" float-label="Minutes to relock (0 for never relock)" />
+            <q-input color="cyan-8" type="number" v-model.number="relock" float-label="Minutes to relock" />
           </q-field>
         </q-item>
         <q-item tag="label">
