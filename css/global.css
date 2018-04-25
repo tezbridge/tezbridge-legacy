@@ -57,7 +57,7 @@ body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right:
 body .q-input {margin: 8px 0}
 .fade {transition: opacity 0.5s}
 
-.dapp-list .title {margin-bottom: 24px; font-weight: 700; text-align: center; font-size: 18px}
+.dapp-list .title {color: #333; margin-bottom: 24px; font-weight: 700; text-align: center; font-size: 18px}
 .dapp-list a {font-size: 18px; color: #0097a7; font-weight: 700; text-decoration: none; margin-bottom: 4px;}
 .dapp-list span {display: block; font-size: 14px; color: #aaa}
 .dapp-list .q-item {flex-direction: column; align-items: flex-start;}
@@ -67,8 +67,8 @@ body .q-input {margin: 8px 0}
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}
 body .q-stepper {box-shadow: none}
-body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #eee;}
-body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
+body .q-collapsible-closed .q-collapsible-inner { border: 1px solid transparent; background: #fbfbfb; transition: background 0.5s, box-shadow 0.5s}
+body .q-collapsible-opened .q-collapsible-inner { box-shadow: 0 1px 3px #ddd }
 body input.q-input-target {height: 21px;}
 /* === override quasar === */
 
