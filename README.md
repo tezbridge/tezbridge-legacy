@@ -1,6 +1,6 @@
 # TezBridge
 
-![TezBridge logo](https://raw.githubusercontent.com/tezbridge/tezbridge.github.io/ui/css/logo-frame.png)
+![TezBridge logo](https://raw.githubusercontent.com/tezbridge/tezbridge.github.io/master/css/logo-frame.png)
 
 TezBridge is the one that allows you to visit the decentralized application of tomorrow in your browser and mobile today.
 
