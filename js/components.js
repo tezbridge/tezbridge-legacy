@@ -628,7 +628,7 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
       <div class="dapp-list">
-        <div class="title">= DAPP QUICK LAUNCH =</div>
+        <div class="title">DAPP FAST ACCESS</div>
         <q-list>
           <q-item>
             <a href="/basic.html" target="_blank">Basic</a>
