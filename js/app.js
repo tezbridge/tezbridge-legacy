@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <img src="css/logo.png" />
           <setting-modal ref="setting" />
           <dapp-list-modal ref="dapp_list" />
-          <div>
-            <q-btn color="grey-6" flat label="Ð" @click="$refs.dapp_list.opened = true" />
-            <q-btn color="grey-6" icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
+          <div class="row">
+            <q-btn color="grey-6" flat label="Ð" @click="$refs.dapp_list.opened = true"  />
+            <q-btn color="grey-6" icon="settings" flat @click="$refs.setting.opened = true" />
           </div>
         </div>
         <account-list />

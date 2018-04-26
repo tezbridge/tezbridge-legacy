@@ -47,7 +47,8 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
 body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right: 12px}
 
-.header button {font-weight: 700; font-size: 20px; height: 20px; line-height: 20px;}
+.header button { height: 48px; width: 48px }
+.header button i, .header button > div > div {font-weight: 700; font-size: 21px}
 
 .body-wrapper {max-width: 640px; margin: 0 auto;}
 .mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}
