@@ -65,7 +65,7 @@
           destination: dest_el.value
         })
         .then(x => {
-          alert(`Success\nInjectedOperation:${x}`)
+          alert(`Success!\nInjectedOperation:${x[1]}`)
         })
         .catch(err => {
           if (err !== 'no account found')
