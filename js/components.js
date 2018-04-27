@@ -631,7 +631,7 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
         <div class="title">ÐAPP FAST ACCESS</div>
         <q-list>
           <q-item>
-            <a href="/basic.html" target="_blank">Basic</a>
+            <a href="/dapps/basic.html" target="_blank">Basic</a>
             <span>Some basic operations like transferring tokens</span>
           </q-item>
           <q-item class="dim">
