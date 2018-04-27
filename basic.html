@@ -17,7 +17,9 @@
   <style>
     * {padding: 0; margin: 0; font-family: Consolas, Menlo, monospace; font-size: 16px}
     body {width: 100vw; height: 100vh;}
-    h1 {font-size: 21px; margin: 32px 0; }
+    h1 {font-size: 21px; margin: 32px 0; text-align: center;}
+    #loading {font-size: 14px; font-weight: 400; width: 320px;overflow: hidden;text-overflow: ellipsis;}
+
     .container {display: flex; flex-direction: column; justify-content: center; align-items: center;  height: 100%;}
     .op {display: flex; flex-direction: column; justify-content: center; align-items: flex-start;}
     label { background: #000; color: white; padding: 2px 4px}
@@ -39,24 +41,36 @@
     </div>
   </div>
   <script>
-    tezbridge({method: 'public_key_hash', noalert: true}).catch(() => {}).finally(() => {
-      document.querySelector('#loading').style.display = 'none'
-    })
+    const loading_el = document.querySelector('#loading')
+    const checkIdentity = () => {
+      return tezbridge({method: 'public_key_hash', noalert: true})
+      .then(x => {
+        loading_el.style.display = 'block'
+        loading_el.innerHTML = x
+      })
+      .catch(() => {
+        loading_el.style.display = 'none'
+      })
+    }
+    checkIdentity()
 
     const send = () => {
       const dest_el = document.querySelector('#destination')
       const amount_el = document.querySelector('#amount')
-      tezbridge({
-        method: 'transfer',
-        amount: amount_el.value,
-        destination: dest_el.value
-      })
-      .then(x => {
-        alert(`Success\nInjectedOperation:${x}`)
-      })
-      .catch(err => {
-        if (err !== 'no account found')
-          alert(`Error: ${err.toString()}`)
+
+      checkIdentity().finally(() => {
+        tezbridge({
+          method: 'transfer',
+          amount: amount_el.value,
+          destination: dest_el.value
+        })
+        .then(x => {
+          alert(`Success\nInjectedOperation:${x}`)
+        })
+        .catch(err => {
+          if (err !== 'no account found')
+            alert(`Error: ${err.toString()}`)
+        })
       })
     }
   </script>

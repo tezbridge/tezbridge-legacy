@@ -11,12 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     template: `
       <div class="body-wrapper">
         <div class="header">
-          <img src="css/logo.png" />
+          <b><img src="css/logo.png" /></b>
           <setting-modal ref="setting" />
           <dapp-list-modal ref="dapp_list" />
           <div class="row">
-            <q-btn color="grey-6" flat label="Ð" @click="$refs.dapp_list.opened = true"  />
-            <q-btn color="grey-6" icon="settings" flat @click="$refs.setting.opened = true" />
+            <q-btn color="grey-6" flat icon="apps" @click="$refs.dapp_list.opened = true"  />
+            <q-btn color="grey-6" flat icon="settings"  @click="$refs.setting.opened = true" />
           </div>
         </div>
         <account-list />

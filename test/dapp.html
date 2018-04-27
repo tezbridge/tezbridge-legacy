@@ -162,5 +162,7 @@ tezbridge({
     window.originate_cm = CodeMirror.fromTextArea(originate_script)
     window.contract_cm = CodeMirror.fromTextArea(contract_script)
     window.operations_cm = CodeMirror.fromTextArea(operations_script)
+
+    tezbridge({method: 'public_key_hash', noalert: true}).catch(() => {})
   </script>
 </html>
