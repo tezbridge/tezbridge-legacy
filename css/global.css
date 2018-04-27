@@ -45,6 +45,10 @@
 * {font-family: 'montserrat';}
 p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
+body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right: 12px}
+
+.header button { height: 48px; width: 48px }
+
 .body-wrapper {max-width: 640px; margin: 0 auto;}
 .mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}
 .header {padding: 16px 8px 0; display: flex; justify-content: space-between; align-items: center}
@@ -53,13 +57,18 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 body .q-input {margin: 8px 0}
 .fade {transition: opacity 0.5s}
 
+.dapp-list .title {color: #444; margin-bottom: 16px; font-weight: 700; text-align: center; font-size: 18px; line-height: 18px; height: 18px}
+.dapp-list a {font-size: 18px; color: #0097a7; font-weight: 700; text-decoration: none; margin-bottom: 4px;}
+.dapp-list span {display: block; font-size: 14px; color: #aaa}
+.dapp-list .q-item {flex-direction: column; align-items: flex-start;}
+.dapp-list .dim a {color: #aaa}
 
 /* --- override quasar --- */
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}
 body .q-stepper {box-shadow: none}
-body .q-collapsible-closed .q-collapsible-inner {border: 1px solid #eee;}
-body .q-collapsible-opened .q-collapsible-inner {box-shadow: 0 1px 3px #ddd}
+body .q-collapsible-closed .q-collapsible-inner { border: 1px solid transparent; background: #fbfbfb; transition: background 0.5s, box-shadow 0.5s}
+body .q-collapsible-opened .q-collapsible-inner { box-shadow: 0 1px 3px #ddd }
 body input.q-input-target {height: 21px;}
 /* === override quasar === */
 

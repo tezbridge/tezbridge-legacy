@@ -13,16 +13,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="header">
           <b><img src="css/logo.png" /></b>
           <setting-modal ref="setting" />
-          <q-btn color="grey-6" icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
+          <dapp-list-modal ref="dapp_list" />
+          <div class="row">
+            <q-btn color="grey-6" flat icon="apps" @click="$refs.dapp_list.opened = true"  />
+            <q-btn color="grey-6" flat icon="settings"  @click="$refs.setting.opened = true" />
+          </div>
         </div>
         <account-list />
       </div>
     `,
     data() {
       return {
+        dapp_list_opener: components.trigger.open_dapp_list
       }
     },
     methods: {
+    },
+    watch: {
+      dapp_list_opener() {
+        this.$refs.dapp_list.opened = true
+      }
     },
     beforeMount() {
       // init

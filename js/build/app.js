@@ -14,16 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="header">
           <b><img src="css/logo.png" /></b>
           <setting-modal ref="setting" />
-          <q-btn color="grey-6" icon="settings" flat round @click="$refs.setting.opened = true" size="md" />
+          <dapp-list-modal ref="dapp_list" />
+          <div class="row">
+            <q-btn color="grey-6" flat icon="apps" @click="$refs.dapp_list.opened = true"  />
+            <q-btn color="grey-6" flat icon="settings"  @click="$refs.setting.opened = true" />
+          </div>
         </div>
         <account-list />
       </div>
     `,
     data() {
       return {
+        dapp_list_opener: components.trigger.open_dapp_list
       }
     },
     methods: {
+    },
+    watch: {
+      dapp_list_opener() {
+        this.$refs.dapp_list.opened = true
+      }
     },
     beforeMount() {
       // init
@@ -66,7 +76,17 @@ const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
 const removeLocal = x => window.localStorage.removeItem(x)
 
-const components = {}
+const components = {
+  trigger: {
+    open_dapp_list: []
+  }
+}
+const triggerGlobalEvent = (name) => {
+  if (components.trigger[name].length > 0)
+    components.trigger[name].pop()
+  else
+    components.trigger[name].push(1)
+}
 
 const temp_secrets = {}
 
@@ -184,6 +204,8 @@ components.Account = Vue.component('account', {
       .catch(() => alert('Encryption failed'))
 
       this.copyToClipboard(this.$refs.access_code, 'Access code')
+
+      triggerGlobalEvent('open_dapp_list')
     },
     copySecretKey() {
       this.$refs.sk_content.innerHTML = this.tzclient.key_pair.secret_key
@@ -619,7 +641,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
 const domain = 'zeronet.catsigma.com'
 components.SettingModal = Vue.component('setting-modal', {
   template: `
-    <q-modal v-model="opened" content-css="padding: 24px">
+    <q-modal v-model="opened" content-css="padding: 24px; position: relative">
       <q-list>
         <q-item>
           <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
@@ -640,7 +662,7 @@ components.SettingModal = Vue.component('setting-modal', {
         </q-item>
       </q-list>
 
-      <q-btn color="cyan-8" outline icon="close" @click="opened = false" label="Close" />
+      <q-btn color="cyan-8" outline icon="close" @click="opened = false" class="modal-close-btn" />
     </q-modal>
   `,
   data() {
@@ -676,6 +698,31 @@ components.SettingModal = Vue.component('setting-modal', {
   }
 })
 
-module.exports = components
+components.DAppListModal = Vue.component('dapp-list-modal', {
+  template: `
+    <q-modal v-model="opened" content-css="padding: 24px; position: relative">
+      <div class="dapp-list">
+        <div class="title">ÐAPP FAST ACCESS</div>
+        <q-list>
+          <q-item>
+            <a href="/basic.html" target="_blank">Basic</a>
+            <span>Some basic operations like transferring tokens</span>
+          </q-item>
+          <q-item class="dim">
+            <a href="/test/dapp.html" target="_blank">DApp Demo</a>
+            <span>A DApp demo for developers</span>
+          </q-item>
+        </q-list>
+        <q-btn color="cyan-8" outline icon="close" @click="opened = false" class="modal-close-btn" />
+      </div>
+    </q-modal>
+  `,
+  data() {
+    return {
+      opened: false
+    }
+  }
+})
 
+module.exports = components
 },{}]},{},[1]);

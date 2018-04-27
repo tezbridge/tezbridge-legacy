@@ -22877,7 +22877,7 @@ module.exports = TZClient
       postMessage({tezbridge_workerid: e.data.tezbridge_workerid, result})
     })
     .catch(error => {
-      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error})
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error: error.toString()})
     })
   }
 })()
