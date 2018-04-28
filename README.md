@@ -21,7 +21,7 @@ When using TezBridge plugin, the secret key in memory is placed inside a closure
 Browsers can prevent any third party DApp from stealing it.
 
 ### For users
-1. Open [https://tezbridge.github.io/](https://tezbridge.github.io/)
+1. Open [https://www.tezbridge.com/](https://www.tezbridge.com/)
 2. Import or create your account
 3. Generate an access code
 4. Open a DApp or a decentralized website
@@ -30,8 +30,8 @@ Browsers can prevent any third party DApp from stealing it.
 Tip: one access code can be used only once
 
 ### For developers
-0. add `<script src="https://tezbridge.github.io/plugin.js"></script>` in your HTML file, then you are good to go
-1. view the DApp demo [https://tezbridge.github.io/test/dapp.html](https://tezbridge.github.io/test/dapp.html) (All sample codes placed here)
+0. add `<script src="https://www.tezbridge.com/plugin.js"></script>` in your HTML file, then you are good to go
+1. view the DApp demo [https://www.tezbridge.com/test/dapp.html](https://www.tezbridge.com/test/dapp.html) (All sample codes placed here)
 
 ## Donation
 If this project helps you reduce the time to develop, you could buy me a cup of milk. 😊

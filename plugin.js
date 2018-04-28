@@ -3,7 +3,7 @@
   let bridge_fn = null
   const resolves = {}
   const rejects = {}
-  const origin = 'https://tezbridge.github.io'
+  const origin = 'https://www.tezbridge.com'
   // const origin = 'http://127.0.0.1:8080'
 
   const createIframe = () => {
