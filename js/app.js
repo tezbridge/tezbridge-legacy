@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <account-list />
+        <div class="footer">
+          <a href="mailto:support@tezbridge.com">support@tezbridge.com</a>
+          <span>© 2018 TezBridge</span>
+        </div>
       </div>
     `,
     data() {
