@@ -277,7 +277,7 @@ components.Account = Vue.component('account', {
       this.$emit('remove')
     },
     unlock() {
-      const tzclient = new TZClient()
+      const tzclient = new TZClient({host: getLocal('*').host})
       tzclient.importCipherData(this.account.cipherdata, this.password)
       .then(() => {
         clearTimeout(this.relock_timer)
@@ -678,7 +678,7 @@ components.SettingModal = Vue.component('setting-modal', {
       host: getLocal('*').host || domain,
       hosts: [{
         label: domain,
-        value: domain
+        value: 'https://' + domain
       }]
     }
   },
