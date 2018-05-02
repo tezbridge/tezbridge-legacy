@@ -1,3 +1,9 @@
+if (!Promise.prototype.finally) {
+  Promise.prototype.finally = function(f) {
+    return this.then(f, f).then(() => {})
+  }
+}
+
 const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
 const removeLocal = x => window.localStorage.removeItem(x)

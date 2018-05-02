@@ -41,6 +41,13 @@
     </div>
   </div>
   <script>
+    if (!Promise.prototype.finally) {
+      Promise.prototype.finally = function(f) {
+        return this.then(f, f).then(() => {})
+      }
+    }
+    
+
     const loading_el = document.querySelector('#loading')
     const checkIdentity = () => {
       return tezbridge({method: 'public_key_hash', noalert: true})
