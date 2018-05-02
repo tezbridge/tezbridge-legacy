@@ -675,10 +675,13 @@ components.SettingModal = Vue.component('setting-modal', {
 
       mute: !!getLocal('*').mute,
       relock: getLocal('*').relock || 0,
-      host: getLocal('*').host || domain,
+      host: getLocal('*').host,
       hosts: [{
         label: domain,
         value: 'https://' + domain
+      }, {
+        label: 'zeronet.tezbridge.com',
+        value: 'https://zeronet.tezbridge.com'
       }]
     }
   },
@@ -691,6 +694,12 @@ components.SettingModal = Vue.component('setting-modal', {
     },
     host(v) {
       this.valChange('host', v)
+    }
+  },
+  beforeMount() {
+    const hosts = new Set(this.hosts.map(x => x.value))
+    if (!hosts.has(this.host)) {
+      this.host = this.hosts[0].value
     }
   },
   methods: {
