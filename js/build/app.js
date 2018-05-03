@@ -1,5 +1,7 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const components = require('./components')
+const components_wrapper = require('./components')
+const components = components_wrapper.components
+const intro_version = components_wrapper.intro_version
 
 const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
@@ -15,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <b><img src="css/logo.png" /></b>
           <setting-modal ref="setting" />
           <dapp-list-modal ref="dapp_list" />
+          <intro ref="intro" />
           <div class="row">
             <q-btn color="grey-6" flat icon="apps" @click="$refs.dapp_list.opened = true"  />
             <q-btn color="grey-6" flat icon="settings"  @click="$refs.setting.opened = true" />
@@ -39,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         this.$refs.dapp_list.opened = true
       }
     },
-    beforeMount() {
+    mounted() {
       // init
       const current_version = 0.15
       const version = getLocal('v')
@@ -55,6 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const settings = getLocal('*')
         if (!('relock' in settings))
           setLocal('*', Object.assign(settings, {relock: 20}))
+
+        if (getLocal('agreed') < intro_version) {
+          this.$refs.intro.opened = true
+        }
       } else {
         if (getLocal('_')) {
           this.$q.dialog({
@@ -743,5 +750,42 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
   }
 })
 
-module.exports = components
+const intro_version = 1.1
+components.Intro = Vue.component('intro', {
+  template: `
+    <q-modal v-model="opened" content-css="padding: 24px; position: relative">
+      <div class="intro">
+        <div class="title">Welcome to TezBridge!</div>
+        <div>
+          <span>What is TezBridge?</span> <br>
+          * TezBridge is a free, open-source Tezos client. <br>
+          * TezBridge interact with Tezos blockchain directly.
+        </div>
+        <div>
+          <span>What TezBridge <b>CAN'T</b> do?</span> <br>
+          * Recover or change your private key. <br>
+          * Recover or reset your password. <br>
+          * Reverse, cancel, or refund transactions. <br>
+          * Freeze accounts. <br>
+          * Access your accounts for you.
+        </div>
+        <q-btn color="cyan-8" outline icon="check" @click="agree" label="Agree" class="agree-btn" />
+      </div>
+    </q-modal>
+  `,
+  data() {
+    return {
+      opened: false
+    }
+  },
+  methods: {
+    agree() {
+      setLocal('agreed', intro_version)
+      this.opened = false
+    }
+  }
+})
+
+
+module.exports = {components, intro_version}
 },{}]},{},[1]);

@@ -47,6 +47,11 @@ p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
 body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right: 12px}
 
+.intro .title {text-align: center; font-weight: 700; font-size: 18px;}
+.intro div {font-size: 14px; line-height: 2}
+.intro div span {font-size: 16px; text-decoration: underline}
+.intro .agree-btn {margin-top: 8px}
+
 .header button { height: 48px; width: 48px }
 
 .body-wrapper {max-width: 640px; margin: 0 auto;}

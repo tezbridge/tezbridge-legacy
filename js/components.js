@@ -665,4 +665,41 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
   }
 })
 
-module.exports = components
+const intro_version = 1.1
+components.Intro = Vue.component('intro', {
+  template: `
+    <q-modal v-model="opened" content-css="padding: 24px; position: relative">
+      <div class="intro">
+        <div class="title">Welcome to TezBridge!</div>
+        <div>
+          <span>What is TezBridge?</span> <br>
+          * TezBridge is a free, open-source Tezos client. <br>
+          * TezBridge interact with Tezos blockchain directly.
+        </div>
+        <div>
+          <span>What TezBridge <b>CAN'T</b> do?</span> <br>
+          * Recover or change your private key. <br>
+          * Recover or reset your password. <br>
+          * Reverse, cancel, or refund transactions. <br>
+          * Freeze accounts. <br>
+          * Access your accounts for you.
+        </div>
+        <q-btn color="cyan-8" outline icon="check" @click="agree" label="Agree" class="agree-btn" />
+      </div>
+    </q-modal>
+  `,
+  data() {
+    return {
+      opened: false
+    }
+  },
+  methods: {
+    agree() {
+      setLocal('agreed', intro_version)
+      this.opened = false
+    }
+  }
+})
+
+
+module.exports = {components, intro_version}
