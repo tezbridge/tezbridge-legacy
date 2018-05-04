@@ -168,6 +168,7 @@ components.Account = Vue.component('account', {
     activate() {
       this.loading = true
       this.$q.dialog({
+        color: 'cyan-8',
         title: 'Activation',
         message: 'Please input the secret',
         prompt: {
@@ -258,6 +259,7 @@ components.AccountList = Vue.component('account-list', {
   methods: {
     removeAccount(account) {
       this.$q.dialog({
+        color: 'cyan-8',
         title: 'Removal confirmation',
         message: `Remove current account named ${account.name}?`,
         ok: 'OK',

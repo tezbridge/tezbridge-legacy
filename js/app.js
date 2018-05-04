@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         if (getLocal('_')) {
           this.$q.dialog({
+            color: 'cyan-8',
             title: 'Reset warning',
             message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
             ok: 'OK',

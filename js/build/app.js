@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         if (getLocal('_')) {
           this.$q.dialog({
+            color: 'cyan-8',
             title: 'Reset warning',
             message: 'TezBridge needs to reset everything stored for updating.\n(Never store your accounts only in TezBridge.)',
             ok: 'OK',
@@ -253,6 +254,7 @@ components.Account = Vue.component('account', {
     activate() {
       this.loading = true
       this.$q.dialog({
+        color: 'cyan-8',
         title: 'Activation',
         message: 'Please input the secret',
         prompt: {
@@ -343,6 +345,7 @@ components.AccountList = Vue.component('account-list', {
   methods: {
     removeAccount(account) {
       this.$q.dialog({
+        color: 'cyan-8',
         title: 'Removal confirmation',
         message: `Remove current account named ${account.name}?`,
         ok: 'OK',
