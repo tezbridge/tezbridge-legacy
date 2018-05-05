@@ -51,6 +51,7 @@ body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right:
 .intro div {font-size: 14px; line-height: 2}
 .intro div span {font-size: 16px; text-decoration: underline}
 .intro .agree-btn {margin-top: 8px}
+.intro .tip {color: #f44336;}
 
 .header button { height: 48px; width: 48px }
 

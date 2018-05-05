@@ -753,7 +753,7 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
   }
 })
 
-const intro_version = 1.1
+const intro_version = 1.2
 components.Intro = Vue.component('intro', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
@@ -762,7 +762,8 @@ components.Intro = Vue.component('intro', {
         <div>
           <span>What is TezBridge?</span> <br>
           * TezBridge is a free, open-source Tezos client. <br>
-          * TezBridge interact with Tezos blockchain directly.
+          * TezBridge contains a cross-browser plugin to interact with Tezos Web DApps. <br>
+          * TezBridge connects directly with Tezos blockchain.
         </div>
         <div>
           <span>What TezBridge <b>CAN'T</b> do?</span> <br>
@@ -772,19 +773,33 @@ components.Intro = Vue.component('intro', {
           * Freeze accounts. <br>
           * Access your accounts for you.
         </div>
+        <div class="tip" v-if="config_tip.length">
+          <span>Tips</span> <br>
+          * For cross-domain usage of TezBridge plugin, you need to adjust the settings. <br>
+          {{config_tip}}
+        </div>
         <q-btn color="cyan-8" outline icon="check" @click="agree" label="Agree" class="agree-btn" />
       </div>
     </q-modal>
   `,
   data() {
     return {
-      opened: false
+      opened: false,
+      config_tip: ''
     }
   },
   methods: {
     agree() {
       setLocal('agreed', intro_version)
       this.opened = false
+    }
+  },
+  beforeMount() {
+    const userAgent = window.navigator.userAgent
+    if (userAgent.indexOf('iPhone OS') > -1) {
+      this.config_tip = '[Settings > Safari > Prevent Cross-Site Tracking > Off]'
+    } else if (userAgent.indexOf('Chrome/') === -1 && userAgent.indexOf('Safari/') > -1) {
+      this.config_tip = '[Safari > Preferences > Privacy > Cookies and website data > Always allow]'
     }
   }
 })
