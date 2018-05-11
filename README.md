@@ -24,6 +24,7 @@ Browsers can prevent any third party DApp from stealing it.
 * Option for DApp list dialog auto popup
 * Option for auto relocking after operation
 * Devtools detection
+* Security for secret key copying
 
 ### For users
 1. Open [https://www.tezbridge.com/](https://www.tezbridge.com/)
