@@ -130,8 +130,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
           e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, origin)
 
           if (!(e.data.method === 'public_key_hash' && e.data.noalert)) {
-            alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code')
-            window.open('https://www.tezbridge.com/')
+            alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code from [https://www.tezbridge.com/]')
           }
 
         } else {
