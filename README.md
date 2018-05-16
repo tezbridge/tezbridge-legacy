@@ -20,6 +20,12 @@ So even if someone gets the ciphertext, it will take a lot efforts to crack it f
 When using TezBridge plugin, the secret key in memory is placed inside a closure of a Web Worker of the iframe.
 Browsers can prevent any third party DApp from stealing it.
 
+### Todo
+* Option for DApp list dialog auto popup
+* Option for auto relocking after operation
+* Devtools detection
+* Security for secret key copying
+
 ### For users
 1. Open [https://www.tezbridge.com/](https://www.tezbridge.com/)
 2. Import or create your account
