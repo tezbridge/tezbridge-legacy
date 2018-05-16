@@ -103,7 +103,7 @@ with code:${!!e.data.script}`
     operations: {
       confirm(e) {
         return `run operations list below:
-${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance) + 'tz').join('\n')}`
+${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance || 0) + 'tz').join('\n')}`
       },
       handler(e) {
         const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
