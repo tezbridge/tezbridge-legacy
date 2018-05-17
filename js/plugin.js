@@ -127,10 +127,10 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
         const encrypted_keys = getLocal('__')
         removeLocal('__')
         if (!encrypted_keys) {
-          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'no account found'}, origin)
+          e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Account is inaccessible'}, origin)
 
           if (!(e.data.method === 'public_key_hash' && e.data.noalert)) {
-            alert('CurrentHost:[' + window.location.host + ']\nAccount is inaccessible\nPlease get your access code from [https://www.tezbridge.com/]')
+            alert('Account is inaccessible\nPlease get your access code from [https://www.tezbridge.com/]')
           }
 
         } else {
