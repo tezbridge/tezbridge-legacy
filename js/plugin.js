@@ -116,7 +116,8 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
     if (!e.data.tezbridge) return
     const origin = e.origin
 
-    const host = getLocal('*').host
+    const settings = getLocal('*')
+    const host = settings ? settings.host : ''
     if (host)
       tzclient_pm('setHost', host)
 
