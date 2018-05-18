@@ -742,8 +742,8 @@ components.SettingModal = Vue.component('setting-modal', {
       detect_devtools: false,
 
       hosts: [{
-        label: 'zeronet.tezbridge.com',
-        value: 'https://zeronet.tezbridge.com'
+        label: 'alphanet.tezbridge.com',
+        value: 'https://alphanet.tezbridge.com'
       }]
     }
   },

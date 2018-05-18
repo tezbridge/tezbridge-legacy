@@ -37,7 +37,7 @@ const prefix = {
 
 class TZClient {
   constructor(params = {}) {
-    this.host = params.host || 'https://zeronet.tezbridge.com'
+    this.host = params.host || 'https://alphanet.tezbridge.com'
     this.importKey(params)
   }
 
