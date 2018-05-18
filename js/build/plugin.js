@@ -198,6 +198,7 @@ const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
 const removeLocal = x => window.localStorage.removeItem(x)
 
 const devtoolsDetectListen = (() => {
+  const log = console.log
   let v = false
   const r = /./
   r.toString = () => {
@@ -210,7 +211,7 @@ const devtoolsDetectListen = (() => {
   if (settings.detect_devtools)
     setInterval(() => {
       const prev = v
-      console.log('%c', r)
+      log('%c', r)
       const result = v !== prev
       if (result && functions.size) {
         functions.forEach(x => x())
