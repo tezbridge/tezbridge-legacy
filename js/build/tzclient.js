@@ -22576,7 +22576,7 @@ const prefix = {
 
 class TZClient {
   constructor(params = {}) {
-    this.host = params.host || 'https://zeronet.catsigma.com'
+    this.host = params.host || 'https://zeronet.tezbridge.com'
     this.importKey(params)
   }
 

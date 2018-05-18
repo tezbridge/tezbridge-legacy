@@ -55,8 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (version >= current_version) {
         const settings = getLocal('*')
+
         if (!('relock' in settings))
           setLocal('*', Object.assign(settings, {relock: 20}))
+
+        if (!('auto_dapp' in settings))
+          setLocal('*', Object.assign(settings, {auto_dapp: true}))
 
         if (getLocal('agreed') < intro_version) {
           this.$refs.intro.opened = true

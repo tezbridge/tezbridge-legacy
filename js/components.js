@@ -137,7 +137,8 @@ components.Account = Vue.component('account', {
 
       this.copyToClipboard(this.$refs.access_code, 'Access code')
 
-      triggerGlobalEvent('open_dapp_list')
+      if (getLocal('*').auto_dapp)
+        triggerGlobalEvent('open_dapp_list')
     },
     copySecretKey() {
       this.$refs.sk_content.innerHTML = this.tzclient.key_pair.secret_key
@@ -572,7 +573,6 @@ components.GenNewAccount = Vue.component('gen-new-account', {
 })
 
 
-const domain = 'zeronet.catsigma.com'
 components.SettingModal = Vue.component('setting-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
@@ -594,28 +594,47 @@ components.SettingModal = Vue.component('setting-modal', {
             <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
           </q-item-main>
         </q-item>
+        <q-item tag="label">
+          <q-item-side>
+            <q-checkbox color="cyan-8" v-model="auto_dapp"/>
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>DApp list auto popup</q-item-tile>
+            <q-item-tile sublabel>Popup DApp list when the access code is generated</q-item-tile>
+          </q-item-main>
+        </q-item>
       </q-list>
 
       <q-btn color="cyan-8" outline icon="close" @click="opened = false" class="modal-close-btn" />
     </q-modal>
   `,
   data() {
+
     return {
       opened: false,
 
-      mute: !!getLocal('*').mute,
-      relock: getLocal('*').relock || 0,
-      host: getLocal('*').host,
+      auto_dapp: false,
+      mute: false,
+      relock: 0,
+      host: '',
+
       hosts: [{
-        label: domain,
-        value: 'https://' + domain
-      }, {
         label: 'zeronet.tezbridge.com',
         value: 'https://zeronet.tezbridge.com'
       }]
     }
   },
   watch: {
+    opened(v) {
+      if (v) {
+        const settings = getLocal('*') || {}
+        this.auto_dapp = !!settings.auto_dapp
+        this.mute = !!settings.mute
+        this.relock = settings.relock || 0
+        this.host = settings.host
+        this.resetHost()
+      }
+    },
     mute(v) {
       this.valChange('mute', v)
     },
@@ -624,12 +643,9 @@ components.SettingModal = Vue.component('setting-modal', {
     },
     host(v) {
       this.valChange('host', v)
-    }
-  },
-  beforeMount() {
-    const hosts = new Set(this.hosts.map(x => x.value))
-    if (!hosts.has(this.host)) {
-      this.host = this.hosts[0].value
+    },
+    auto_dapp(v) {
+      this.valChange('auto_dapp', v)
     }
   },
   methods: {
@@ -637,6 +653,12 @@ components.SettingModal = Vue.component('setting-modal', {
       const setting = getLocal('*')
       setting[name] = value
       setLocal('*', setting)
+    },
+    resetHost() {
+      const hosts = new Set(this.hosts.map(x => x.value))
+      if (!hosts.has(this.host)) {
+        this.host = this.hosts[0].value
+      }
     }
   }
 })
