@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setLocal('*', default_settings)
         removeLocal('__')
         setLocal('v', current_version)
+
+        setDefault()
       }
 
       const setDefault = () => {
@@ -74,15 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!hosts.has(settings.host)) {
           setLocal('*', Object.assign(settings, {host: util.hosts[0].value}))
         }
+        
+        if (getLocal('agreed') < intro_version) {
+          this.$refs.intro.opened = true
+        }
       }
 
       if (version >= current_version) {
 
         setDefault()
 
-        if (getLocal('agreed') < intro_version) {
-          this.$refs.intro.opened = true
-        }
       } else {
         if (getLocal('_')) {
           this.$q.dialog({
