@@ -22,7 +22,6 @@ Browsers can prevent any third party DApp from stealing it.
 
 ### Todo
 * Option for auto relocking after operation
-* Devtools detection
 * Security for secret key copying
 
 ### For users
