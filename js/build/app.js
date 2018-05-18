@@ -712,7 +712,7 @@ components.SettingModal = Vue.component('setting-modal', {
             <q-checkbox color="cyan-8" v-model="detect_devtools"/>
           </q-item-side>
           <q-item-main>
-            <q-item-tile label>Detect devtools</q-item-tile>
+            <q-item-tile label>Detect devtools (reboot needed)</q-item-tile>
             <q-item-tile sublabel>Flush secret key when the devtools is opened</q-item-tile>
           </q-item-main>
         </q-item>
