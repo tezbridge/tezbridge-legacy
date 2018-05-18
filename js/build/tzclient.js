@@ -281,7 +281,7 @@ class TZClient {
 
       return this.call(`/blocks/head/proto/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))
       .then(x => {
-        const sig = sodium.crypto_sign_detached(sodium.from_hex(x.operation), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
+        const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, sodium.from_hex(x.operation)), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = x.operation + sodium.to_hex(sig)
 
         const post_data = {
