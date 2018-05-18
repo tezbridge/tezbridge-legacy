@@ -29,10 +29,15 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
+const hosts = [{
+  label: 'alphanet.tezbridge.com',
+  value: 'https://alphanet.tezbridge.com'
+}]
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal
+  removeLocal,
+  hosts
 }

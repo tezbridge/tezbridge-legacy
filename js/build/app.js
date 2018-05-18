@@ -48,24 +48,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const current_version = 0.15
       const version = getLocal('v')
 
+      const default_settings = {
+        mute: true,
+        relock: 20,
+        auto_dapp: true,
+        detect_devtools: true
+      }
+
       const reset = () => {
         setLocal('_', {})
-        setLocal('*', {mute: true, relock: 20})
+        setLocal('*', default_settings)
         removeLocal('__')
         setLocal('v', current_version)
       }
 
-      if (version >= current_version) {
+      const setDefault = () => {
         const settings = getLocal('*')
 
-        if (!('relock' in settings))
-          setLocal('*', Object.assign(settings, {relock: 20}))
+        for (const key in default_settings) {
+          if (!(key in settings))
+            setLocal('*', Object.assign(settings, {[key]: default_settings[key]}))
+        }
 
-        if (!('auto_dapp' in settings))
-          setLocal('*', Object.assign(settings, {auto_dapp: true}))
+        const hosts = new Set(util.hosts.map(x => x.value))
+        if (!hosts.has(settings.host)) {
+          setLocal('*', Object.assign(settings, {host: util.hosts[0].value}))
+        }
+      }
 
-        if (!('detect_devtools' in settings))
-            setLocal('*', Object.assign(settings, {detect_devtools: true}))
+      if (version >= current_version) {
+
+        setDefault()
 
         if (getLocal('agreed') < intro_version) {
           this.$refs.intro.opened = true
@@ -686,6 +699,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
 })
 
 
+
 components.SettingModal = Vue.component('setting-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
@@ -741,10 +755,7 @@ components.SettingModal = Vue.component('setting-modal', {
       host: '',
       detect_devtools: false,
 
-      hosts: [{
-        label: 'alphanet.tezbridge.com',
-        value: 'https://alphanet.tezbridge.com'
-      }]
+      hosts: util.hosts
     }
   },
   watch: {
@@ -756,7 +767,6 @@ components.SettingModal = Vue.component('setting-modal', {
         this.relock = settings.relock || 0
         this.detect_devtools = settings.detect_devtools
         this.host = settings.host
-        this.resetHost()
       }
     },
     mute(v) {
@@ -780,12 +790,6 @@ components.SettingModal = Vue.component('setting-modal', {
       const setting = getLocal('*')
       setting[name] = value
       setLocal('*', setting)
-    },
-    resetHost() {
-      const hosts = new Set(this.hosts.map(x => x.value))
-      if (!hosts.has(this.host)) {
-        this.host = this.hosts[0].value
-      }
     }
   }
 })
@@ -905,11 +909,16 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
+const hosts = [{
+  label: 'alphanet.tezbridge.com',
+  value: 'https://alphanet.tezbridge.com'
+}]
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal
+  removeLocal,
+  hosts
 }
 },{}]},{},[1]);

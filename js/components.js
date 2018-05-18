@@ -592,6 +592,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
 })
 
 
+
 components.SettingModal = Vue.component('setting-modal', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
@@ -647,10 +648,7 @@ components.SettingModal = Vue.component('setting-modal', {
       host: '',
       detect_devtools: false,
 
-      hosts: [{
-        label: 'alphanet.tezbridge.com',
-        value: 'https://alphanet.tezbridge.com'
-      }]
+      hosts: util.hosts
     }
   },
   watch: {
@@ -662,7 +660,6 @@ components.SettingModal = Vue.component('setting-modal', {
         this.relock = settings.relock || 0
         this.detect_devtools = settings.detect_devtools
         this.host = settings.host
-        this.resetHost()
       }
     },
     mute(v) {
@@ -686,12 +683,6 @@ components.SettingModal = Vue.component('setting-modal', {
       const setting = getLocal('*')
       setting[name] = value
       setLocal('*', setting)
-    },
-    resetHost() {
-      const hosts = new Set(this.hosts.map(x => x.value))
-      if (!hosts.has(this.host)) {
-        this.host = this.hosts[0].value
-      }
     }
   }
 })
