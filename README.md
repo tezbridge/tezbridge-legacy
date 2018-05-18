@@ -21,7 +21,6 @@ When using TezBridge plugin, the secret key in memory is placed inside a closure
 Browsers can prevent any third party DApp from stealing it.
 
 ### Todo
-* Option for DApp list dialog auto popup
 * Option for auto relocking after operation
 * Devtools detection
 * Security for secret key copying
