@@ -13,7 +13,7 @@ const devtoolsDetectListen = (() => {
 
   const settings = getLocal('*')
 
-  if (settings.detect_devtools)
+  if (settings && settings.detect_devtools)
     setInterval(() => {
       const prev = v
       log('%c', r)
