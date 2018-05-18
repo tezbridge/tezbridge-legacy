@@ -1,10 +1,11 @@
+const util = require('./util')
 const components_wrapper = require('./components')
 const components = components_wrapper.components
 const intro_version = components_wrapper.intro_version
 
-const getLocal = x => JSON.parse(window.localStorage.getItem(x))
-const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
-const removeLocal = x => window.localStorage.removeItem(x)
+const getLocal = util.getLocal
+const setLocal = util.setLocal
+const removeLocal = util.removeLocal
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
@@ -61,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!('auto_dapp' in settings))
           setLocal('*', Object.assign(settings, {auto_dapp: true}))
+
+        if (!('detect_devtools' in settings))
+            setLocal('*', Object.assign(settings, {detect_devtools: true}))
 
         if (getLocal('agreed') < intro_version) {
           this.$refs.intro.opened = true

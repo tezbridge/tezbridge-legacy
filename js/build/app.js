@@ -1,11 +1,12 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const util = require('./util')
 const components_wrapper = require('./components')
 const components = components_wrapper.components
 const intro_version = components_wrapper.intro_version
 
-const getLocal = x => JSON.parse(window.localStorage.getItem(x))
-const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
-const removeLocal = x => window.localStorage.removeItem(x)
+const getLocal = util.getLocal
+const setLocal = util.setLocal
+const removeLocal = util.removeLocal
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new Vue({
@@ -63,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!('auto_dapp' in settings))
           setLocal('*', Object.assign(settings, {auto_dapp: true}))
 
+        if (!('detect_devtools' in settings))
+            setLocal('*', Object.assign(settings, {detect_devtools: true}))
+
         if (getLocal('agreed') < intro_version) {
           this.$refs.intro.opened = true
         }
@@ -87,16 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 })
 
-},{"./components":2}],2:[function(require,module,exports){
+},{"./components":2,"./util":3}],2:[function(require,module,exports){
+const util = require('./util')
+
 if (!Promise.prototype.finally) {
   Promise.prototype.finally = function(f) {
     return this.then(f, f).then(() => {})
   }
 }
 
-const getLocal = x => JSON.parse(window.localStorage.getItem(x))
-const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
-const removeLocal = x => window.localStorage.removeItem(x)
+const getLocal = util.getLocal
+const setLocal = util.setLocal
+const removeLocal = util.removeLocal
 
 const components = {
   trigger: {
@@ -212,6 +218,13 @@ components.Account = Vue.component('account', {
     refreshBalance() {
       this.loading = true
       this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+      .catch(err => {
+        this.$q.notify({
+          color: 'negative',
+          icon: 'error',
+          message: err + ''
+        })
+      })
       .finally(() => this.loading = false)
     },
     genAccessCode() {
@@ -223,7 +236,13 @@ components.Account = Vue.component('account', {
       .then(x => {
         setLocal('__', x)
       })
-      .catch(() => alert('Encryption failed'))
+      .catch(() => {
+        this.$q.notify({
+          color: 'negative',
+          icon: 'error',
+          message: 'Encryption failed'
+        })
+      })
 
       this.copyToClipboard(this.$refs.access_code, 'Access code')
 
@@ -313,6 +332,10 @@ components.Account = Vue.component('account', {
 
         this.public_key_hash = this.tzclient.key_pair.public_key_hash
         this.tzclient.balance().then(x => this.balance = TZClient.tz2r(x))
+
+        util.devtoolsDetectListen(() => {
+          this.lock()
+        })
       })
       .catch(err => {
         this.password_error = 'Password incorrect'
@@ -677,20 +700,29 @@ components.SettingModal = Vue.component('setting-modal', {
         </q-item>
         <q-item tag="label">
           <q-item-side>
-            <q-checkbox color="cyan-8" v-model="mute"/>
-          </q-item-side>
-          <q-item-main>
-            <q-item-tile label>Mute</q-item-tile>
-            <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
-          </q-item-main>
-        </q-item>
-        <q-item tag="label">
-          <q-item-side>
             <q-checkbox color="cyan-8" v-model="auto_dapp"/>
           </q-item-side>
           <q-item-main>
             <q-item-tile label>DApp list auto popup</q-item-tile>
             <q-item-tile sublabel>Popup DApp list when the access code is generated</q-item-tile>
+          </q-item-main>
+        </q-item>
+        <q-item tag="label">
+          <q-item-side>
+            <q-checkbox color="cyan-8" v-model="detect_devtools"/>
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>Detect devtools (reboot needed)</q-item-tile>
+            <q-item-tile sublabel>Flush secret key when the devtools is opened</q-item-tile>
+          </q-item-main>
+        </q-item>
+        <q-item tag="label">
+          <q-item-side>
+            <q-checkbox color="cyan-8" v-model="mute"/>
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>Mute</q-item-tile>
+            <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
           </q-item-main>
         </q-item>
       </q-list>
@@ -707,6 +739,7 @@ components.SettingModal = Vue.component('setting-modal', {
       mute: false,
       relock: 0,
       host: '',
+      detect_devtools: false,
 
       hosts: [{
         label: 'zeronet.tezbridge.com',
@@ -721,6 +754,7 @@ components.SettingModal = Vue.component('setting-modal', {
         this.auto_dapp = !!settings.auto_dapp
         this.mute = !!settings.mute
         this.relock = settings.relock || 0
+        this.detect_devtools = settings.detect_devtools
         this.host = settings.host
         this.resetHost()
       }
@@ -736,6 +770,9 @@ components.SettingModal = Vue.component('setting-modal', {
     },
     auto_dapp(v) {
       this.valChange('auto_dapp', v)
+    },
+    detect_devtools(v) {
+      this.valChange('detect_devtools', v)
     }
   },
   methods: {
@@ -836,4 +873,42 @@ components.Intro = Vue.component('intro', {
 
 
 module.exports = {components, intro_version}
+},{"./util":3}],3:[function(require,module,exports){
+const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
+const removeLocal = x => window.localStorage.removeItem(x)
+
+const devtoolsDetectListen = (() => {
+  let v = false
+  const r = /./
+  r.toString = () => {
+    v = !v
+  }
+  const functions = new Set()
+
+  const settings = getLocal('*')
+
+  if (settings.detect_devtools)
+    setInterval(() => {
+      const prev = v
+      console.log('%c', r)
+      const result = v !== prev
+      if (result && functions.size) {
+        functions.forEach(x => x())
+        functions.clear()
+      }
+    }, 500)
+
+  return (fn) => {
+    functions.add(fn)
+  }
+})()
+
+
+module.exports = {
+  devtoolsDetectListen,
+  getLocal,
+  setLocal,
+  removeLocal
+}
 },{}]},{},[1]);

@@ -1,8 +1,9 @@
 ((window) => {
+  const util = require('./util')
   const TZClient = window.TZClient
 
-  const getLocal = x => JSON.parse(window.localStorage.getItem(x))
-  const removeLocal = x => window.localStorage.removeItem(x)
+  const getLocal = util.getLocal
+  const removeLocal = util.removeLocal
 
   const tzclient_worker = new Worker('js/build/tzclient.js')
   const tzclient_pm = (() => {
@@ -152,6 +153,10 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
                 clearInterval(timer)
               }
             }
+
+            util.devtoolsDetectListen(() => {
+              tzclient_pm('cleanKey')
+            })
 
             dispatcher(e)
           })

@@ -1,9 +1,10 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 ((window) => {
+  const util = require('./util')
   const TZClient = window.TZClient
 
-  const getLocal = x => JSON.parse(window.localStorage.getItem(x))
-  const removeLocal = x => window.localStorage.removeItem(x)
+  const getLocal = util.getLocal
+  const removeLocal = util.removeLocal
 
   const tzclient_worker = new Worker('js/build/tzclient.js')
   const tzclient_pm = (() => {
@@ -154,6 +155,10 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
               }
             }
 
+            util.devtoolsDetectListen(() => {
+              tzclient_pm('cleanKey')
+            })
+
             dispatcher(e)
           })
           .catch(() => {
@@ -187,4 +192,42 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
   }
   main()
 })(window)
+},{"./util":2}],2:[function(require,module,exports){
+const getLocal = x => JSON.parse(window.localStorage.getItem(x))
+const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
+const removeLocal = x => window.localStorage.removeItem(x)
+
+const devtoolsDetectListen = (() => {
+  let v = false
+  const r = /./
+  r.toString = () => {
+    v = !v
+  }
+  const functions = new Set()
+
+  const settings = getLocal('*')
+
+  if (settings.detect_devtools)
+    setInterval(() => {
+      const prev = v
+      console.log('%c', r)
+      const result = v !== prev
+      if (result && functions.size) {
+        functions.forEach(x => x())
+        functions.clear()
+      }
+    }, 500)
+
+  return (fn) => {
+    functions.add(fn)
+  }
+})()
+
+
+module.exports = {
+  devtoolsDetectListen,
+  getLocal,
+  setLocal,
+  removeLocal
+}
 },{}]},{},[1]);
