@@ -200,6 +200,7 @@ class TZClient {
     }
     const param = {"data": data_content[type] || data,"type":{"prim":type,"args":[]}}
     return this.call('/blocks/head/proto/helpers/hash_data', param)
+    .then(x => x.hash)
   }
 
   balance(key_hash) {
