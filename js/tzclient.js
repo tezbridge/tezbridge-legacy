@@ -124,6 +124,14 @@ class TZClient {
     return this.call('/blocks/head')
   }
 
+  hash_data(data, type) {
+    const data_content = {
+      string: {string: data}
+    }
+    const param = {"data": data_content[type] || data,"type":{"prim":type,"args":[]}}
+    return this.call('/blocks/head/proto/helpers/hash_data', param)
+  }
+
   balance(key_hash) {
     return this.call(`/blocks/head/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
     .then(x => x.balance)
@@ -276,6 +284,9 @@ module.exports = TZClient
     },
     public_key_hash() {
       return instance.key_pair.public_key_hash
+    },
+    hash_data(param) {
+      return instance.hash_data(param.data, param.type)
     },
     balance(contract) {
       return instance.balance(contract)
