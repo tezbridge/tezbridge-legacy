@@ -54,6 +54,18 @@
           .then(x => TZClient.tz2r(x))
       }
     },
+    hash_data: {
+      mute: true,
+      confirm(e) {
+        return `hash data`
+      },
+      handler(e) {
+        return tzclient_pm('hash_data', {
+          data: e.data.data,
+          type: e.data.type  
+        })
+      }
+    },
     block_head: {
       mute: true,
       confirm(e) {
