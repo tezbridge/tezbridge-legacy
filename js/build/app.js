@@ -913,8 +913,11 @@ const devtoolsDetectListen = (() => {
 })()
 
 const hosts = [{
-  label: 'alphanet.tezbridge.com',
-  value: 'https://alphanet.tezbridge.com'
+  label: 'betanet.tezbridge.com',
+  value: 'https://mainnet.tezbridge.com'
+}, {
+  label: 'testnet.tezbridge.com',
+  value: 'https://testnet.tezbridge.com'
 }]
 
 module.exports = {
