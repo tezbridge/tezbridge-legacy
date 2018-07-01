@@ -11,7 +11,7 @@ const combineUint8Array = (x, y) => {
   return tmp
 }
 
-const RPCall = (url, data) => {
+const RPCall = (url, data, method) => {
   return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest()
     req.addEventListener('load', pe => {
@@ -22,7 +22,7 @@ const RPCall = (url, data) => {
     })
     req.addEventListener('error', reject)
     req.addEventListener('abort', reject)
-    req.open('POST', url)
+    req.open(method, url)
     req.send(typeof data === 'object' ? JSON.stringify(data) : data)
   })
 }
@@ -38,6 +38,7 @@ const prefix = {
 class TZClient {
   constructor(params = {}) {
     this.host = params.host || 'https://mainnet.tezbridge.com'
+    this.chain_id = 'main'
     this.importKey(params)
   }
 
@@ -107,7 +108,7 @@ class TZClient {
   }
 
   call(path, data = {}) {
-    return RPCall(this.host + path, data)
+    return RPCall(this.host + path, data, 'GET')
   }
 
   predecessor() {
@@ -134,7 +135,7 @@ class TZClient {
   }
 
   balance(key_hash) {
-    return this.call(`/blocks/head/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/balance`)
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/delegates/${key_hash || this.key_pair.public_key_hash}/balance`)
     .then(x => x.balance)
   }
 
