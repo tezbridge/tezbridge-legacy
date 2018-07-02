@@ -208,15 +208,17 @@ class TZClient {
     return result
   }
 
-  makeOpWithReveal(kind, params) {
-    return this.counter1(params.source).
+  makeOpWithReveal(source, op_lst) {
+    return this.counter1(source).
       then(counter => {
-        return this.manager_key(params.source).then(x => {
+        return this.manager_key(source).then(x => {
           const ops = []
           if (!x.key)
-            ops.push(this.createOpJSON('reveal', {counter: counter++ + '', source: params.source}))
+            ops.push(this.createOpJSON('reveal', {counter: counter++ + '', source}))
 
-          ops.push(this.createOpJSON(kind, params, {counter: counter + ''}))
+          op_lst.forEach(x => {
+            ops.push(this.createOpJSON(x.kind, x.params, {counter: counter++ + ''}))
+          })
 
           return this.makeOperations(ops)
         })
@@ -224,14 +226,14 @@ class TZClient {
   }
 
   originate(params) {
-    return this.makeOpWithReveal('origination', params)
+    return this.makeOpWithReveal(params.source, [{kind: 'origination', params}])
   }
 
   transfer(params) {
     if (!params.destination) 
       return Promise.reject('lack of destination when calling transfer')
 
-    return this.makeOpWithReveal('transaction', params)
+    return this.makeOpWithReveal(params.source, [{kind: 'transaction', params}])
   }
 
   activate(secret) {
@@ -278,7 +280,7 @@ class TZClient {
       })
     })
     .then(([x, signed_operation]) => {
-      const operation_results = [].concat.apply([], x.map(x => x.contents.map(x => x.metadata.operation_result)))
+      const operation_results = [].concat.apply([], x.map(x => x.contents.map(x => x.metadata.operation_result))).filter(x => x)
       if (operation_results.filter(x => x.status === 'failed').length)
         return Promise.reject(x)
 
@@ -350,32 +352,8 @@ module.exports = TZClient
     originate(params) {
       return instance.originate(params)
     },
-    makeOperations(args) {
-      args[0] = args[0].map(x => {
-        if (x.method === 'transfer') {
-          return instance.transfer({
-            amount: x.amount,
-            source: x.source,
-            destination: x.destination,
-            parameters: x.parameters
-          }, true)
-        } else {
-          return instance.originate({
-            balance: x.balance,
-            spendable: !!x.spendable,
-            delegatable: !!x.delegatable,
-            script: x.script,
-            delegate: x.delegate
-          }, true)
-        }
-      })
-
-      const init_op = [{
-        kind: 'reveal',
-        public_key: instance.key_pair.public_key
-      }]
-      args[0] = init_op.concat(args[0])
-      return instance.makeOperations.apply(instance, args)
+    makeOperations(params) {
+      return instance.makeOpWithReveal(params.source, params.op_lst)
     }
   }
 

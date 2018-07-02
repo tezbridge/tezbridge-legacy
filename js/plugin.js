@@ -113,8 +113,14 @@ with code:${!!e.data.script}`
 ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance || 0) + 'tz').join('\n')}`
       },
       handler(e) {
-        const ops = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
-        return tzclient_pm('makeOperations', [ops, 0, e.data.source && {source: e.data.source}])
+        const op_lst = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
+          .map(x => {
+            const kind = x.method === 'transfer' ? 'transaction' : 'origination'
+            delete x.method
+            return {kind, params: x}
+          })
+          
+        return tzclient_pm('makeOperations', {op_lst, source: e.data.source})
       }
     }
   }
