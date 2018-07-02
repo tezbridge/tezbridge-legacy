@@ -23,7 +23,10 @@ const RPCall = (url, data, method) => {
     req.addEventListener('error', reject)
     req.addEventListener('abort', reject)
     req.open(method, url)
-    req.send(typeof data === 'object' ? JSON.stringify(data) : data)
+    if (method === 'POST') {
+      req.setRequestHeader('Content-Type', 'application/json')
+    }
+    req.send(JSON.stringify(data))
   })
 }
 
@@ -110,19 +113,21 @@ class TZClient {
   call(path, data = {}) {
     return RPCall(this.host + path, data, 'GET')
   }
+  post(path, data = {}) {
+    return RPCall(this.host + path, data, 'POST')
+  }
 
   predecessor() {
-    return this.call('/blocks/head/predecessor')
+    return this.call(`/chains/${this.chain_id}/blocks/head/header`)
     .then(x => x.predecessor)
   }
 
   head_hash() {
-    return this.call('/blocks/head/hash')
-    .then(x => x.hash)
+    return this.call(`/chains/${this.chain_id}/blocks/head/hash`)
   }
 
   head() {
-    return this.call('/blocks/head')
+    return this.call(`/chains/${this.chain_id}/blocks/head`)
   }
 
   hash_data(data, type) {
@@ -130,7 +135,7 @@ class TZClient {
       string: {string: data}
     }
     const param = {"data": data_content[type] || data,"type":{"prim":type,"args":[]}}
-    return this.call('/blocks/head/proto/helpers/hash_data', param)
+    return this.post(`/chains/${this.chain_id}/blocks/head/helpers/scripts/hash_data`, param)
     .then(x => x.hash)
   }
 
@@ -140,12 +145,11 @@ class TZClient {
   }
 
   counter(key_hash) {
-    return this.call(`/blocks/head/proto/context/contracts/${key_hash || this.key_pair.public_key_hash}/counter`)
-    .then(x => x.counter)
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/contracts/${key_hash || this.key_pair.public_key_hash}/counter`)
   }
 
   contract(key_hash) {
-    return this.call(`/blocks/head/proto/context/contracts/${key_hash}`)
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/contracts/${key_hash}`)
   }
 
   originate({
@@ -201,47 +205,36 @@ class TZClient {
 
   activate(secret) {
     return this.makeOperations([{
-      kind: 'activation',
+      kind: 'activate_account',
       secret,
       pkh: this.key_pair.public_key_hash
     }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
   }
 
   makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
-    return Promise.all([this.head_hash(), this.predecessor(), this.counter(additional_forge_data.source)])
-    .then(([head_hash, predecessor, counter]) => {
+    return this.head_hash()
+    .then(head_hash => {
       const post_data = {
         branch: head_hash,
-        kind: 'manager',
-        source: this.key_pair.public_key_hash,
-        fee: TZClient.r2tz(fee),
-        counter: counter + 1,
-        operations: ops
+        contents: ops
       }
 
-      return this.call(`/blocks/head/proto/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))
-      .then(x => {
-        const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, sodium.from_hex(x.operation)), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
-        const signed_operation = x.operation + sodium.to_hex(sig)
+      return Promise.all([post_data, this.post(`/chains/${this.chain_id}/blocks/head/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))])
+      .then(([op_req, operation_data]) => {
+        const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, sodium.from_hex(operation_data)), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
+        const signed_operation = operation_data + sodium.to_hex(sig)
 
-        const post_data = {
-          pred_block: predecessor,
-          operation_hash: TZClient.enc58(prefix.operation, sodium.crypto_generichash(32, sodium.from_hex(with_signature ? signed_operation : x.operation))),
-          forged_operation: x.operation,
-          signature: with_signature ? TZClient.enc58(prefix.signature, sig) : undefined
-        }
+        op_req.protocol = 'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK'
+        op_req.signature = TZClient.enc58(prefix.signature, sig)
 
         return Promise.all([
-          this.call(`/blocks/head/proto/helpers/apply_operation`, post_data),
-          with_signature ? signed_operation : x.operation
+          this.post(`/chains/${this.chain_id}/blocks/head/helpers/preapply/operations`, [op_req]),
+          signed_operation
         ])
       })
     })
-    .then(([x, signed_operation, chain_id]) => {
-      const post_data = {
-        signedOperationContents: signed_operation
-      }
-      return Promise.all([x.contracts, this.call('/inject_operation', post_data)])
+    .then(([x, signed_operation]) => {
+      return Promise.all([x.contracts, this.post('/injection/operation', signed_operation)])
     })
     .then(([contracts, x]) => [contracts, x.injectedOperation])
   }

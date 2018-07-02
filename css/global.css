@@ -22,32 +22,26 @@
 }
 
 @font-face {
-    font-family: 'montserrat';
-    src: url('montserrat-regular-webfont.woff2') format('woff2');
+    font-family: 'Lato';
+    src: url('Lato-Bold.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
+
 }
 
 @font-face {
-    font-family: 'montserrat';
-    src: url('montserrat-bold-webfont.woff2') format('woff2');
-    font-weight: 700;
+    font-family: 'Lato';
+    src: url('Lato-Black.woff2') format('woff2');
+    font-weight: 900;
     font-style: normal;
 }
 
-@font-face {
-    font-family: 'montserrat-extralight';
-    src: url('montserrat-extralight-webfont.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-}
-
-* {font-family: 'montserrat';}
+* {font-family: 'Lato';}
 p.ellipsis {margin: 0; text-overflow: ellipsis; overflow: hidden;}
 
 body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right: 12px}
 
-.intro .title {text-align: center; font-weight: 700; font-size: 18px;}
+.intro .title {text-align: center; font-weight: 900; font-size: 18px;}
 .intro div {font-size: 14px; line-height: 2}
 .intro div span {font-size: 16px; text-decoration: underline}
 .intro .agree-btn {margin-top: 8px}
@@ -63,8 +57,8 @@ body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right:
 body .q-input {margin: 8px 0}
 .fade {transition: opacity 0.5s;}
 
-.dapp-list .title {color: #444; margin-bottom: 16px; font-weight: 700; text-align: center; font-size: 18px; line-height: 18px; height: 18px}
-.dapp-list a {font-size: 18px; color: #0097a7; font-weight: 700; text-decoration: none; margin-bottom: 4px;}
+.dapp-list .title {color: #444; margin-bottom: 16px; font-weight: 900; text-align: center; font-size: 18px; line-height: 18px; height: 18px}
+.dapp-list a {font-size: 18px; color: #0097a7; font-weight: 900; text-decoration: none; margin-bottom: 4px;}
 .dapp-list span {display: block; font-size: 14px; color: #aaa}
 .dapp-list .q-item {flex-direction: column; align-items: flex-start;}
 .dapp-list .dim a {color: #aaa}
