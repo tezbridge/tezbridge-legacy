@@ -7,7 +7,7 @@
     <script src="codemirror.js"></script>
     <script src="cm-javascript.js"></script>
     <link rel="stylesheet" href="codemirror.css">
-    <script src="../plugin.js"></script>
+    <script src="../../plugin.js"></script>
     <style>
       body { padding-bottom: 128px }
       h3 { margin: 16px 0 8px; }
@@ -29,7 +29,7 @@ tezbridge({method: 'public_key_hash'})
   public_key_hash_el.innerHTML = x
 })
 .catch(err => {
-  public_key_hash_el.innerHTML = err
+  public_key_hash_el.innerHTML = JSON.stringify(err)
 })
       </textarea>
       <div>
@@ -49,7 +49,7 @@ tezbridge({
   balance_el.innerHTML = x
 })
 .catch(err => {
-  balance_el.innerHTML = err
+  balance_el.innerHTML = JSON.stringify(err)
 })
       </textarea>
       <div>
@@ -70,7 +70,7 @@ tezbridge({
   transfer_el.innerHTML = JSON.stringify(x)
 })
 .catch(err => {
-  transfer_el.innerHTML = err
+  transfer_el.innerHTML = JSON.stringify(err)
 })
         </textarea>
         <div>
@@ -90,7 +90,7 @@ tezbridge({
   originate_el.innerHTML = JSON.stringify(x)
 })
 .catch(err => {
-  originate_el.innerHTML = err
+  originate_el.innerHTML = JSON.stringify(err)
 })
         </textarea>
         <div>
@@ -110,7 +110,7 @@ tezbridge({
   contract_el.innerHTML = JSON.stringify(x)
 })
 .catch(err => {
-  contract_el.innerHTML = err
+  contract_el.innerHTML = JSON.stringify(err)
 })
         </textarea>
         <div>
@@ -146,7 +146,7 @@ tezbridge({
   operations_el.innerHTML = JSON.stringify(x)
 })
 .catch(err => {
-  operations_el.innerHTML = err
+  operations_el.innerHTML = JSON.stringify(err)
 })
         </textarea>
         <div>

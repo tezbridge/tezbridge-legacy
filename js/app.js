@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     template: `
       <div class="body-wrapper">
         <div class="header">
-          <b><img src="css/logo.png" /></b>
+          <div>
+            <b><img src="css/logo.png" /></b>
+            <span class="host">
+              @ {{$refs.setting && $refs.setting.host ? hosts.filter(x => x.value === $refs.setting.host)[0].label : default_host}}
+            </span>
+          </div>
           <setting-modal ref="setting" />
           <dapp-list-modal ref="dapp_list" />
           <intro ref="intro" />
@@ -32,7 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     `,
     data() {
       return {
-        dapp_list_opener: components.trigger.open_dapp_list
+        hosts: util.hosts,
+        dapp_list_opener: components.trigger.open_dapp_list,
+        default_host: ''
       }
     },
     methods: {
@@ -102,6 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else
           reset()
       }
+
+      this.default_host = util.hosts.filter(x => x.value === getLocal('*').host)[0].label 
     }
   })
 })

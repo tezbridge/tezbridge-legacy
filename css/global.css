@@ -52,6 +52,7 @@ body button.modal-close-btn {padding: 7px; position: absolute; top: 12px; right:
 .body-wrapper {max-width: 640px; margin: 0 auto;}
 .mnemonic {display: inline-block; padding: 4px 8px; margin: 4px 8px; border: 1px solid #ddd; background: #f8f8f8;}
 .header {padding: 16px 8px 0; display: flex; justify-content: space-between; align-items: center}
+.header .host {display: inline-block; font-size: 13px; transform: translateY(-12px); vertical-align: middle; color: #aaa;}
 .center-wrapper {margin: 16px 0; text-align: center}
 .center-wrapper > * {margin: 0 2px;}
 body .q-input {margin: 8px 0}
@@ -92,4 +93,5 @@ body input.q-input-target {height: 21px;}
 (min-resolution: 192dpi) {
 .header {padding-left: 16px}
 .header img {width: 32px}
+.header .host {transform: translateY(-6px);}
 }
