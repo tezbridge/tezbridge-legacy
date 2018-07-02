@@ -43,7 +43,7 @@ tezbridge({method: 'public_key_hash'})
       <textarea id="balance_script">
 tezbridge({
   method: 'balance',
-  contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+  contract: 'tz1Xy5rjaj5miGdj8CXGWAuiXUFBgWZdvFo7'
 })
 .then(x => {
   balance_el.innerHTML = x
@@ -64,7 +64,7 @@ tezbridge({
 tezbridge({
   method: 'transfer',
   amount: 13.001001,
-  destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+  destination: 'tz1Xy5rjaj5miGdj8CXGWAuiXUFBgWZdvFo7'
 })
 .then(x => {
   transfer_el.innerHTML = JSON.stringify(x)
@@ -104,7 +104,7 @@ tezbridge({
         <textarea id="contract_script">
 tezbridge({
   method: 'contract',
-  contract: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+  contract: 'tz1Xy5rjaj5miGdj8CXGWAuiXUFBgWZdvFo7'
 })
 .then(x => {
   contract_el.innerHTML = JSON.stringify(x)
@@ -128,7 +128,7 @@ tezbridge({
   operations: [{
     method: 'transfer',
     amount: 5.8,
-    destination: 'tz1fEYqu5SjJ8z22Y7U5vVqrJTsGJcv8dy1r'
+    destination: 'tz1Xy5rjaj5miGdj8CXGWAuiXUFBgWZdvFo7'
   }, {
     method: 'originate',
     balance: 100.001,

@@ -4,6 +4,12 @@
 
   const getLocal = util.getLocal
   const removeLocal = util.removeLocal
+  const dataClean = x => {
+    const clone = JSON.parse(JSON.stringify(x))
+    delete clone.tezbridge
+    delete clone.method
+    return clone
+  }
 
   const tzclient_worker = new Worker('js/build/tzclient.js')
   const tzclient_pm = (() => {
@@ -89,12 +95,7 @@
 ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
-        return tzclient_pm('transfer', {
-          amount: e.data.amount,
-          source: e.data.source,
-          destination: e.data.destination,
-          parameters: e.data.parameters
-        })
+        return tzclient_pm('transfer', dataClean(e.data))
       }
     },
     originate: {
@@ -103,14 +104,7 @@ ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
 with code:${!!e.data.script}`
       },
       handler(e) {
-        return tzclient_pm('originate', {
-          source: e.data.source,
-          balance: e.data.balance,
-          spendable: !!e.data.spendable,
-          delegatable: !!e.data.delegatable,
-          script: e.data.script,
-          delegate: e.data.delegate
-        })
+        return tzclient_pm('originate', dataClean(e.data))
       }
     },
     operations: {

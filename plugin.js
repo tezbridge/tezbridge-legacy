@@ -4,7 +4,6 @@
   const resolves = {}
   const rejects = {}
   const origin = 'https://www.tezbridge.com'
-  // const origin = 'http://127.0.0.1:8080'
 
   const createIframe = () => {
     const iframe = document.createElement('iframe')

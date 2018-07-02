@@ -37,6 +37,9 @@ const prefix = {
   signature: new Uint8Array([9, 245, 205, 134, 18]),
   operation: new Uint8Array([5, 116])
 }
+const mark = {
+  operation: new Uint8Array([3])
+}
 
 class TZClient {
   constructor(params = {}) {
@@ -141,66 +144,94 @@ class TZClient {
 
   balance(key_hash) {
     return this.call(`/chains/${this.chain_id}/blocks/head/context/delegates/${key_hash || this.key_pair.public_key_hash}/balance`)
-    .then(x => x.balance)
   }
 
   counter(key_hash) {
     return this.call(`/chains/${this.chain_id}/blocks/head/context/contracts/${key_hash || this.key_pair.public_key_hash}/counter`)
   }
 
+  counter1(key_hash) {
+    return this.counter(key_hash).then(x => parseInt(x) + 1 + '')
+  }
+
   contract(key_hash) {
     return this.call(`/chains/${this.chain_id}/blocks/head/context/contracts/${key_hash}`)
   }
 
-  originate({
-    fee = 0,
-    balance = 0,
-    spendable = false,
-    delegatable = false,
-    delegate,
-    source,
-    script
-  }, only_return_op = false) {
-    const op = {
-      kind: 'origination',
-      managerPubkey: this.key_pair.public_key_hash,
-      balance: TZClient.r2tz(balance),
-      spendable,
-      delegatable,
-      delegate,
-      script
-    }
-
-    if (only_return_op)
-      return op
-    else
-      return this.makeOperations([{
-        kind: 'reveal',
-        public_key: this.key_pair.public_key
-      }, op], fee, source && {source})
+  manager_key(key_hash) {
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/contracts/${key_hash || this.key_pair.public_key_hash}/manager_key`)
   }
 
-  transfer({
-    fee = 0,
-    amount = 0,
-    source,
-    destination,
-    parameters
-  }, only_return_op = false) {
-    const op = {
-      kind: 'transaction',
-      amount: TZClient.r2tz(amount),
-      destination,
-      parameters
+  createOpJSON(name) {
+    const default_op = {
+      reveal: {
+        kind: "reveal",
+        source: this.key_pair.public_key_hash,
+        fee: "0",
+        gas_limit: "0",
+        storage_limit: "0",
+        public_key: this.key_pair.public_key
+        // counter: $positive_bignum,
+      },
+      transaction: {
+        kind: 'transaction',
+        source: this.key_pair.public_key_hash,
+        fee: "0",
+        gas_limit: "5000",
+        storage_limit: "0",
+        amount: "0"
+        // counter: $positive_bignum,
+        // destination: $contract_id,
+        // parameters?: $micheline.michelson_v1.expression
+      },
+      origination: {
+        kind: "origination",
+        source: this.key_pair.public_key_hash,
+        fee: "0",
+        // counter: $positive_bignum,
+        gas_limit: "0",
+        storage_limit: "0",
+        managerPubkey: this.key_pair.public_key_hash,
+        balance: "0",
+        // "spendable"?: boolean,
+        // "delegatable"?: boolean,
+        // "delegate"?: $Signature.Public_key_hash,
+        // "script"?: $scripted.contracts
+      }
     }
 
-    if (only_return_op)
-      return op
-    else
-      return this.makeOperations([{
-        kind: 'reveal',
-        public_key: this.key_pair.public_key
-      }, op], fee, source && {source})
+    const result = default_op[name]
+    for (let i = 1; i < arguments.length; i++) {
+      Object.assign(result, JSON.parse(JSON.stringify(arguments[i])))
+    }
+
+    return result
+  }
+
+  makeOpWithReveal(kind, params) {
+    return this.counter1(params.source).
+      then(counter => {
+        return this.manager_key(params.source).then(x => {
+          const ops = []
+          if (!x.key)
+            ops.push(this.createOpJSON('reveal', {counter: counter++ + '', source: params.source}))
+
+          ops.push(this.createOpJSON(kind, params, {counter: counter + ''}))
+
+          return this.makeOperations(ops)
+        })
+      })
+  }
+
+  originate(params) {
+    return this.makeOpWithReveal('origination', params)
+  }
+
+  transfer(params) {
+    if (!params.destination) 
+      return Promise.reject('lack of destination when calling transfer')
+
+    return this.makeOpWithReveal('transaction', params)
   }
 
   activate(secret) {
@@ -208,10 +239,23 @@ class TZClient {
       kind: 'activate_account',
       secret,
       pkh: this.key_pair.public_key_hash
-    }], 0, {kind: undefined, source: undefined, fee: undefined, counter: undefined}, false)
+    }])
   }
 
-  makeOperations(ops, fee = 0, additional_forge_data = {}, with_signature = true) {
+  makeOperations(ops) {
+    ops = ops.map(x => {
+      ['fee', 'balance', 'amount'].forEach(key => {
+        if (typeof x[key] === 'number')
+          x[key] = TZClient.r2tz(x[key])
+      })
+
+      ;['gas_limit', 'storage_limit'].forEach(key => {
+        if (typeof x[key] === 'number')
+          x[key] = x[key] + ''
+      })
+      return x
+    })
+
     return this.head_hash()
     .then(head_hash => {
       const post_data = {
@@ -219,9 +263,9 @@ class TZClient {
         contents: ops
       }
 
-      return Promise.all([post_data, this.post(`/chains/${this.chain_id}/blocks/head/helpers/forge/operations`, Object.assign(post_data, additional_forge_data))])
+      return Promise.all([post_data, this.post(`/chains/${this.chain_id}/blocks/head/helpers/forge/operations`, Object.assign(post_data))])
       .then(([op_req, operation_data]) => {
-        const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, sodium.from_hex(operation_data)), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
+        const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, combineUint8Array(mark.operation, sodium.from_hex(operation_data))), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = operation_data + sodium.to_hex(sig)
 
         op_req.protocol = 'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK'
@@ -234,9 +278,17 @@ class TZClient {
       })
     })
     .then(([x, signed_operation]) => {
-      return Promise.all([x.contracts, this.post('/injection/operation', signed_operation)])
+      const operation_results = [].concat.apply([], x.map(x => x.contents.map(x => x.metadata.operation_result)))
+      if (operation_results.filter(x => x.status === 'failed').length)
+        return Promise.reject(x)
+
+      const contracts = [].concat.apply(operation_results.map(x => x.originated_contracts || []))
+      return Promise.all([contracts, this.post('/injection/operation', signed_operation)])
     })
-    .then(([contracts, x]) => [contracts, x.injectedOperation])
+    .then(([contracts, x]) => ({
+      contracts,
+      operation_id: x
+    }))
   }
 }
 
@@ -337,7 +389,7 @@ module.exports = TZClient
       postMessage({tezbridge_workerid: e.data.tezbridge_workerid, result})
     })
     .catch(error => {
-      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error: error.toString()})
+      postMessage({tezbridge_workerid: e.data.tezbridge_workerid, error: error instanceof Error ? error.toString() : error})
     })
   }
 })()
