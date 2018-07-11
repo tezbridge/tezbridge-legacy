@@ -283,7 +283,7 @@ class TZClient {
     return result
   }
 
-  makeOpWithReveal(source, op_lst) {
+  makeOpWithReveal(source, op_lst, no_injection) {
     return this.counter1(source).
       then(counter => {
         return this.manager_key(source).then(x => {
@@ -295,20 +295,24 @@ class TZClient {
             ops.push(this.createOpJSON(x.kind, x.params, {counter: counter++ + ''}))
           })
 
-          return this.makeOperations(ops)
+          return this.makeOperations(ops, no_injection)
         })
       })
   }
 
   originate(params) {
-    return this.makeOpWithReveal(params.source, [{kind: 'origination', params}])
+    const no_injection = params.no_injection
+    delete params.no_injection
+    return this.makeOpWithReveal(params.source, [{kind: 'origination', params}], no_injection)
   }
 
   transfer(params) {
     if (!params.destination) 
       return Promise.reject('lack of destination when calling transfer')
 
-    return this.makeOpWithReveal(params.source, [{kind: 'transaction', params}])
+    const no_injection = params.no_injection
+    delete params.no_injection
+    return this.makeOpWithReveal(params.source, [{kind: 'transaction', params}], no_injection)
   }
 
   activate(secret) {
@@ -319,7 +323,7 @@ class TZClient {
     }])
   }
 
-  makeOperations(ops) {
+  makeOperations(ops, no_injection) {
     ops = ops.map(x => {
       ['fee', 'balance', 'amount'].forEach(key => {
         if (typeof x[key] === 'number')
@@ -360,7 +364,7 @@ class TZClient {
         return Promise.reject(x)
 
       const contracts = [].concat.apply(operation_results.map(x => x.originated_contracts || []))
-      return Promise.all([contracts, this.post('/injection/operation', signed_operation)])
+      return Promise.all([contracts, no_injection ? null : this.post('/injection/operation', signed_operation)])
     })
     .then(([contracts, x]) => ({
       contracts,
@@ -428,7 +432,7 @@ module.exports = TZClient
       return instance.originate(params)
     },
     makeOperations(params) {
-      return instance.makeOpWithReveal(params.source, params.op_lst)
+      return instance.makeOpWithReveal(params.source, params.op_lst, params.no_injection)
     }
   }
 

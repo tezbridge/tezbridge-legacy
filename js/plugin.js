@@ -120,7 +120,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
             return {kind, params: x}
           })
           
-        return tzclient_pm('makeOperations', {op_lst, source: e.data.source})
+        return tzclient_pm('makeOperations', {op_lst, source: e.data.source, no_injection: e.data.no_injection})
       }
     }
   }
