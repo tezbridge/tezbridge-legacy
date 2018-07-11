@@ -120,6 +120,11 @@ class TZClient {
     return RPCall(this.host + path, data, 'POST')
   }
 
+  protocol(i = 1) {
+    return this.call(`/protocols`)
+    .then(x => x[i])
+  }
+
   predecessor() {
     return this.call(`/chains/${this.chain_id}/blocks/head/header`)
     .then(x => x.predecessor)
@@ -265,12 +270,12 @@ class TZClient {
         contents: ops
       }
 
-      return Promise.all([post_data, this.post(`/chains/${this.chain_id}/blocks/head/helpers/forge/operations`, Object.assign(post_data))])
-      .then(([op_req, operation_data]) => {
+      return Promise.all([post_data, this.protocol(), this.post(`/chains/${this.chain_id}/blocks/head/helpers/forge/operations`, Object.assign(post_data))])
+      .then(([op_req, protocol, operation_data]) => {
         const sig = sodium.crypto_sign_detached(sodium.crypto_generichash(32, combineUint8Array(mark.operation, sodium.from_hex(operation_data))), TZClient.dec58(prefix.secret_key, this.key_pair.secret_key))
         const signed_operation = operation_data + sodium.to_hex(sig)
 
-        op_req.protocol = 'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK'
+        op_req.protocol = protocol
         op_req.signature = TZClient.enc58(prefix.signature, sig)
 
         return Promise.all([
