@@ -34,6 +34,7 @@ const prefix = {
   identity: new Uint8Array([6, 161, 159]),
   public_key: new Uint8Array([13, 15, 37, 217]),
   secret_key: new Uint8Array([43, 246, 78, 7]),
+  edesk: new Uint8Array([7,90,60,179,41]),
   signature: new Uint8Array([9, 245, 205, 134, 18]),
   operation: new Uint8Array([5, 116])
 }
