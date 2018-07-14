@@ -424,14 +424,17 @@ const genTZclient = (tzclient_param, account_name, password) => {
   try {
     const tzclient = new TZClient(tzclient_param)
 
-    return tzclient.exportCipherData(password)
-    .then(result => {
-      const accounts = getLocal('_')
-      accounts[account_name] = {
-        name: account_name,
-        cipherdata: result
-      }
-      setLocal('_', accounts)
+    return tzclient.fail_check
+    .then(() => {
+      return tzclient.exportCipherData(password)
+      .then(result => {
+        const accounts = getLocal('_')
+        accounts[account_name] = {
+          name: account_name,
+          cipherdata: result
+        }
+        setLocal('_', accounts)
+      })
     })
   } catch (err) {
     return Promise.reject(err.toString())
@@ -473,6 +476,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
                 { label: 'Mnemonic', value: 'mnemonic' },
                 { label: 'Secret key', value: 'secret_key' },
                 { label: 'Seed', value: 'seed' },
+                { label: 'Encrypted', value: 'encrypted_seed' },
                 { label: 'Faucet', value: 'faucet' },
                 { label: 'TezBridge export', value: 'tezbridge' }
               ]"
@@ -497,7 +501,7 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         <div v-if="op_selection === 'mnemonic'">
           <q-field :error="!!mnemonic_error" :error-label="mnemonic_error" helper="Mnemonic and passphrase for account import">
             <q-input color="cyan-8" @keyup.enter="importMnemonic" v-model="mnemonic_word"  float-label="Words" />
-            <q-input color="cyan-8" @keyup.enter="importMnemonic" v-model="mnemonic_passphrase"  float-label="Passphrase" />
+            <q-input color="cyan-8" @keyup.enter="importMnemonic" v-model="mnemonic_passphrase" type="password" float-label="Passphrase" />
           </q-field>
           <div class="center-wrapper">
             <q-btn color="cyan-8" outline @click="importMnemonic" label="Import" />
@@ -517,6 +521,15 @@ components.GenNewAccount = Vue.component('gen-new-account', {
           </q-field>
           <div class="center-wrapper">
             <q-btn color="cyan-8" outline @click="importSeed" label="Import" />
+          </div>
+        </div>
+        <div v-if="op_selection === 'encrypted_seed'">
+          <q-field :error="!!encrypted_seed_error" :error-label="encrypted_seed_error" helper="A string of length 54 starts with edesk">
+            <q-input color="cyan-8" @keyup.enter="importEncrypted_seed" v-model="encrypted_seed"  float-label="Encrypted" />
+            <q-input color="cyan-8" @keyup.enter="importEncrypted_seed" v-model="encrypted_seed_password" type="password"  float-label="Password" />
+          </q-field>
+          <div class="center-wrapper">
+            <q-btn color="cyan-8" outline @click="importEncrypted_seed" label="Import" />
           </div>
         </div>
         <div v-if="op_selection === 'tezbridge'">
@@ -564,6 +577,10 @@ components.GenNewAccount = Vue.component('gen-new-account', {
 
       seed_error: '',
       seed: '',
+
+      encrypted_seed_error: '',
+      encrypted_seed: '',
+      encrypted_seed_password: '',
 
       tezbridge_error: '',
       tezbridge_cipher: '',
@@ -640,6 +657,18 @@ components.GenNewAccount = Vue.component('gen-new-account', {
         return
       }
 
+    },
+    importEncrypted_seed() {
+      if (!this.encrypted_seed) {
+        this.encrypted_seed_error = 'Please input valid encrypted seed'
+        return
+      }
+
+      this.accountGen({
+        encrypted_seed: this.encrypted_seed,
+        password: this.encrypted_seed_password
+      })
+      .catch(err => this.encrypted_seed_error = err)
     },
     importSeed() {
       if (!this.seed) {

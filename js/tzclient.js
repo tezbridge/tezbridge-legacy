@@ -44,6 +44,7 @@ const mark = {
 
 class TZClient {
   constructor(params = {}) {
+    this.fail_check = Promise.resolve()
     this.host = params.host || 'https://mainnet.tezbridge.com'
     this.chain_id = 'main'
     this.importKey(params)
@@ -65,7 +66,7 @@ class TZClient {
   }
 
   static getKeysFromSeed(seed) {
-    const seed_raw = TZClient.dec58(prefix.secret_key, seed)
+    const seed_raw = seed instanceof Uint8Array ? seed : TZClient.dec58(prefix.secret_key, seed)
     const key_pair = sodium.crypto_sign_seed_keypair(seed_raw)
     return {
       public_key: TZClient.enc58(prefix.public_key, key_pair.publicKey),
@@ -84,6 +85,38 @@ class TZClient {
 
   importKey(params) {
     this.key_pair = {}
+
+    if (params.encrypted_seed && window.crypto.subtle) {
+      const encrypted_seed_bytes = TZClient.dec58(prefix.edesk, params.encrypted_seed)
+      const salt = encrypted_seed_bytes.slice(0, 8)
+      const encrypted_seed_msg = encrypted_seed_bytes.slice(8)
+
+      this.fail_check = window.crypto.subtle.importKey(
+        'raw',
+        new TextEncoder('utf-8').encode(params.password),
+        {
+          name: 'PBKDF2',
+        },
+        false, 
+        ['deriveBits']
+      )
+      .then(key => {
+        return window.crypto.subtle.deriveBits(
+          {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: 32768,
+            hash: {name: 'SHA-512'}
+          },
+          key,
+          256 
+        )
+      })
+      .then(key => {
+        const seed = TZClient.libs.sodium.crypto_secretbox_open_easy(encrypted_seed_msg, new Uint8Array(24), new Uint8Array(key))
+        this.key_pair = TZClient.getKeysFromSeed(seed)
+      })
+    }
 
     if (params.seed) {
       this.key_pair = TZClient.getKeysFromSeed(params.seed)
