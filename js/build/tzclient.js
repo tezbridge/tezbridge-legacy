@@ -397,7 +397,7 @@ class TZClient {
       if (operation_results.filter(x => x.status === 'failed').length)
         return Promise.reject(x)
 
-      const contracts = [].concat.apply(operation_results.map(x => x.originated_contracts || []))
+      const contracts = operation_results.map(x => x.originated_contracts || [])
       return Promise.all([contracts, no_injection ? null : this.post('/injection/operation', signed_operation)])
     })
     .then(([contracts, x]) => ({
