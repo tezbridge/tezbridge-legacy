@@ -698,7 +698,11 @@ components.SettingModal = Vue.component('setting-modal', {
       this.valChange('relock', v)
     },
     host(v) {
-      this.valChange('host', v)
+      if (!v) {
+        this.host = util.host
+      } else {
+        this.valChange('host', v)
+      }
     },
     auto_dapp(v) {
       this.valChange('auto_dapp', v)

@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!settings.host) {
-          setLocal('*', Object.assign(settings, {host: 'https://mainnet.tezbridge.com'}))
+          setLocal('*', Object.assign(settings, {host: util.host}))
         }
         
         if (getLocal('agreed') < intro_version) {

@@ -29,10 +29,12 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
+const host = 'https://mainnet.tezbridge.com'
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal
+  removeLocal,
+  host
 }

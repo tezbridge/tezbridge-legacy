@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!settings.host) {
-          setLocal('*', Object.assign(settings, {host: 'https://mainnet.tezbridge.com'}))
+          setLocal('*', Object.assign(settings, {host: util.host}))
         }
         
         if (getLocal('agreed') < intro_version) {
@@ -815,7 +815,11 @@ components.SettingModal = Vue.component('setting-modal', {
       this.valChange('relock', v)
     },
     host(v) {
-      this.valChange('host', v)
+      if (!v) {
+        this.host = util.host
+      } else {
+        this.valChange('host', v)
+      }
     },
     auto_dapp(v) {
       this.valChange('auto_dapp', v)
@@ -944,11 +948,13 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
+const host = 'https://mainnet.tezbridge.com'
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal
+  removeLocal,
+  host
 }
 },{}]},{},[1]);
