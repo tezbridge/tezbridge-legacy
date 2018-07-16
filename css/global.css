@@ -68,6 +68,8 @@ body .q-input {margin: 8px 0}
 .footer a { color: #aaa; text-decoration: none; }
 .footer > * {margin: 2px 15px; background: #fbfbfb; padding: 2px 4px 2px 32px}
 
+.host-input {width: 100%;}
+
 /* --- override quasar --- */
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}

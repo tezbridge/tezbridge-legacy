@@ -236,22 +236,11 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
-const hosts = [{
-  label: 'betanet.tezbridge.com',
-  value: 'https://mainnet.tezbridge.com'
-}, {
-  label: 'testnet.tezbridge.com',
-  value: 'https://testnet.tezbridge.com'
-}, {
-  label: 'local',
-  value: 'https://192.168.19.129:8081'
-}]
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal,
-  hosts
+  removeLocal
 }
 },{}]},{},[1]);

@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             <b><img src="css/logo.png" /></b>
             <span class="host">
-              @ {{$refs.setting && $refs.setting.host ? hosts.filter(x => x.value === $refs.setting.host)[0].label : default_host}}
+              @ {{$refs.setting && ($refs.setting.host || default_host).replace('https://', '')}}
             </span>
           </div>
           <setting-modal ref="setting" />
@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `,
     data() {
       return {
-        hosts: util.hosts,
         dapp_list_opener: components.trigger.open_dapp_list,
         default_host: ''
       }
@@ -78,9 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setLocal('*', Object.assign(settings, {[key]: default_settings[key]}))
         }
 
-        const hosts = new Set(util.hosts.map(x => x.value))
-        if (!hosts.has(settings.host)) {
-          setLocal('*', Object.assign(settings, {host: util.hosts[0].value}))
+        if (!settings.host) {
+          setLocal('*', Object.assign(settings, {host: 'https://mainnet.tezbridge.com'}))
         }
         
         if (getLocal('agreed') < intro_version) {
@@ -110,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
           reset()
       }
 
-      this.default_host = util.hosts.filter(x => x.value === getLocal('*').host)[0].label 
+      this.default_host = getLocal('*').host
     }
   })
 })

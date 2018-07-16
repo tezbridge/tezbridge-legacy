@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             <b><img src="css/logo.png" /></b>
             <span class="host">
-              @ {{$refs.setting && $refs.setting.host ? hosts.filter(x => x.value === $refs.setting.host)[0].label : default_host}}
+              @ {{$refs.setting && ($refs.setting.host || default_host).replace('https://', '')}}
             </span>
           </div>
           <setting-modal ref="setting" />
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `,
     data() {
       return {
-        hosts: util.hosts,
         dapp_list_opener: components.trigger.open_dapp_list,
         default_host: ''
       }
@@ -79,9 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setLocal('*', Object.assign(settings, {[key]: default_settings[key]}))
         }
 
-        const hosts = new Set(util.hosts.map(x => x.value))
-        if (!hosts.has(settings.host)) {
-          setLocal('*', Object.assign(settings, {host: util.hosts[0].value}))
+        if (!settings.host) {
+          setLocal('*', Object.assign(settings, {host: 'https://mainnet.tezbridge.com'}))
         }
         
         if (getLocal('agreed') < intro_version) {
@@ -111,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
           reset()
       }
 
-      this.default_host = util.hosts.filter(x => x.value === getLocal('*').host)[0].label 
+      this.default_host = getLocal('*').host
     }
   })
 })
@@ -249,7 +247,7 @@ components.Account = Vue.component('account', {
         this.$q.notify({
           color: 'negative',
           icon: 'error',
-          message: err + ''
+          message: err instanceof ProgressEvent ? 'Network Error' : err + ''
         })
       })
       .finally(() => this.loading = false)
@@ -748,7 +746,7 @@ components.SettingModal = Vue.component('setting-modal', {
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
       <q-list>
         <q-item>
-          <q-select color="cyan-8" v-model="host" :options="hosts" float-label="Host"/>
+          <q-input v-model="host" float-label="Host" class="host-input"/>
         </q-item>
         <q-item>
           <q-field helper="This works both for home and plugin.">
@@ -796,9 +794,7 @@ components.SettingModal = Vue.component('setting-modal', {
       mute: false,
       relock: 0,
       host: '',
-      detect_devtools: false,
-
-      hosts: util.hosts
+      detect_devtools: false
     }
   },
   watch: {
@@ -948,22 +944,11 @@ const devtoolsDetectListen = (() => {
   }
 })()
 
-const hosts = [{
-  label: 'betanet.tezbridge.com',
-  value: 'https://mainnet.tezbridge.com'
-}, {
-  label: 'testnet.tezbridge.com',
-  value: 'https://testnet.tezbridge.com'
-}, {
-  label: 'local',
-  value: 'https://192.168.19.129:8081'
-}]
 
 module.exports = {
   devtoolsDetectListen,
   getLocal,
   setLocal,
-  removeLocal,
-  hosts
+  removeLocal
 }
 },{}]},{},[1]);
