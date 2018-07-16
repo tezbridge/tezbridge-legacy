@@ -242,6 +242,9 @@ const hosts = [{
 }, {
   label: 'testnet.tezbridge.com',
   value: 'https://testnet.tezbridge.com'
+}, {
+  label: 'local',
+  value: 'https://192.168.19.129:8081'
 }]
 
 module.exports = {
