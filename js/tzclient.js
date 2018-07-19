@@ -154,13 +154,17 @@ class TZClient {
     return RPCall(this.host + path, data, 'POST')
   }
 
-  protocol(i = 1) {
-    return this.call(`/protocols`)
-    .then(x => x[i])
+  header() {
+    return this.call(`/chains/${this.chain_id}/blocks/head/header`)
+  }
+
+  protocol() {
+    return this.header()
+    .then(x => x.protocol)
   }
 
   predecessor() {
-    return this.call(`/chains/${this.chain_id}/blocks/head/header`)
+    return this.header()
     .then(x => x.predecessor)
   }
 
