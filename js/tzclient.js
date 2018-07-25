@@ -338,7 +338,7 @@ class TZClient {
     })
     .then(([x, signed_operation]) => {
       const operation_results = [].concat.apply([], x.map(x => x.contents.map(x => x.metadata.operation_result))).filter(x => x)
-      if (operation_results.filter(x => x.status === 'failed').length)
+      if (operation_results.filter(x => x.status !== 'applied').length)
         return Promise.reject(x)
 
       const contracts = operation_results.map(x => x.originated_contracts || [])
