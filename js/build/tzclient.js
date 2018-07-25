@@ -101,6 +101,7 @@ const RPCall = (url, data, method) => {
 }
 
 const prefix = {
+  contract: new Uint8Array([2,90,121]),
   identity: new Uint8Array([6, 161, 159]),
   public_key: new Uint8Array([13, 15, 37, 217]),
   secret_key: new Uint8Array([43, 246, 78, 7]),
@@ -244,6 +245,15 @@ class TZClient {
 
   head() {
     return this.call(`/chains/${this.chain_id}/blocks/head`)
+  }
+
+  raw_storage(contract) {
+    const hash = TZClient.dec58(prefix.contract, contract)
+    const hash_str = sodium.to_hex(hash)
+    const hash_url = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_str.slice(x[0], x[1])).join('/')
+
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/`)
+    .then(x => x.data.storage)
   }
 
   hash_data(data, type) {
