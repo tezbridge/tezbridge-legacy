@@ -146,7 +146,6 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
     }
   }
 
-  let first_time = true
   const dispatcher = (e) => {
     if (!e.data.tezbridge) return
     const origin = e.origin
@@ -155,19 +154,6 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
     const host = settings ? settings.host : ''
     if (host)
       tzclient_pm('setHost', host)
-
-    if (first_time && !e.data.noalert) {
-      first_time = false
-
-      const encrypted_keys = getLocal('__')
-      if (!encrypted_keys) {
-        e.source.postMessage({tezbridge: e.data.tezbridge, error: 'Account is inaccessible'}, origin)
-
-        alert('Account is inaccessible\nPlease get your access code from [https://www.tezbridge.com/]')
-        window.open('https://www.tezbridge.com/')
-        return false
-      }
-    }
 
     tzclient_pm('public_key_hash')
     .then(x => {
