@@ -159,6 +159,10 @@ class TZClient {
     return this.call(`/chains/${this.chain_id}/blocks/head/header`)
   }
 
+  head_custom(path) {
+    return this.call(`/chains/${this.chain_id}/blocks/head${path}`)
+  }
+
   protocol() {
     return this.header()
     .then(x => x.protocol)
@@ -186,11 +190,14 @@ class TZClient {
     .then(x => x.data.storage)
   }
 
-  hash_data(data, type) {
-    const data_content = {
-      string: {string: data}
-    }
-    const param = {"data": data_content[type] || data,"type":{"prim":type,"args":[]}}
+  pack_data(data_json, type_json) {
+    const param = {"data": data_json,"type":type_json, "gas": "400000"}
+    return this.post(`/chains/${this.chain_id}/blocks/head/helpers/scripts/pack_data`, param)
+    .then(x => x.packed)
+  }
+
+  hash_data(data_json, type_json) {
+    const param = {"data": data_json,"type":type_json}
     return this.post(`/chains/${this.chain_id}/blocks/head/helpers/scripts/hash_data`, param)
     .then(x => x.hash)
   }
@@ -394,11 +401,17 @@ module.exports = TZClient
     hash_data(param) {
       return instance.hash_data(param.data, param.type)
     },
+    pack_data(param) {
+      return instance.pack_data(param.data, param.type)
+    },
     balance(contract) {
       return instance.balance(contract)
     },
     head() {
       return instance.head()
+    },
+    head_custom(path) {
+      return instance.head_custom(path)
     },
     contract(contract) {
       return instance.contract(contract)
