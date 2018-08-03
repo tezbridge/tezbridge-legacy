@@ -60,6 +60,18 @@
           .then(x => TZClient.tz2r(x))
       }
     },
+    pack_data: {
+      mute: true,
+      confirm(e) {
+        return `pack data`
+      },
+      handler(e) {
+        return tzclient_pm('pack_data', {
+          data: e.data.data,
+          type: e.data.type  
+        })
+      }
+    },
     hash_data: {
       mute: true,
       confirm(e) {
@@ -70,6 +82,15 @@
           data: e.data.data,
           type: e.data.type  
         })
+      }
+    },
+    head_custom: {
+      mute: true,
+      confirm(e) {
+        return `get custom head data`
+      },
+      handler(e) {
+        return tzclient_pm('head_custom', e.data.path)
       }
     },
     block_head: {
