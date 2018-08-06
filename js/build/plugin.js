@@ -60,6 +60,15 @@
           .then(x => TZClient.tz2r(x))
       }
     },
+    decode_bytes: {
+      mute: true,
+      confirm(e) {
+        return `decode bytes`
+      },
+      handler(e) {
+        return tzclient_pm('decode_bytes', e.data.bytes)
+      }
+    },
     pack_data: {
       mute: true,
       confirm(e) {
