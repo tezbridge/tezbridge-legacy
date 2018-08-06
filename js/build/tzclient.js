@@ -480,8 +480,8 @@ class TZClient {
 
       const big_map_values = big_map ? (JSON.stringify(big_map).match(/(?<="data":")\w+/g) || []) : []
       return {
-        storage: this.decodeBytes(storage_data),
-        big_map: big_map_values.map(this.decodeBytes) 
+        storage: this.decode_bytes(storage_data),
+        big_map: big_map_values.map(this.decode_bytes) 
       }
     })
   }
