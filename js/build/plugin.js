@@ -66,9 +66,7 @@
         return `decode bytes`
       },
       handler(e) {
-        return tzclient_pm('decode_bytes', {
-          bytes: e.data
-        })
+        return tzclient_pm('decode_bytes', e.data.bytes)
       }
     },
     pack_data: {

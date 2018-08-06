@@ -609,8 +609,8 @@ module.exports = TZClient
     pack_data(param) {
       return instance.pack_data(param.data, param.type)
     },
-    decode_bytes(param) {
-      return instance.decode_bytes(param.bytes)
+    decode_bytes(bytes_string) {
+      return instance.decode_bytes(bytes_string)
     },
     balance(contract) {
       return instance.balance(contract)
