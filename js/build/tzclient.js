@@ -475,11 +475,10 @@ class TZClient {
       this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map`),
     ])
     .then(([storage, big_map]) => {
-      storage = JSON.parse(storage)
       const storage_len = parseInt(storage.slice(0, 8), 16)
       const storage_data = storage.slice(8, 8 + storage_len * 2)
 
-      const big_map_values = big_map ? (big_map.match(/(?<="data":")\w+/g) || []) : []
+      const big_map_values = big_map ? (JSON.stringify(big_map).match(/(?<="data":")\w+/g) || []) : []
       return {
         storage: this.decodeBytes(storage_data),
         big_map: big_map_values.map(this.decodeBytes) 
