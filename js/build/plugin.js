@@ -60,6 +60,15 @@
           .then(x => TZClient.tz2r(x))
       }
     },
+    raw_storage: {
+      mute: true,
+      confirm(e) {
+        return `get big_map and storage data`
+      },
+      handler(e) {
+        return tzclient_pm('raw_storage', e.data.contract)
+      }
+    },
     decode_bytes: {
       mute: true,
       confirm(e) {
