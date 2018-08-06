@@ -290,10 +290,23 @@ const decodeBytes = (bytes) => {
         }
 
         return {int: parseInt(valid_bytes.reverse().join(''), 2).toString()}
+      } else if (b === '02') {
+        index += 2
+
+        const len = read(8)
+        index += 8
+        const int_len = parseInt(len, 16) * 2
+        const data = read(int_len)
+        const limit = index + int_len
+
+        const seq_lst = []
+        while (limit > index) {
+          seq_lst.push(walk())
+        }
+        return seq_lst
       }
 
     }
-
 
   }
 
@@ -457,8 +470,21 @@ class TZClient {
     const hash_str = sodium.to_hex(hash)
     const hash_url = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_str.slice(x[0], x[1])).join('/')
 
-    return this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/`)
-    .then(x => x.data.storage)
+    return Promise.all([
+      this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/data/storage`),
+      this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map`),
+    ])
+    .then(([storage, big_map]) => {
+      storage = JSON.parse(storage)
+      const storage_len = parseInt(storage.slice(0, 8), 16)
+      const storage_data = storage.slice(8, 8 + storage_len * 2)
+
+      const big_map_values = big_map ? (big_map.match(/(?<="data":")\w+/g) || []) : []
+      return {
+        storage: this.decodeBytes(storage_data),
+        big_map: big_map_values.map(this.decodeBytes) 
+      }
+    })
   }
 
   decode_bytes(bytes_string) {
@@ -678,6 +704,9 @@ module.exports = TZClient
     },
     pack_data(param) {
       return instance.pack_data(param.data, param.type)
+    },
+    raw_storage(contract) {
+      return instance.raw_storage(contract)
     },
     decode_bytes(bytes_string) {
       return instance.decode_bytes(bytes_string)
