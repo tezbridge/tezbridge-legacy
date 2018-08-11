@@ -175,7 +175,9 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
 
     tzclient_pm('public_key_hash')
     .then(x => {
-      if (!x) {
+      if (!export_functions[e.data.method]) return false
+
+      if (!x && !export_functions[e.data.method].mute) {
         const encrypted_keys = getLocal('__')
         removeLocal('__')
         if (!encrypted_keys) {
@@ -216,7 +218,6 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
           })
         }
       } else {
-        if (!export_functions[e.data.method]) return
         if (!export_functions[e.data.method].mute || !getLocal('*').mute)
           if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
             e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, origin)
