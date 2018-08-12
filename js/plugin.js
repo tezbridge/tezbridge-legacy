@@ -42,6 +42,7 @@
   const export_functions = {
     public_key_hash: {
       mute: true,
+      need_login: true,
       confirm(e) {
         return `get public key hash`
       },
@@ -51,6 +52,7 @@
     },
     balance: {
       mute: true,
+      need_login: true,
       confirm(e) {
         return `get balance`
       },
@@ -61,6 +63,7 @@
     },
     raw_storage: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `get big_map and storage data`
       },
@@ -70,6 +73,7 @@
     },
     decode_bytes: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `decode bytes`
       },
@@ -79,6 +83,7 @@
     },
     pack_data: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `pack data`
       },
@@ -91,6 +96,7 @@
     },
     hash_data: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `hash data`
       },
@@ -103,6 +109,7 @@
     },
     head_custom: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `get custom head data`
       },
@@ -112,6 +119,7 @@
     },
     block_head: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `get block head of node`
       },
@@ -121,6 +129,7 @@
     },
     contract: {
       mute: true,
+      need_login: false,
       confirm(e) {
         return `get info for contract:${e.data.contract}`
       },
@@ -129,6 +138,7 @@
       }
     },
     transfer: {
+      need_login: true,
       confirm(e) {
         return `transfer ${e.data.amount}tz to ${e.data.destination} with parameter
 ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
@@ -138,6 +148,7 @@ ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       }
     },
     originate: {
+      need_login: true,
       confirm(e) {
         return `originate contract for ${e.data.balance}tz
 with code:${!!e.data.script}`
@@ -147,6 +158,7 @@ with code:${!!e.data.script}`
       }
     },
     operations: {
+      need_login: true,
       confirm(e) {
         return `run operations list below:
 ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance || 0) + 'tz').join('\n')}`
@@ -177,7 +189,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
     .then(x => {
       if (!export_functions[e.data.method]) return false
 
-      if (!x && !export_functions[e.data.method].mute) {
+      if (!x && export_functions[e.data.method].need_login) {
         const encrypted_keys = getLocal('__')
         removeLocal('__')
         if (!encrypted_keys) {
