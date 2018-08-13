@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const version = getLocal('v')
 
       const default_settings = {
-        mute: true,
         relock: 20,
         auto_dapp: true,
         detect_devtools: true

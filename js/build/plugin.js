@@ -231,7 +231,7 @@ ${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : 
           })
         }
       } else {
-        if (!export_functions[e.data.method].mute || !getLocal('*').mute)
+        if (!export_functions[e.data.method].mute)
           if (!confirm(`Allow ${e.origin} to \n${export_functions[e.data.method].confirm(e)}`)) {
             e.source.postMessage({tezbridge: e.data.tezbridge, error: 'unpass confirmation'}, origin)
             return

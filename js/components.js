@@ -654,15 +654,6 @@ components.SettingModal = Vue.component('setting-modal', {
             <q-item-tile sublabel>Flush secret key when the devtools is opened</q-item-tile>
           </q-item-main>
         </q-item>
-        <q-item tag="label">
-          <q-item-side>
-            <q-checkbox color="cyan-8" v-model="mute"/>
-          </q-item-side>
-          <q-item-main>
-            <q-item-tile label>Mute</q-item-tile>
-            <q-item-tile sublabel>Mute for non-spending operations</q-item-tile>
-          </q-item-main>
-        </q-item>
       </q-list>
 
       <q-btn color="cyan-8" outline icon="close" @click="opened = false" class="modal-close-btn" />
@@ -674,7 +665,6 @@ components.SettingModal = Vue.component('setting-modal', {
       opened: false,
 
       auto_dapp: false,
-      mute: false,
       relock: 0,
       host: '',
       detect_devtools: false
@@ -685,14 +675,10 @@ components.SettingModal = Vue.component('setting-modal', {
       if (v) {
         const settings = getLocal('*') || {}
         this.auto_dapp = !!settings.auto_dapp
-        this.mute = !!settings.mute
         this.relock = settings.relock || 0
         this.detect_devtools = settings.detect_devtools
         this.host = settings.host
       }
-    },
-    mute(v) {
-      this.valChange('mute', v)
     },
     relock(v) {
       this.valChange('relock', v)
