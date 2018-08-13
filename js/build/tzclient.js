@@ -470,20 +470,29 @@ class TZClient {
     const hash_str = sodium.to_hex(hash)
     const hash_url = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_str.slice(x[0], x[1])).join('/')
 
-    return Promise.all([
-      this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/data/storage`),
-      this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map`),
-    ])
-    .then(([storage, big_map]) => {
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/data/storage`)
+    .then(storage => {
       const storage_len = parseInt(storage.slice(0, 8), 16)
       const storage_data = storage.slice(8, 8 + storage_len * 2)
-
-      const big_map_values = big_map ? (JSON.stringify(big_map).match(/(?<="data":")\w+/g) || []) : []
-      return {
-        storage: this.decode_bytes(storage_data),
-        big_map: big_map_values.map(this.decode_bytes) 
-      }
+      
+      return new Promise((resolve, reject) => {
+        this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map`)
+        .then(big_map => {
+          const big_map_values = big_map ? (JSON.stringify(big_map).match(/(?<="data":")\w+/g) || []) : []
+          resolve({
+            storage: this.decode_bytes(storage_data),
+            big_map: big_map_values.map(this.decode_bytes) 
+          })
+        })
+        .catch(err => {
+          resolve({
+            storage: this.decode_bytes(storage_data),
+            big_map: []
+          })
+        })
+      })
     })
+    
   }
 
   decode_bytes(bytes_string) {
