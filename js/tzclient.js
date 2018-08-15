@@ -435,10 +435,8 @@ class TZClient {
     .then(x => x.packed)
   }
 
-  hash_data(data_json, type_json) {
-    const param = {"data": data_json,"type":type_json}
-    return this.post(`/chains/${this.chain_id}/blocks/head/helpers/scripts/hash_data`, param)
-    .then(x => x.hash)
+  hash_data(packed_data) {
+    return Promise.resolve(sodium.to_hex(sodium.crypto_generichash(32, packed_data)))
   }
 
   balance(key_hash) {
@@ -637,8 +635,8 @@ module.exports = TZClient
     public_key_hash() {
       return instance.key_pair.public_key_hash
     },
-    hash_data(param) {
-      return instance.hash_data(param.data, param.type)
+    hash_data(packed_data) {
+      return instance.hash_data(packed_data)
     },
     pack_data(param) {
       return instance.pack_data(param.data, param.type)
