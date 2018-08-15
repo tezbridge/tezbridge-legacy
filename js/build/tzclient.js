@@ -465,10 +465,23 @@ class TZClient {
     return this.call(`/chains/${this.chain_id}/blocks/head`)
   }
 
-  raw_storage(contract) {
-    const hash = TZClient.dec58(prefix.contract, contract)
+  get_hash_key(prefix, data) {
+    const hash = TZClient.dec58(prefix, data)
     const hash_str = sodium.to_hex(hash)
-    const hash_url = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_str.slice(x[0], x[1])).join('/')
+    const hash_key = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_str.slice(x[0], x[1])).join('/')
+
+    return hash_key
+  }
+
+  big_map_with_key(key, contract) {
+    const hash_url = this.get_hash_key(prefix.contract, contract)
+
+    return this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map/${key}`)
+    .then(x => this.decode_bytes(x.data))
+  }
+
+  raw_storage(contract) {
+    const hash_url = this.get_hash_key(prefix.contract, contract)
 
     return this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/data/storage`)
     .then(storage => {
@@ -721,6 +734,9 @@ module.exports = TZClient
     },
     pack_data(param) {
       return instance.pack_data(param.data, param.type)
+    },
+    big_map_with_key(param) {
+      return instance.big_map_with_key(param.key, param.contract)
     },
     raw_storage(contract) {
       return instance.raw_storage(contract)
