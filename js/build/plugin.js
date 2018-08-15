@@ -62,6 +62,19 @@
           .then(x => TZClient.tz2r(x))
       }
     },
+    big_map_with_key: {
+      mute: true,
+      need_login: false,
+      confirm(e) {
+        return `get big_map value by key`
+      },
+      handler(e) {
+        return tzclient_pm('big_map_with_key', {
+          key: e.data.key,
+          contract: e.data.contract
+        })
+      }
+    },
     raw_storage: {
       mute: true,
       need_login: false,
