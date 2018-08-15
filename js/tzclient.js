@@ -436,7 +436,7 @@ class TZClient {
   }
 
   hash_data(packed_data) {
-    return Promise.resolve(sodium.to_hex(sodium.crypto_generichash(32, packed_data)))
+    return Promise.resolve(sodium.to_hex(sodium.crypto_generichash(32, sodium.from_hex(packed_data))))
   }
 
   balance(key_hash) {
