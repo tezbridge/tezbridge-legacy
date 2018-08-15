@@ -408,10 +408,21 @@ class TZClient {
       return new Promise((resolve, reject) => {
         this.call(`/chains/${this.chain_id}/blocks/head/context/raw/bytes/contracts/index/originated/${hash_url}/big_map`)
         .then(big_map => {
-          const big_map_values = big_map ? (JSON.stringify(big_map).match(/"data":"\w+/g) || []) : []
+          const big_map_obj = {}
+          const makePlain = (obj, prefix) => {
+            for (const key in obj) {
+              if (key.data) {
+                big_map_obj[prefix] = this.decode_bytes(obj.data)
+              } else {
+                makePlain(obj[key], prefix + key)
+              }
+            }
+          }
+          makePlain(big_map, '')
+
           resolve({
             storage: this.decode_bytes(storage_data),
-            big_map: big_map_values.map(x => this.decode_bytes(x.slice(8))) 
+            big_map: big_map_obj
           })
         })
         .catch(err => {
