@@ -481,7 +481,7 @@ class TZClient {
           const big_map_obj = {}
           const makePlain = (obj, prefix) => {
             for (const key in obj) {
-              if (key.data) {
+              if (obj.data) {
                 big_map_obj[prefix] = this.decode_bytes(obj.data)
               } else {
                 makePlain(obj[key], prefix + key)
