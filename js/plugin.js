@@ -101,10 +101,7 @@
         return `hash data`
       },
       handler(e) {
-        return tzclient_pm('hash_data', {
-          data: e.data.data,
-          type: e.data.type  
-        })
+        return tzclient_pm('hash_data', e.data.packed)
       }
     },
     head_custom: {
