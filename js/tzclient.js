@@ -428,7 +428,7 @@ class TZClient {
         .catch(err => {
           resolve({
             storage: this.decode_bytes(storage_data),
-            big_map: []
+            big_map: {}
           })
         })
       })
