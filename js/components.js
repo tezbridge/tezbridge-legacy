@@ -713,7 +713,7 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
         <div class="title">ÐAPP FAST ACCESS</div>
         <q-list>
           <q-item>
-            <a href="https://tez.exchange" target="_blank">tez.exchange</a>
+            <a href="https://prelaunch.tez.exchange" target="_blank">tez.exchange</a>
             <span>DEX for Tezos</span>
           </q-item>
           <q-item class="dim">
