@@ -832,6 +832,10 @@ components.DAppListModal = Vue.component('dapp-list-modal', {
             <a href="https://prelaunch.tez.exchange" target="_blank">tez.exchange</a>
             <span>DEX for Tezos</span>
           </q-item>
+          <q-item>
+            <a href="/dapps/token-utility.html" target="_blank">Token utility</a>
+            <span>Tezos token utility</span>
+          </q-item>
           <q-item class="dim">
             <a href="http://tezdeploy.tezbridge.com" target="_blank">Contract deployer</a>
             <span>Tezos contract deployer</span>

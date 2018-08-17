@@ -151,7 +151,7 @@
     transfer: {
       need_login: true,
       confirm(e) {
-        return `transfer ${e.data.amount}tz to ${e.data.destination} with parameter
+        return `transfer ${e.data.amount || 0}tz to ${e.data.destination} with parameter
 ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
       },
       handler(e) {
@@ -161,7 +161,7 @@ ${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
     originate: {
       need_login: true,
       confirm(e) {
-        return `originate contract for ${e.data.balance}tz
+        return `originate contract for ${e.data.balance || 0}tz
 with code:${!!e.data.script}`
       },
       handler(e) {
