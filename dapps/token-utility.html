@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Token Utility</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script src="../../plugin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+  <style type="text/css">
+    * {font-family: Consolas, Menlo, 'ubuntu mono', monospace; font-size: 14px;}
+    input {border: 0; background: #f8f8f8; padding: 2px 4px; margin: 4px;}
+    td {padding: 4px 8px; background: #eee}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <table>
+      <tr>
+        <td>Login as:</td>
+        <td>{{admin}}</td>
+        <td></td>
+        <td><button @click="login" v-if="!admin">Login</button></td>
+      </tr>
+      <tr>
+        <td>Check token amount:</td>
+        <td>
+          <input v-model="token_addr" placeholder="token address" />
+        </td>
+        <td>{{token_amount}}</td>
+        <td><button @click="check">Check</button></td>
+      </tr>
+      <tr>
+        <td>Transfer token:</td>
+        <td>
+          <input v-model="token_addr" placeholder="token address" /> <br>
+          <input v-model="token_receiver" placeholder="receiver" /><br>
+          <input v-model="token_amount2send" placeholder="amount" />
+        </td>
+        <td>{{transfer_result}}</td>
+        <td><button @click="transfer">Transfer</button></td>
+      </tr>
+      <tr>
+        <td>Create token:</td>
+        <td>
+          <input v-model="token_name" placeholder="token full name"><br>
+          <input v-model="token_symbol" placeholder="token symbol"><br>
+          <input v-model="token_decimal" placeholder="token decimal"><br>
+          <input v-model="token_admin" placeholder="token admin address"><br>
+          <input v-model="total_amount" placeholder="token total amount"><br>
+          <input type="checkbox" v-model="spendable">spendable<br>
+          <input type="checkbox" v-model="delegatable">delegatable<br>
+          <input v-model="delegate" placeholder="delegate address"><br>
+        </td>
+        <td>{{originate_result}}</td>
+        <td><button @click="originate">Originate</button></td>
+      </tr>
+    </table>
+  </div>
+
+<script type="text/javascript">
+  const get_hash_key = (pkh) => {
+    return tezbridge({method: 'pack_data', data: { "string": pkh }, type: { "prim": "address" }})
+    .then(packed => {
+      return tezbridge({method: 'hash_data', packed})
+    })
+    .then(hash_result => {
+      const key = [[0,2], [2,4], [4,6], [6,8], [8,10], [10,undefined]].map(x => hash_result.slice(x[0], x[1])).join('/')
+      return key
+    })
+  }
+
+  new Vue({
+    el: '#app',
+    data: {
+      admin: '',
+      token_addr: '',
+      token_receiver: '',
+      transfer_result: '',
+      token_amount2send: 0,
+
+      token_name: '',
+      token_symbol: '',
+      token_decimal: '',
+      token_admin: '',
+      total_amount: '',
+      spendable: false,
+      delegatable: false,
+      delegate: '',
+
+      originate_result: '',
+
+      token_amount: 0
+    },
+    methods: {
+      login() {
+        tezbridge({method: 'public_key_hash'})
+        .then(x => {
+          this.admin = x
+        })
+      },
+      originate() {
+        const code = [{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"contract","args":[{"prim":"bytes"}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"nat"},{"prim":"option","args":[{"prim":"pair","args":[{"prim":"contract","args":[{"prim":"bytes"}]},{"prim":"bytes"}]}]}]}]},{"prim":"pair","args":[{"prim":"nat"},{"prim":"bytes"}]}]}]}]},{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"pair","args":[{"prim":"string"},{"prim":"pair","args":[{"prim":"string"},{"prim":"pair","args":[{"prim":"nat"},{"prim":"nat"}]}]}]}]}]},{"prim":"code","args":[[{"prim":"DUP"},{"prim":"DIP","args":[[{"prim":"CDR"}]]},{"prim":"CAR"},{"prim":"DUP"},{"prim":"IF_LEFT","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"NIL","args":[{"prim":"operation"}]},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"}]]}]]}]]},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CDR"},{"prim":"CDR"},{"prim":"CDR"}],[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CDR"},{"prim":"CDR"},{"prim":"CAR"}],{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CDR"},{"prim":"CAR"}],{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CAR"}],{"prim":"PAIR"},{"prim":"PACK"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"},{"prim":"PAIR"}],[{"prim":"IF_LEFT","args":[[{"prim":"DUP"},{"prim":"CAR"},[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CAR"}],{"prim":"SENDER"},[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"CAR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"GET"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]}],[]]},{"prim":"SUB"},{"prim":"DUP"},{"prim":"ABS"},{"prim":"SWAP"},{"prim":"GE"},{"prim":"IF","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"CAR"},[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"SOME"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"UPDATE"},{"prim":"DUP"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"GET"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]}],[]]},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"ADD"},{"prim":"DUP"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"}]]}]]}]]}]]},{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"CDR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"}]]}]]}]]}]]},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"}]]}]]}]]}]]},{"prim":"SOME"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"UPDATE"},{"prim":"PAIR"},{"prim":"PAIR"}],[{"prim":"PUSH","args":[{"prim":"string"},{"string":"balance insufficient"}]},{"prim":"FAILWITH"}]]},{"prim":"DUP"},{"prim":"CAR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CDR"}],{"prim":"IF_NONE","args":[[{"prim":"NIL","args":[{"prim":"operation"}]}],[{"prim":"NIL","args":[{"prim":"operation"}]},[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"CAR"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CDR"}],[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],[{"prim":"CDR"},{"prim":"CAR"}],{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"PAIR"},[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}]]]},{"prim":"SWAP"}],{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"}]]}]]}]]}]]}]]},{"prim":"CDR"},{"prim":"PAIR"},{"prim":"PACK"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"}]]},{"prim":"DIP","args":[[{"prim":"DIP","args":[[{"prim":"DROP"},{"prim":"DROP"},{"prim":"DROP"},{"prim":"DROP"},{"prim":"DROP"}]]}]]},{"prim":"PAIR"}],[{"prim":"UNIT"},{"prim":"FAILWITH"}]]}]]},{"prim":"DIP","args":[[{"prim":"DROP"},{"prim":"DROP"}]]}]]}]
+
+        const storage = {"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":this.token_admin},{"int":this.total_amount}]}],{"prim":"Pair","args":[{"string":this.token_symbol},{"prim":"Pair","args":[{"string":this.token_name},{"prim":"Pair","args":[{"int":this.token_decimal},{"int":this.total_amount}]}]}]}]}
+
+        tezbridge({
+          method: 'originate', 
+          spendable: this.spendable,
+          delegate: this.delegate || undefined,
+          delegatable: this.delegatable,
+          script: {code, storage}
+        })
+        .then(x => {
+          this.originate_result = JSON.stringify(x)
+        })
+        .catch(err => {
+          this.originate_result = err.toString()
+        })
+      },
+      transfer() {
+        const parameters = {
+            "prim": "Right",
+            "args": [
+              {
+                "prim": "Left",
+                "args": [
+                  {
+                    "prim": "Pair",
+                    "args": [
+                      {
+                        "string": this.token_receiver
+                      },
+                      {
+                        "prim": "Pair",
+                        "args": [
+                          {
+                            "int": this.token_amount2send
+                          },
+                          {
+                            "prim": "None",
+                            "args": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+
+        tezbridge({
+          method: 'transfer', 
+          destination: this.token_addr, 
+          parameters
+        })
+        .then(x => {
+          this.transfer_result = x.operation_id
+        })
+        .catch(err => {
+          this.transfer_result = err.toString()
+        })
+      },
+      check() {
+        if (!this.admin) return false
+
+        get_hash_key(this.admin)
+        .then(key => {
+          return tezbridge({method: 'big_map_with_key', key, contract: this.token_addr})
+        })
+        .then(token_info => {
+          this.token_amount = token_info ? parseInt(token_info.int) : 0
+        })
+      }
+    }
+  })
+
+</script>
+</body>
+</html>
