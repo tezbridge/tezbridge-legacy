@@ -114,7 +114,7 @@
           this.originate_result = JSON.stringify(x)
         })
         .catch(err => {
-          this.originate_result = err.toString()
+          this.originate_result = JSON.stringify(err)
         })
       },
       transfer() {
@@ -158,7 +158,7 @@
           this.transfer_result = x.operation_id
         })
         .catch(err => {
-          this.transfer_result = err.toString()
+          this.transfer_result = JSON.stringify(err)
         })
       },
       check() {
