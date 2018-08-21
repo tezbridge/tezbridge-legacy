@@ -56,6 +56,7 @@
     constructor() {}
 
     init() {
+      this.responseFunctions = new Set()
       this.conn = new RTCPeerConnection()
       
       if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
@@ -64,7 +65,9 @@
       }
 
       this.channel = this.conn.createDataChannel({})
-      this.channel.onmessage = (e) => this.onmessage(e.data)
+      this.channel.onmessage = (e) => {
+        this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
+      }
 
       this.info = {
         local: {
@@ -87,8 +90,16 @@
       })
     }
 
-    onmessage(data) {
-      console.log(data)
+    addResponse(fn) {
+      this.responseFunctions.add(fn)
+    }
+
+    removeResponse(fn) {
+      this.responseFunctions.delete(fn)
+    }
+
+    send(x) {
+      this.channel.send(x)
     }
 
     connect() {
@@ -96,10 +107,37 @@
       const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
       const connect_window = window.open(origin + '/connect.html?' + rtc_info)
       window.onmessage = (e) => {
-        if (e.source === connect_window) {
-          const remote_info = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data))))
-          console.log(remote_info)
+        if (e.source !== connect_window) return false
+        this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data))))
+        this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
+        this.info.remote.candidates.forEach(x => {
+          if (x)
+            this.conn.addIceCandidate(new RTCIceCandidate(x))
+        })
+
+        this.addResponse(data => {
+          if (data.tezbridge) {
+            if (data.error)
+              rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
+            else
+              resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
+
+            delete rejects[data.tezbridge]
+            delete resolves[data.tezbridge]
+          }
+        })
+
+        window.tezbridge = (params) => {
+          return new Promise((resolve, reject) => {
+            const mid = message_id++
+            params.tezbridge = mid
+            this.send(JSON.stringify(params))
+            resolves[mid] = resolve
+            rejects[mid] = reject
+          })
         }
+
+        connect_window.close()
       }
     }
   }

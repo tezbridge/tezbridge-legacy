@@ -1,4 +1,5 @@
 const util = require('./util')
+const temp_signer = require('./temp_signer')
 
 if (!Promise.prototype.finally) {
   Promise.prototype.finally = function(f) {
@@ -6,24 +7,7 @@ if (!Promise.prototype.finally) {
   }
 }
 
-const rtc_info = {
-  local: {
-    candidates: [],
-    offer: {}
-  },
-  remote: {
-    candidates: [],
-    offer: {}
-  }
-}
-if (location.search) {
-  try {
-    const val = location.search.slice(1)
-    const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
-    rtc_info.remote = remote_info
-  } catch(e) {
-  }
-}
+
 
 const getLocal = util.getLocal
 const setLocal = util.setLocal
@@ -832,17 +816,33 @@ components.Intro = Vue.component('intro', {
 components.RemoteSigner = Vue.component('remote-signer', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
-      <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
-      <div class="row justify-center">
-        <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
+      <div class="rtc-conn-wrapper" v-if="!channel_opened">
+        <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
+        <div class="row justify-center">
+          <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
+        </div>
+      </div>
+      <div class="rtc-ready-wrapper" v-if="channel_opened">
+        <div>Waiting for operation...</div>
       </div>
     </q-modal>
   `,
   props: ['tzclient'],
   data() {
     return {
+      rtc_info: {
+        local: {
+          candidates: [],
+          offer: {}
+        },
+        remote: {
+          candidates: [],
+          offer: {}
+        }
+      },
       opened: false,
-      local_info: ''
+      local_info: '',
+      channel_opened: false
     }
   },
   methods: {
@@ -871,6 +871,14 @@ components.RemoteSigner = Vue.component('remote-signer', {
         return false
       }
 
+      if (location.search) {
+        try {
+          const val = location.search.slice(1)
+          const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
+          this.rtc_info.remote = remote_info
+        } catch(e) { }
+      }
+
       const conn = new RTCPeerConnection()
       
       if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
@@ -879,29 +887,39 @@ components.RemoteSigner = Vue.component('remote-signer', {
       }
 
       conn.ondatachannel = (e) => {
-        e.channel.onmessage = () => {}
+        e.channel.onmessage = (event) => {
+          temp_signer.dispatcher(e.channel, JSON.parse(event.data))
+        }
+        e.channel.onopen = () => {
+          this.channel_opened = true
+        }
+        e.channel.onclose = () => {
+          this.channel_opened = false
+        }
       }
       
       conn.onicecandidate = e => {
-        rtc_info.local.candidates.push(e.candidate)
+        this.rtc_info.local.candidates.push(e.candidate)
       }
 
-      conn.setRemoteDescription(new RTCSessionDescription(rtc_info.remote.offer))
+      conn.setRemoteDescription(new RTCSessionDescription(this.rtc_info.remote.offer))
       .then(() => conn.createAnswer())
       .then(answer => {
-        rtc_info.local.offer = answer
+        this.rtc_info.local.offer = answer
         conn.setLocalDescription(answer)
       })
       .then(() => {
-        rtc_info.remote.candidates.forEach(x => {
+        this.rtc_info.remote.candidates.forEach(x => {
           if (x)
             conn.addIceCandidate(new RTCIceCandidate(x))
         })
       })
       .then(() => {
+        temp_signer.setInstance(this.tzclient)
+
         this.opened = true
         setTimeout(() => {
-          this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(rtc_info.local)))
+          this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))
         }, 1000)
       })
     }

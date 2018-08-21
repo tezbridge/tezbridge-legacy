@@ -115,8 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 })
 
-},{"./components":2,"./util":3}],2:[function(require,module,exports){
+},{"./components":2,"./util":4}],2:[function(require,module,exports){
 const util = require('./util')
+const temp_signer = require('./temp_signer')
 
 if (!Promise.prototype.finally) {
   Promise.prototype.finally = function(f) {
@@ -124,24 +125,7 @@ if (!Promise.prototype.finally) {
   }
 }
 
-const rtc_info = {
-  local: {
-    candidates: [],
-    offer: {}
-  },
-  remote: {
-    candidates: [],
-    offer: {}
-  }
-}
-if (location.search) {
-  try {
-    const val = location.search.slice(1)
-    const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
-    rtc_info.remote = remote_info
-  } catch(e) {
-  }
-}
+
 
 const getLocal = util.getLocal
 const setLocal = util.setLocal
@@ -950,17 +934,33 @@ components.Intro = Vue.component('intro', {
 components.RemoteSigner = Vue.component('remote-signer', {
   template: `
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
-      <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
-      <div class="row justify-center">
-        <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
+      <div class="rtc-conn-wrapper" v-if="!channel_opened">
+        <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
+        <div class="row justify-center">
+          <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
+        </div>
+      </div>
+      <div class="rtc-ready-wrapper" v-if="channel_opened">
+        <div>Waiting for operation...</div>
       </div>
     </q-modal>
   `,
   props: ['tzclient'],
   data() {
     return {
+      rtc_info: {
+        local: {
+          candidates: [],
+          offer: {}
+        },
+        remote: {
+          candidates: [],
+          offer: {}
+        }
+      },
       opened: false,
-      local_info: ''
+      local_info: '',
+      channel_opened: false
     }
   },
   methods: {
@@ -989,6 +989,14 @@ components.RemoteSigner = Vue.component('remote-signer', {
         return false
       }
 
+      if (location.search) {
+        try {
+          const val = location.search.slice(1)
+          const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
+          this.rtc_info.remote = remote_info
+        } catch(e) { }
+      }
+
       const conn = new RTCPeerConnection()
       
       if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
@@ -997,29 +1005,39 @@ components.RemoteSigner = Vue.component('remote-signer', {
       }
 
       conn.ondatachannel = (e) => {
-        e.channel.onmessage = () => {}
+        e.channel.onmessage = (event) => {
+          temp_signer.dispatcher(e.channel, JSON.parse(event.data))
+        }
+        e.channel.onopen = () => {
+          this.channel_opened = true
+        }
+        e.channel.onclose = () => {
+          this.channel_opened = false
+        }
       }
       
       conn.onicecandidate = e => {
-        rtc_info.local.candidates.push(e.candidate)
+        this.rtc_info.local.candidates.push(e.candidate)
       }
 
-      conn.setRemoteDescription(new RTCSessionDescription(rtc_info.remote.offer))
+      conn.setRemoteDescription(new RTCSessionDescription(this.rtc_info.remote.offer))
       .then(() => conn.createAnswer())
       .then(answer => {
-        rtc_info.local.offer = answer
+        this.rtc_info.local.offer = answer
         conn.setLocalDescription(answer)
       })
       .then(() => {
-        rtc_info.remote.candidates.forEach(x => {
+        this.rtc_info.remote.candidates.forEach(x => {
           if (x)
             conn.addIceCandidate(new RTCIceCandidate(x))
         })
       })
       .then(() => {
+        temp_signer.setInstance(this.tzclient)
+
         this.opened = true
         setTimeout(() => {
-          this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(rtc_info.local)))
+          this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))
         }, 1000)
       })
     }
@@ -1029,7 +1047,258 @@ components.RemoteSigner = Vue.component('remote-signer', {
 })
 
 module.exports = {components, intro_version}
-},{"./util":3}],3:[function(require,module,exports){
+},{"./temp_signer":3,"./util":4}],3:[function(require,module,exports){
+let instance = null
+
+const dataClean = x => {
+  const clone = JSON.parse(JSON.stringify(x))
+  delete clone.tezbridge
+  delete clone.method
+  return clone
+}
+
+const handler = {
+  setHost(host) {
+    instance.host = host
+    return true
+  },
+  importKey(params) {
+    try {
+      instance = new TZClient()
+      instance.importKey(params)
+      return Promise.resolve(true)
+    } catch (err) {
+      return Promise.reject(false)
+    }
+  },
+  importCipherData(args) {
+    return instance.importCipherData.apply(instance, args)
+  },
+  cleanKey() {
+    instance.key_pair = {}
+    return true
+  },
+  public_key_hash() {
+    return instance.key_pair.public_key_hash
+  },
+  hash_data(packed_data) {
+    return instance.hash_data(packed_data)
+  },
+  pack_data(param) {
+    return instance.pack_data(param.data, param.type)
+  },
+  big_map_with_key(param) {
+    return instance.big_map_with_key(param.key, param.contract)
+  },
+  raw_storage(contract) {
+    return instance.raw_storage(contract)
+  },
+  decode_bytes(bytes_string) {
+    return instance.decode_bytes(bytes_string)
+  },
+  balance(contract) {
+    return instance.balance(contract)
+  },
+  head() {
+    return instance.head()
+  },
+  head_custom(path) {
+    return instance.head_custom(path)
+  },
+  contract(contract) {
+    return instance.contract(contract)
+  },
+  transfer(params) {
+    return instance.transfer(params)
+  },
+  originate(params) {
+    return instance.originate(params)
+  },
+  makeOperations(params) {
+    return instance.makeOpWithReveal(params.source, params.op_lst, params.no_injection)
+  }
+}
+
+const tzclient_pm = (method, params) => {
+  const result = handler[method](params)
+  return result instanceof Promise ? result : Promise.resolve(result)
+}
+
+const export_functions = {
+  public_key_hash: {
+    mute: true,
+    need_login: true,
+    confirm(e) {
+      return `get public key hash`
+    },
+    handler(e) {
+      return tzclient_pm('public_key_hash')
+    }
+  },
+  balance: {
+    mute: true,
+    need_login: true,
+    confirm(e) {
+      return `get balance`
+    },
+    handler(e) {
+      return tzclient_pm('balance', e.data.contract)
+        .then(x => TZClient.tz2r(x))
+    }
+  },
+  big_map_with_key: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `get big_map value by key`
+    },
+    handler(e) {
+      return tzclient_pm('big_map_with_key', {
+        key: e.data.key,
+        contract: e.data.contract
+      })
+    }
+  },
+  raw_storage: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `get big_map and storage data`
+    },
+    handler(e) {
+      return tzclient_pm('raw_storage', e.data.contract)
+    }
+  },
+  decode_bytes: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `decode bytes`
+    },
+    handler(e) {
+      return tzclient_pm('decode_bytes', e.data.bytes)
+    }
+  },
+  pack_data: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `pack data`
+    },
+    handler(e) {
+      return tzclient_pm('pack_data', {
+        data: e.data.data,
+        type: e.data.type  
+      })
+    }
+  },
+  hash_data: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `hash data`
+    },
+    handler(e) {
+      return tzclient_pm('hash_data', e.data.packed)
+    }
+  },
+  head_custom: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `get custom head data`
+    },
+    handler(e) {
+      return tzclient_pm('head_custom', e.data.path)
+    }
+  },
+  block_head: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `get block head of node`
+    },
+    handler(e) {
+      return tzclient_pm('head')
+    }
+  },
+  contract: {
+    mute: true,
+    need_login: false,
+    confirm(e) {
+      return `get info for contract:${e.data.contract}`
+    },
+    handler(e) {
+      return tzclient_pm('contract', e.data.contract)
+    }
+  },
+  transfer: {
+    need_login: true,
+    confirm(e) {
+      return `transfer ${e.data.amount || 0}tz to ${e.data.destination} with parameter
+${(e.data.parameters && JSON.stringify(e.data.parameters)) || 'Unit'}`
+    },
+    handler(e) {
+      return tzclient_pm('transfer', dataClean(e.data))
+    }
+  },
+  originate: {
+    need_login: true,
+    confirm(e) {
+      return `originate contract for ${e.data.balance || 0}tz
+with code:${!!e.data.script}`
+    },
+    handler(e) {
+      return tzclient_pm('originate', dataClean(e.data))
+    }
+  },
+  operations: {
+    need_login: true,
+    confirm(e) {
+      return `run operations list below:
+${e.data.operations.map(x => x.method + (x.destination ? `(${x.destination})` : '') + ' with ' + (x.amount || x.balance || 0) + 'tz').join('\n')}`
+    },
+    handler(e) {
+      const op_lst = e.data.operations.filter(x => x.method === 'transfer' || x.method === 'originate')
+        .map(x => {
+          const kind = x.method === 'transfer' ? 'transaction' : 'origination'
+          delete x.method
+          return {kind, params: x}
+        })
+        
+      return tzclient_pm('makeOperations', {op_lst, source: e.data.source, no_injection: e.data.no_injection})
+    }
+  }
+}
+
+const dispatcher = (channel, data) => {
+  if (!data.tezbridge) return false
+
+  if (!export_functions[data.method].mute)
+    if (!confirm(`Allow ? to \n${export_functions[data.method].confirm({data})}`)) {
+      channel.send(JSON.stringify({tezbridge: data.tezbridge, error: 'unpass confirmation'}))
+      return false
+    }
+
+  const p = export_functions[data.method].handler({data})
+  if (p)
+    p.then(x => {
+      const result = {result: x}
+      result.tezbridge = data.tezbridge
+      channel.send(JSON.stringify(result))
+    })
+    .catch(err => {
+      channel.send(JSON.stringify({tezbridge: data.tezbridge, error: err}))
+    })
+}
+
+module.exports = {
+  dispatcher,
+  setInstance(x) {
+    instance = x
+  }
+}
+},{}],4:[function(require,module,exports){
 (function (Buffer){
 const getLocal = x => JSON.parse(window.localStorage.getItem(x))
 const setLocal = (x, y) => window.localStorage.setItem(x, JSON.stringify(y))
@@ -1079,7 +1348,7 @@ module.exports = {
   base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":5}],4:[function(require,module,exports){
+},{"buffer":6}],5:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -1232,7 +1501,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -2970,7 +3239,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":4,"ieee754":6}],6:[function(require,module,exports){
+},{"base64-js":5,"ieee754":7}],7:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
