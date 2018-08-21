@@ -59,12 +59,12 @@
       this.responseFunctions = new Set()
       this.conn = new RTCPeerConnection()
       
-      if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
+      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
         alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
         navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
       }
 
-      this.channel = this.conn.createDataChannel({})
+      this.channel = this.conn.createDataChannel(location.origin)
       this.channel.onmessage = (e) => {
         this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
       }
@@ -106,6 +106,10 @@
       const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
       const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
       const connect_window = window.open(origin + '/connect.html?' + rtc_info)
+      this.channel.onopen = () => {
+        connect_window.close()
+      }
+
       window.onmessage = (e) => {
         if (e.source !== connect_window) return false
         this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data))))
@@ -137,7 +141,6 @@
           })
         }
 
-        connect_window.close()
       }
     }
   }

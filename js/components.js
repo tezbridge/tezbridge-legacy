@@ -823,13 +823,17 @@ components.RemoteSigner = Vue.component('remote-signer', {
         </div>
       </div>
       <div class="rtc-ready-wrapper" v-if="channel_opened">
-        <div>Waiting for operation...</div>
+        Waiting for operations...
+        <div class="row justify-center">
+          <q-btn color="cyan-8" @click="opened = false" label="Stop and close" outline />
+        </div>
       </div>
     </q-modal>
   `,
   props: ['tzclient'],
   data() {
     return {
+      g: util.G,
       rtc_info: {
         local: {
           candidates: [],
@@ -840,6 +844,7 @@ components.RemoteSigner = Vue.component('remote-signer', {
           offer: {}
         }
       },
+      conn: null,
       opened: false,
       local_info: '',
       channel_opened: false
@@ -865,6 +870,12 @@ components.RemoteSigner = Vue.component('remote-signer', {
     },
   },
   watch: {
+    opened(x) {
+      if (!x) {
+        this.conn.close()
+        g.tzclient = null
+      }
+    },
     tzclient() {
       if (!this.tzclient) {
         this.opened = false
@@ -880,8 +891,9 @@ components.RemoteSigner = Vue.component('remote-signer', {
       }
 
       const conn = new RTCPeerConnection()
-      
-      if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
+      this.conn = conn
+
+      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
         alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
         navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
       }
@@ -900,6 +912,7 @@ components.RemoteSigner = Vue.component('remote-signer', {
       
       conn.onicecandidate = e => {
         this.rtc_info.local.candidates.push(e.candidate)
+        this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))
       }
 
       conn.setRemoteDescription(new RTCSessionDescription(this.rtc_info.remote.offer))
@@ -918,9 +931,6 @@ components.RemoteSigner = Vue.component('remote-signer', {
         temp_signer.setInstance(this.tzclient)
 
         this.opened = true
-        setTimeout(() => {
-          this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))
-        }, 1000)
       })
     }
   },

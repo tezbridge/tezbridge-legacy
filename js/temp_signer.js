@@ -225,7 +225,7 @@ const dispatcher = (channel, data) => {
   if (!data.tezbridge) return false
 
   if (!export_functions[data.method].mute)
-    if (!confirm(`Allow ? to \n${export_functions[data.method].confirm({data})}`)) {
+    if (!confirm(`Allow ${channel.label} to \n${export_functions[data.method].confirm({data})}`)) {
       channel.send(JSON.stringify({tezbridge: data.tezbridge, error: 'unpass confirmation'}))
       return false
     }
