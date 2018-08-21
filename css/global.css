@@ -70,6 +70,7 @@ body .q-input {margin: 8px 0}
 
 .host-input {width: 100%;}
 
+.rtc-local-info {margin-bottom: 8px; max-width: 480px; height: 120px; border: 1px solid #eee; padding: 4px; overflow: hidden}
 /* --- override quasar --- */
 body .q-list {border: 0}
 body .q-stepper-dot i {font-size: 18px;}

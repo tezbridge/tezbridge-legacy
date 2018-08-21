@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Connect remote signer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script src="js/build/qrious.min.js"></script>
+</head>
+<body>
+  <img id="qrcode" />
+  <div id="link"></div><button onclick="copy(link)">COPY</button>
+  <textarea placeholder="Input your signer's connection info" id="input"></textarea><button onclick="submit()">SUBMIT</button>
+  <script>
+    window.copy = (elem) => {
+      const range = document.createRange()
+      const selection = window.getSelection()
+      range.selectNodeContents(elem)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      document.execCommand("copy")
+    }
+    window.submit = () => {
+      window.opener.postMessage(document.getElementById('input').value, location.origin)
+    }
+    window.onmessage = (e) => {
+      console.log(e)
+    }
+
+    const data = location.origin + '/' + location.search
+    new QRious({
+      element: document.getElementById('qrcode'),
+      size: 640,
+      value: data
+    })
+    document.getElementById('link').innerHTML = data
+  </script>
+</body>
+</html>
