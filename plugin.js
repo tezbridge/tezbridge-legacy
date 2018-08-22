@@ -126,7 +126,8 @@
 
           window.onmessage = (e) => {
             if (e.source !== connect_window) return false
-            this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data.slice(1, e.data.length - 1)))))
+            const data = e.data.trim()
+            this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
             this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
             this.info.remote.candidates.forEach(x => {
               if (x)
