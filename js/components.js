@@ -823,7 +823,8 @@ components.RemoteSigner = Vue.component('remote-signer', {
         </div>
       </div>
       <div class="rtc-ready-wrapper" v-if="channel_opened">
-        Waiting for operations...
+        @ {{tzclient.key_pair.public_key_hash}} <br>
+        Waiting for operation request <br>
         <div class="row justify-center">
           <q-btn color="cyan-8" @click="opened = false" label="Stop and close" outline />
         </div>
