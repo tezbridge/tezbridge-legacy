@@ -6,7 +6,7 @@
   let bridge_fn = null
   const resolves = {}
   const rejects = {}
-  const origin = location.origin
+  const origin = location.origin === 'https://prelaunch.tezbridge.com' ? 'https://prelaunch.tezbridge.com' : 'https://www.tezbridge.com'
 
   const createIframe = () => {
     const iframe = document.createElement('iframe')
@@ -53,40 +53,51 @@
   }
 
   class TezbridgeSigner {
-    constructor() {}
+    constructor() {
+      this.ready = Promise.resolve()
+    }
 
     init() {
-      this.responseFunctions = new Set()
-      this.conn = new RTCPeerConnection()
-      
-      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
-        alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
-        navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
-      }
+      this.ready = new Promise((resolve, reject) => {
 
-      this.channel = this.conn.createDataChannel(location.origin)
-      this.channel.onmessage = (e) => {
-        this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
-      }
-
-      this.info = {
-        local: {
-          candidates: [],
-          offer: {}
-        },
-        remote: {
-          candidates: [],
-          offer: {}
+        this.responseFunctions = new Set()
+        this.conn = new RTCPeerConnection()
+        
+        if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
+          alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
+          navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
         }
-      }
-      this.conn.onicecandidate = e => {
-        this.info.local.candidates.push(e.candidate)
-      }
 
-      this.conn.createOffer()
-      .then(offer => {
-        this.info.local.offer = offer
-        this.conn.setLocalDescription(offer)
+        this.channel = this.conn.createDataChannel(location.origin)
+        this.channel.onmessage = (e) => {
+          this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
+        }
+
+        this.info = {
+          local: {
+            candidates: [],
+            offer: {}
+          },
+          remote: {
+            candidates: [],
+            offer: {}
+          }
+        }
+        this.conn.onicecandidate = e => {
+          this.info.local.candidates.push(e.candidate)
+        }
+
+        this.conn.createOffer()
+        .then(offer => {
+          this.info.local.offer = offer
+          this.conn.setLocalDescription(offer)
+        })
+
+        this.conn.onicegatheringstatechange = () => {
+          if (this.conn.iceGatheringState === 'complete') {
+            resolve()
+          }
+        }
       })
     }
 
@@ -103,45 +114,55 @@
     }
 
     connect() {
-      const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
-      const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
-      const connect_window = window.open(origin + '/connect.html?' + rtc_info)
-      this.channel.onopen = () => {
-        connect_window.close()
-      }
+      const connect_window = window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
+      
 
-      window.onmessage = (e) => {
-        if (e.source !== connect_window) return false
-        this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data))))
-        this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
-        this.info.remote.candidates.forEach(x => {
-          if (x)
-            this.conn.addIceCandidate(new RTCIceCandidate(x))
-        })
+      return new Promise((resolve, reject) => {
+        this.ready
+        .then(() => {
+          const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
+          const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
+          connect_window.postMessage(`(${rtc_info})`, origin)
 
-        this.addResponse(data => {
-          if (data.tezbridge) {
-            if (data.error)
-              rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
-            else
-              resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
+          window.onmessage = (e) => {
+            if (e.source !== connect_window) return false
+            this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(e.data.slice(1, e.data.length - 1)))))
+            this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
+            this.info.remote.candidates.forEach(x => {
+              if (x)
+                this.conn.addIceCandidate(new RTCIceCandidate(x))
+            })
 
-            delete rejects[data.tezbridge]
-            delete resolves[data.tezbridge]
+            this.addResponse(data => {
+              if (data.tezbridge) {
+                if (data.error)
+                  rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
+                else
+                  resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
+
+                delete rejects[data.tezbridge]
+                delete resolves[data.tezbridge]
+              }
+            })
+
+            window.tezbridge = (params) => {
+              return new Promise((resolve, reject) => {
+                const mid = message_id++
+                params.tezbridge = mid
+                this.send(JSON.stringify(params))
+                resolves[mid] = resolve
+                rejects[mid] = reject
+              })
+            }
+
+            this.channel.onopen = () => {
+              connect_window.close()
+              resolve()
+            }
           }
         })
 
-        window.tezbridge = (params) => {
-          return new Promise((resolve, reject) => {
-            const mid = message_id++
-            params.tezbridge = mid
-            this.send(JSON.stringify(params))
-            resolves[mid] = resolve
-            rejects[mid] = reject
-          })
-        }
-
-      }
+      })
     }
   }
 

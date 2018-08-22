@@ -43,5 +43,5 @@ module.exports = {
   removeLocal,
   host,
   pako: window.pako,
-  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
+  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
 }

@@ -19,7 +19,10 @@
         <td>Login as:</td>
         <td>{{admin}}</td>
         <td></td>
-        <td><button @click="login" v-if="!admin">Login</button></td>
+        <td>
+          <button @click="login" v-if="!admin">Login</button>
+          <button @click="login_signer" v-if="!admin">Login by remote signer</button>
+        </td>
       </tr>
       <tr>
         <td>Check token amount:</td>
@@ -92,6 +95,13 @@
       token_amount: 0
     },
     methods: {
+      login_signer() {
+        tezbridgeSigner.init()
+        tezbridgeSigner.connect()
+        .then(() => {
+          this.login()
+        })
+      },
       login() {
         tezbridge({method: 'public_key_hash'})
         .then(x => {

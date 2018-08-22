@@ -313,7 +313,7 @@ module.exports = {
   removeLocal,
   host,
   pako: window.pako,
-  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
+  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
 }
 }).call(this,require("buffer").Buffer)
 },{"buffer":4}],3:[function(require,module,exports){

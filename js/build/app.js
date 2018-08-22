@@ -1002,10 +1002,12 @@ components.RemoteSigner = Vue.component('remote-signer', {
 
       if (location.search) {
         try {
-          const val = location.search.slice(1)
+          const val = location.search.slice(2, location.search.length - 1)
           const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
           this.rtc_info.remote = remote_info
-        } catch(e) { }
+        } catch(e) { 
+          return false
+        }
       }
 
       const conn = new RTCPeerConnection()
@@ -1030,7 +1032,7 @@ components.RemoteSigner = Vue.component('remote-signer', {
       
       conn.onicecandidate = e => {
         this.rtc_info.local.candidates.push(e.candidate)
-        this.local_info = util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))
+        this.local_info = `(${util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))})`
       }
 
       conn.setRemoteDescription(new RTCSessionDescription(this.rtc_info.remote.offer))
@@ -1355,7 +1357,7 @@ module.exports = {
   removeLocal,
   host,
   pako: window.pako,
-  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*(),')
+  base: base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
 }
 }).call(this,require("buffer").Buffer)
 },{"buffer":6}],5:[function(require,module,exports){
