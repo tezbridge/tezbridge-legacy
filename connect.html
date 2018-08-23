@@ -62,6 +62,7 @@
     }
     
     window.onmessage = (e) => {
+      console.log(e)
       if (e.source !== window.opener) return false
 
       const data_arr = e.data.split('|')
