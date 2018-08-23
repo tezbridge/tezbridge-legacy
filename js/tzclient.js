@@ -512,7 +512,7 @@ class TZClient {
         // counter: $positive_bignum,
         gas_limit: "400000",
         storage_limit: "60000",
-        managerPubkey: this.key_pair.public_key_hash,
+        manager_pubkey: this.key_pair.public_key_hash,
         balance: "0",
         // "spendable"?: boolean,
         // "delegatable"?: boolean,
