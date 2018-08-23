@@ -937,11 +937,14 @@ components.RemoteSigner = Vue.component('remote-signer', {
       <div class="rtc-conn-wrapper" v-if="!channel_opened">
         <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
         <div class="row justify-center">
+          When the connection info is sent, <br>
+          please return to this window and wait <br>
           <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
         </div>
       </div>
       <div class="rtc-ready-wrapper" v-if="channel_opened">
-        /{{tzclient.key_pair.public_key_hash}}/ <br>
+        Using account <br>
+        <small>/{{tzclient.key_pair.public_key_hash}}/</small> <br>
         Please do not lock the screen <br>
         Waiting for operation request <br>
         <div class="row justify-center">
