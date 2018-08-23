@@ -63,41 +63,44 @@
         this.responseFunctions = new Set()
         this.conn = new RTCPeerConnection()
         
+        let p = Promise.resolve()
         if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
           alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
-          navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
+          p = p.then(() => navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop()))
         }
 
-        this.channel = this.conn.createDataChannel(location.origin)
-        this.channel.onmessage = (e) => {
-          this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
-        }
-
-        this.info = {
-          local: {
-            candidates: [],
-            offer: {}
-          },
-          remote: {
-            candidates: [],
-            offer: {}
+        p.then(() => {
+          this.channel = this.conn.createDataChannel(location.origin)
+          this.channel.onmessage = (e) => {
+            this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
           }
-        }
-        this.conn.onicecandidate = e => {
-          this.info.local.candidates.push(e.candidate)
-        }
 
-        this.conn.createOffer()
-        .then(offer => {
-          this.info.local.offer = offer
-          this.conn.setLocalDescription(offer)
+          this.info = {
+            local: {
+              candidates: [],
+              offer: {}
+            },
+            remote: {
+              candidates: [],
+              offer: {}
+            }
+          }
+          this.conn.onicecandidate = e => {
+            this.info.local.candidates.push(e.candidate)
+          }
+
+          this.conn.createOffer()
+          .then(offer => {
+            this.info.local.offer = offer
+            this.conn.setLocalDescription(offer)
+          })
+
+          this.conn.onicegatheringstatechange = () => {
+            if (this.conn.iceGatheringState === 'complete') {
+              resolve()
+            }
+          }
         })
-
-        this.conn.onicegatheringstatechange = () => {
-          if (this.conn.iceGatheringState === 'complete') {
-            resolve()
-          }
-        }
       })
     }
 
