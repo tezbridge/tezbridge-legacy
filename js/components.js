@@ -1,10 +1,13 @@
 const util = require('./util')
+const temp_signer = require('./temp_signer')
 
 if (!Promise.prototype.finally) {
   Promise.prototype.finally = function(f) {
     return this.then(f, f).then(() => {})
   }
 }
+
+
 
 const getLocal = util.getLocal
 const setLocal = util.setLocal
@@ -76,21 +79,35 @@ components.Account = Vue.component('account', {
             <q-item-side>
               <q-btn flat @click="refreshBalance" icon="refresh" />
             </q-item-side>
-            </q-item>
-            <q-item>
-              <q-item-side icon="vpn key" />
-              <q-item-main>
-                <q-item-tile label>Access code</q-item-tile>
-                <q-item-tile sublabel>
-                  <p class="ellipsis" ref="access_code">
-                    {{access_code}}
-                  </p>
-                </q-item-tile>
-              </q-item-main>
-              <q-item-side>
-                <q-btn flat @click="genAccessCode" icon="unarchive" />
-              </q-item-side>
-            </q-item>
+          </q-item>
+          <q-item>
+            <q-item-side icon="vpn key" />
+            <q-item-main>
+              <q-item-tile label>Access code</q-item-tile>
+              <q-item-tile sublabel>
+                <p class="ellipsis" ref="access_code">
+                  {{access_code}}
+                </p>
+              </q-item-tile>
+            </q-item-main>
+            <q-item-side>
+              <q-btn flat @click="genAccessCode" icon="unarchive" />
+            </q-item-side>
+          </q-item>
+          <q-item>
+            <q-item-side icon="wifi tethering" />
+            <q-item-main>
+              <q-item-tile label>Remote signer</q-item-tile>
+              <q-item-tile sublabel>
+                <p class="ellipsis">
+                  
+                </p>
+              </q-item-tile>
+            </q-item-main>
+            <q-item-side>
+              <q-btn flat @click="openSigner" icon="create" />
+            </q-item-side>
+          </q-item>
         </q-list>
         <div class="center-wrapper">
           <q-btn color="cyan-8" outline @click="lock" label="Lock" icon="lock" />
@@ -107,6 +124,7 @@ components.Account = Vue.component('account', {
   props: ['account'],
   data() {
     return {
+      g: util.G,
       temp_secrets,
 
       locked: true,
@@ -134,6 +152,9 @@ components.Account = Vue.component('account', {
         })
       })
       .finally(() => this.loading = false)
+    },
+    openSigner() {
+      this.g.tzclient = this.tzclient
     },
     genAccessCode() {
       const random_iv = window.crypto.getRandomValues(new Uint8Array(12))
@@ -321,6 +342,7 @@ const genTZclient = (tzclient_param, account_name, password) => {
     return Promise.reject(err.toString())
   }
 }
+
 
 
 components.GenNewAccount = Vue.component('gen-new-account', {
@@ -791,5 +813,132 @@ components.Intro = Vue.component('intro', {
   }
 })
 
+components.RemoteSigner = Vue.component('remote-signer', {
+  template: `
+    <q-modal v-model="opened" content-css="padding: 24px; position: relative">
+      <div class="rtc-conn-wrapper" v-if="!channel_opened">
+        <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
+        <div class="row justify-center">
+          <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
+        </div>
+      </div>
+      <div class="rtc-ready-wrapper" v-if="channel_opened">
+        @ {{tzclient.key_pair.public_key_hash}} <br>
+        Waiting for operation request <br>
+        <div class="row justify-center">
+          <q-btn color="cyan-8" @click="opened = false" label="Stop and close" outline />
+        </div>
+      </div>
+    </q-modal>
+  `,
+  props: ['tzclient'],
+  data() {
+    return {
+      g: util.G,
+      rtc_info: {
+        local: {
+          candidates: [],
+          offer: {}
+        },
+        remote: {
+          candidates: [],
+          offer: {}
+        }
+      },
+      conn: null,
+      opened: false,
+      local_info: '',
+      channel_opened: false
+    }
+  },
+  methods: {
+    copy_rtc_info() {
+      this.copyToClipboard(this.$refs.rtc_local_info, 'Connection info')
+    },
+    copyToClipboard(elem, name) {
+      const range = document.createRange()
+      const selection = window.getSelection()
+      range.selectNodeContents(elem)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      document.execCommand("copy")
+      this.$q.notify({
+        color: 'positive',
+        icon: 'done',
+        timeout: 1500,
+        message: name + ' copied'
+      })
+    },
+  },
+  watch: {
+    opened(x) {
+      if (!x) {
+        this.conn.close()
+        g.tzclient = null
+      }
+    },
+    tzclient() {
+      if (!this.tzclient) {
+        this.opened = false
+        return false
+      }
+
+      if (location.search) {
+        try {
+          const val = location.search.slice(2, location.search.length - 1)
+          const remote_info = JSON.parse(new TextDecoder().decode(util.pako.inflate(util.base.decode(val))))
+          this.rtc_info.remote = remote_info
+        } catch(e) { 
+          return false
+        }
+      }
+
+      const conn = new RTCPeerConnection()
+      this.conn = conn
+
+      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
+        alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
+        navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop())
+      }
+
+      conn.ondatachannel = (e) => {
+        e.channel.onmessage = (event) => {
+          temp_signer.dispatcher(e.channel, JSON.parse(event.data))
+        }
+        e.channel.onopen = () => {
+          this.channel_opened = true
+        }
+        e.channel.onclose = () => {
+          this.channel_opened = false
+        }
+      }
+      
+      conn.onicecandidate = e => {
+        this.rtc_info.local.candidates.push(e.candidate)
+        this.local_info = `(${util.base.encode(util.pako.deflate(JSON.stringify(this.rtc_info.local)))})`
+      }
+
+      conn.setRemoteDescription(new RTCSessionDescription(this.rtc_info.remote.offer))
+      .then(() => conn.createAnswer())
+      .then(answer => {
+        this.rtc_info.local.offer = answer
+        conn.setLocalDescription(answer)
+      })
+      .then(() => {
+        this.rtc_info.remote.candidates.forEach(x => {
+          if (x)
+            conn.addIceCandidate(new RTCIceCandidate(x))
+        })
+      })
+      .then(() => {
+        temp_signer.setInstance(this.tzclient)
+
+        this.opened = true
+      })
+    }
+  },
+  mounted() {
+  }
+})
 
 module.exports = {components, intro_version}

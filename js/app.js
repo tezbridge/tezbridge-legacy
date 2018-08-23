@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <setting-modal ref="setting" />
           <dapp-list-modal ref="dapp_list" />
+          <remote-signer ref="remote_signer" :tzclient="g.tzclient" />
           <intro ref="intro" />
           <div class="row">
             <q-btn color="grey-6" flat icon="apps" @click="$refs.dapp_list.opened = true"  />
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `,
     data() {
       return {
+        g: util.G,
         dapp_list_opener: components.trigger.open_dapp_list,
         default_host: ''
       }

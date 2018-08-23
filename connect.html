@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Connect remote signer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script src="js/build/qrious.min.js"></script>
+  <style>
+    @font-face {
+        font-family: 'Lato';
+        src: url('css/Lato-Bold.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    } 
+
+    * {font-family: 'Lato'; font-size: 12px; padding: 0; margin: 0; font-weight: 400}
+    body {text-align: center; padding: 16px;}
+    h1 {font-size: 18px;}
+    .qrcode-wrapper p {color: #999;}
+    .splitter {font-size: 16px; margin: 8px 0;}
+    .link-wrapper { width: 480px; margin: 0 auto; word-break: break-all;}
+    #link { display: inline-block; vertical-align: middle; color: #999;width: 320px; height: 80px; overflow: hidden; margin-right: 16px;}
+    button { display: inline-block; vertical-align: middle; font-size: 14px; border: 1px solid #ccc; background: #eee; padding: 4px 8px;}
+
+    #input {display: inline-block;vertical-align: middle;width: 320px; height: 80px; margin-right: 16px;}
+
+  </style>
+</head>
+<body>
+  <h1>tezbridge signer connector</h1>
+  <div class="qrcode-wrapper">
+    <img id="qrcode"/>
+    <p>Scan this qrcode to open the url in your device</p>
+  </div>
+  <div class="splitter">OR</div>
+
+  <div class="link-wrapper">
+    <div id="link"></div>
+    <button onclick="copy(link)">COPY</button>
+  </div>
+
+  <div class="splitter">THEN</div>
+  
+  <div class="submit-wrapper">
+    <textarea placeholder="Input your signer's connection info" id="input"></textarea>
+    <button onclick="submit()">SUBMIT</button>
+  </div>
+
+
+  <script>
+    window.copy = (elem) => {
+      const range = document.createRange()
+      const selection = window.getSelection()
+      range.selectNodeContents(elem)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      document.execCommand("copy")
+    }
+    window.submit = () => {
+      window.opener.postMessage(document.getElementById('input').value, location.origin)
+    }
+    
+    window.onmessage = (e) => {
+      if (e.source !== window.opener) return false
+
+      const data = location.origin + '/?' + e.data
+      new QRious({
+        element: document.getElementById('qrcode'),
+        size: 320,
+        value: data
+      })
+      document.getElementById('link').innerHTML = data
+    }
+
+  </script>
+</body>
+</html>
