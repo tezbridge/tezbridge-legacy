@@ -73,7 +73,7 @@ body .q-input {margin: 8px 0}
 .rtc-local-info {margin-bottom: 8px; max-width: 480px; height: 120px; border: 1px solid #eee; padding: 4px; overflow: hidden}
 .rtc-ready-wrapper {text-align: center}
 .rtc-ready-wrapper button {margin-top: 16px;}
-.rtc-ready-wrapper small {margin-bottom: 16px;}
+.rtc-ready-wrapper small {display: inline-block; margin-bottom: 16px;}
 .rtc-info {text-align: center; margin: 8px 0;}
 
 /* --- override quasar --- */
