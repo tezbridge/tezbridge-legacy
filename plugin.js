@@ -125,7 +125,7 @@
         .then(() => {
           const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
           const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
-          connect_window.postMessage(`(${rtc_info})`, origin)
+          connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
 
           window.onmessage = (e) => {
             if (e.source !== connect_window) return false

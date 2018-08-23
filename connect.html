@@ -48,6 +48,7 @@
 
 
   <script>
+    let origin = ''
     window.copy = (elem) => {
       const range = document.createRange()
       const selection = window.getSelection()
@@ -57,13 +58,17 @@
       document.execCommand("copy")
     }
     window.submit = () => {
-      window.opener.postMessage(document.getElementById('input').value, location.origin)
+      window.opener.postMessage(document.getElementById('input').value, origin)
     }
     
     window.onmessage = (e) => {
       if (e.source !== window.opener) return false
 
-      const data = location.origin + '/?' + e.data
+      const data_arr = e.data.split('|')
+      origin = data_arr[0]
+      const val = data_arr[1]
+      const data = location.origin + '/?' + val
+      
       new QRious({
         element: document.getElementById('qrcode'),
         size: 320,
