@@ -74,7 +74,8 @@ body .q-input {margin: 8px 0}
 .rtc-ready-wrapper {text-align: center}
 .rtc-ready-wrapper button {margin-top: 16px;}
 .rtc-ready-wrapper small {display: inline-block; margin-bottom: 16px;}
-.rtc-info {text-align: center; margin: 8px 0;}
+.rtc-info {text-align: center;}
+.rtc-info > div {text-align: center; margin: 8px 0;}
 
 /* --- override quasar --- */
 body .q-list {border: 0}

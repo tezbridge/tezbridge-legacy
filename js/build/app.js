@@ -936,9 +936,9 @@ components.RemoteSigner = Vue.component('remote-signer', {
     <q-modal v-model="opened" content-css="padding: 24px; position: relative">
       <div class="rtc-conn-wrapper" v-if="!channel_opened">
         <div class="rtc-local-info" ref="rtc_local_info">{{local_info}}</div>
-        <div class="row justify-center">
+        <div class="rtc-info">
           <q-btn color="cyan-8" @click="copy_rtc_info" label="Copy" icon="content copy" outline />
-          <div class="rtc-info">
+          <div>
             when the connection info is sent <br>
             please return to this window and wait
           </div>
