@@ -88,10 +88,8 @@
       const connect_window = window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
       const connect_ready = new Promise((resolve, reject) => {
         const fn = (e) => {
+          if (e.source !== connect_window) return false
           window.removeEventListener('message', fn)
-          if (e.source !== connect_window){
-            return false
-          } 
           resolve()
         }
         window.addEventListener('message', fn)
@@ -117,8 +115,8 @@
           connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
 
           const connect = e => {
-            window.removeEventListener('message', connect)
             if (e.source !== connect_window) return false
+            window.removeEventListener('message', connect)
 
             const data = e.data.trim()
             this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
