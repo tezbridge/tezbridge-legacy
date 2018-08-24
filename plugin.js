@@ -57,6 +57,15 @@
 
     init() {
       const connect_window = window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
+      const loaded_p = new Promise((resolve) => {
+        const fn = (e) => {
+          if (e.source !== connect_window) return false
+          window.removeEventListener('message', fn)
+          resolve()
+        }
+        window.addEventListener('message', fn)
+      })
+
       window.focus()
       
       return new Promise((resolve, reject) => {
@@ -95,56 +104,76 @@
             this.conn.setLocalDescription(offer)
           })
 
-          this.conn.onicegatheringstatechange = () => {
-            if (this.conn.iceGatheringState === 'complete') {
-              connect_window.focus()
+          const ice_p = new Promise(resolve => {
+            this.conn.onicegatheringstatechange = () => {
+              if (this.conn.iceGatheringState === 'complete') {
+                resolve()
+              }
+            }
+          })
 
-              const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
-              const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
-              connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
+          Promise.all([loaded_p, ice_p])
+          .then(() => {
+            connect_window.focus()
 
-              window.onmessage = (e) => {
-                if (e.source !== connect_window) return false
-                const data = e.data.trim()
-                this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
-                this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
-                this.info.remote.candidates.forEach(x => {
-                  if (x)
-                    this.conn.addIceCandidate(new RTCIceCandidate(x))
-                })
+            const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
+            const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
+            connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
 
-                this.addResponse(data => {
-                  if (data.tezbridge) {
-                    if (data.error)
-                      rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
-                    else
-                      resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
+            const connect = e => {
+              if (e.source !== connect_window) return false
 
-                    delete rejects[data.tezbridge]
-                    delete resolves[data.tezbridge]
-                  }
-                })
+              const data = e.data.trim()
+              this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
+              this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
+              this.info.remote.candidates.forEach(x => {
+                if (x)
+                  this.conn.addIceCandidate(new RTCIceCandidate(x))
+              })
 
-                window.tezbridge = (params) => {
-                  return new Promise((resolve, reject) => {
-                    const mid = message_id++
-                    params.tezbridge = mid
-                    this.send(JSON.stringify(params))
-                    resolves[mid] = resolve
-                    rejects[mid] = reject
-                  })
+              this.addResponse(data => {
+                if (data.tezbridge) {
+                  if (data.error)
+                    rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
+                  else
+                    resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
+
+                  delete rejects[data.tezbridge]
+                  delete resolves[data.tezbridge]
                 }
+              })
 
+              window.tezbridge = (params) => {
+                return new Promise((resolve, reject) => {
+                  const mid = message_id++
+                  params.tezbridge = mid
+                  this.send(JSON.stringify(params))
+                  resolves[mid] = resolve
+                  rejects[mid] = reject
+                })
+              }
+
+              if (this.channel.readyState === 'open') {
+                connect_window.close()
+                window.removeEventListener('message', connect)
+                resolve()
+              } else {
                 this.channel.onopen = () => {
                   connect_window.close()
+                  window.removeEventListener('message', connect)
                   resolve()
                 }
               }
+
             }
-          }
+
+            window.addEventListener('message', connect)
+          })  
         })
       })
     }
+
+    
 
     addResponse(fn) {
       this.responseFunctions.add(fn)
