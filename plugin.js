@@ -85,41 +85,39 @@
     }
 
     init() {
-      let p = Promise.resolve()
-      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/) && !this.allowed) {
-        alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
-        p = p.then(() => {
-          return navigator.mediaDevices.getUserMedia({audio: true}).then(x => {
+      const connect_window = window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
+      const connect_ready = new Promise((resolve, reject) => {
+        const fn = (e) => {
+          window.removeEventListener('message', fn)
+          if (e.source !== connect_window){
+            return false
+          } 
+          resolve()
+        }
+        window.addEventListener('message', fn)
+      })
+
+      let permission_ready = new Promise(resolve => {
+        if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/) && !this.allowed) {
+          navigator.mediaDevices.getUserMedia({audio: true}).then(x => {
             x.getAudioTracks()[0].stop()
             this.allowed = true
-            return window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
+            resolve()
           })
-        })
-      }
-
-      return p
-      .then(connect_window => (connect_window || window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")))
-      .then(connect_window => {
-        return new Promise((resolve) => {
-          const fn = (e) => {
-            if (e.source !== connect_window) return false
-            window.removeEventListener('message', fn)
-            resolve(connect_window)
-          }
-          window.addEventListener('message', fn)
-          setTimeout(() => {
-            window.removeEventListener('message', fn)
-            resolve(connect_window)
-          }, 2000)
-        })
+        } else {
+          resolve()
+        }
       })
-      .then(connect_window => {
-        return new Promise(resolve => {
+          
+      return Promise.all([permission_ready, connect_ready])
+      .then(() => {
+        return new Promise((resolve, reject) => {
           const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
           const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
           connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
 
           const connect = e => {
+            window.removeEventListener('message', connect)
             if (e.source !== connect_window) return false
 
             const data = e.data.trim()
@@ -154,12 +152,10 @@
 
             if (this.channel.readyState === 'open') {
               connect_window.close()
-              window.removeEventListener('message', connect)
               resolve()
             } else {
               this.channel.onopen = () => {
                 connect_window.close()
-                window.removeEventListener('message', connect)
                 resolve()
               }
             }
