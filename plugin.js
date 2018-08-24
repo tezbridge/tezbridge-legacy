@@ -53,124 +53,118 @@
   }
 
   class TezbridgeSigner {
-    constructor() {}
+    constructor() {
+      this.allowed = false
+      this.responseFunctions = new Set()
+      this.conn = new RTCPeerConnection()
+
+      this.channel = this.conn.createDataChannel(location.origin)
+      this.channel.onmessage = (e) => {
+        this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
+      }
+
+      this.info = {
+        local: {
+          candidates: [],
+          offer: {}
+        },
+        remote: {
+          candidates: [],
+          offer: {}
+        }
+      }
+      this.conn.onicecandidate = e => {
+        this.info.local.candidates.push(e.candidate)
+      }
+
+      this.conn.createOffer()
+      .then(offer => {
+        this.info.local.offer = offer
+        this.conn.setLocalDescription(offer)
+      })
+    }
 
     init() {
-      const connect_window = window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
-      const loaded_p = new Promise((resolve) => {
-        const fn = (e) => {
-          if (e.source !== connect_window) return false
-          window.removeEventListener('message', fn)
-          resolve()
-        }
-        window.addEventListener('message', fn)
+      let p = Promise.resolve()
+      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/) && !this.allowed) {
+        alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
+        p = p.then(() => {
+          return navigator.mediaDevices.getUserMedia({audio: true}).then(x => {
+            x.getAudioTracks()[0].stop()
+            this.allowed = true
+          })
+        })
+      }
+
+      return p
+      .then(() => window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640"))
+      .then(connect_window => {
+        return new Promise((resolve) => {
+          const fn = (e) => {
+            if (e.source !== connect_window) return false
+            window.removeEventListener('message', fn)
+            resolve(connect_window)
+          }
+          window.addEventListener('message', fn)
+        })
       })
+      .then(connect_window => {
+        return new Promise(resolve => {
+          const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
+          const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
+          connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
 
-      window.focus()
-      
-      return new Promise((resolve, reject) => {
-        this.responseFunctions = new Set()
-        this.conn = new RTCPeerConnection()
-        
-        let p = Promise.resolve()
-        if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
-          alert('For remote signer connection\nmicrophone premission needs to be allowed\nit will only be active for 0.5 second.')
-          p = p.then(() => navigator.mediaDevices.getUserMedia({audio: true}).then(x => x.getAudioTracks()[0].stop()))
-        }
+          const connect = e => {
+            if (e.source !== connect_window) return false
 
-        p.then(() => {
-          this.channel = this.conn.createDataChannel(location.origin)
-          this.channel.onmessage = (e) => {
-            this.responseFunctions.forEach(x => x(JSON.parse(e.data)))
-          }
+            const data = e.data.trim()
+            this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
+            this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
+            this.info.remote.candidates.forEach(x => {
+              if (x)
+                this.conn.addIceCandidate(new RTCIceCandidate(x))
+            })
 
-          this.info = {
-            local: {
-              candidates: [],
-              offer: {}
-            },
-            remote: {
-              candidates: [],
-              offer: {}
-            }
-          }
-          this.conn.onicecandidate = e => {
-            this.info.local.candidates.push(e.candidate)
-          }
+            this.addResponse(data => {
+              if (data.tezbridge) {
+                if (data.error)
+                  rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
+                else
+                  resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
 
-          this.conn.createOffer()
-          .then(offer => {
-            this.info.local.offer = offer
-            this.conn.setLocalDescription(offer)
-          })
-
-          const ice_p = new Promise(resolve => {
-            this.conn.onicegatheringstatechange = () => {
-              if (this.conn.iceGatheringState === 'complete') {
-                resolve()
+                delete rejects[data.tezbridge]
+                delete resolves[data.tezbridge]
               }
+            })
+
+            window.tezbridge = (params) => {
+              return new Promise((resolve, reject) => {
+                const mid = message_id++
+                params.tezbridge = mid
+                this.send(JSON.stringify(params))
+                resolves[mid] = resolve
+                rejects[mid] = reject
+              })
             }
-          })
 
-          Promise.all([loaded_p, ice_p])
-          .then(() => {
-            connect_window.focus()
-
-            const x = base('1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP$-_.+!*,')
-            const rtc_info = x.encode(pako.deflate(JSON.stringify(this.info.local)))
-            connect_window.postMessage(`${location.origin}|(${rtc_info})`, origin)
-
-            const connect = e => {
-              if (e.source !== connect_window) return false
-
-              const data = e.data.trim()
-              this.info.remote = JSON.parse(new TextDecoder().decode(pako.inflate(x.decode(data.slice(1, data.length - 1)))))
-              this.conn.setRemoteDescription(new RTCSessionDescription(this.info.remote.offer))
-              this.info.remote.candidates.forEach(x => {
-                if (x)
-                  this.conn.addIceCandidate(new RTCIceCandidate(x))
-              })
-
-              this.addResponse(data => {
-                if (data.tezbridge) {
-                  if (data.error)
-                    rejects[data.tezbridge] && rejects[data.tezbridge](data.error)
-                  else
-                    resolves[data.tezbridge] && resolves[data.tezbridge](data.result)
-
-                  delete rejects[data.tezbridge]
-                  delete resolves[data.tezbridge]
-                }
-              })
-
-              window.tezbridge = (params) => {
-                return new Promise((resolve, reject) => {
-                  const mid = message_id++
-                  params.tezbridge = mid
-                  this.send(JSON.stringify(params))
-                  resolves[mid] = resolve
-                  rejects[mid] = reject
-                })
-              }
-
-              if (this.channel.readyState === 'open') {
+            if (this.channel.readyState === 'open') {
+              connect_window.close()
+              window.removeEventListener('message', connect)
+              resolve()
+            } else {
+              this.channel.onopen = () => {
                 connect_window.close()
                 window.removeEventListener('message', connect)
                 resolve()
-              } else {
-                this.channel.onopen = () => {
-                  connect_window.close()
-                  window.removeEventListener('message', connect)
-                  resolve()
-                }
               }
-
             }
 
-            window.addEventListener('message', connect)
-          })  
+          }
+
+          window.addEventListener('message', connect)
         })
       })
+
     }
 
     
