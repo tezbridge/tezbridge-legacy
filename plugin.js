@@ -92,12 +92,13 @@
           return navigator.mediaDevices.getUserMedia({audio: true}).then(x => {
             x.getAudioTracks()[0].stop()
             this.allowed = true
+            return window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")
           })
         })
       }
 
       return p
-      .then(() => window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640"))
+      .then(connect_window => (connect_window || window.open(`${origin}/connect.html`, 'tezbridge signer connector', "height=640,width=640")))
       .then(connect_window => {
         return new Promise((resolve) => {
           const fn = (e) => {
@@ -106,6 +107,10 @@
             resolve(connect_window)
           }
           window.addEventListener('message', fn)
+          setTimeout(() => {
+            window.removeEventListener('message', fn)
+            resolve(connect_window)
+          }, 2000)
         })
       })
       .then(connect_window => {
