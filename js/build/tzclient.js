@@ -558,7 +558,7 @@ class TZClient {
       reveal: {
         kind: "reveal",
         source: this.key_pair.public_key_hash,
-        fee: "0",
+        fee: "1300",
         gas_limit: "10000",
         storage_limit: "0",
         public_key: this.key_pair.public_key
@@ -567,7 +567,7 @@ class TZClient {
       transaction: {
         kind: 'transaction',
         source: this.key_pair.public_key_hash,
-        fee: "0",
+        fee: "400000",
         gas_limit: "400000",
         storage_limit: "60000",
         amount: "0"
@@ -578,7 +578,7 @@ class TZClient {
       origination: {
         kind: "origination",
         source: this.key_pair.public_key_hash,
-        fee: "0",
+        fee: "400000",
         // counter: $positive_bignum,
         gas_limit: "400000",
         storage_limit: "60000",
