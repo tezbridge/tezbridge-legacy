@@ -489,7 +489,7 @@ class TZClient {
         kind: "reveal",
         source: this.key_pair.public_key_hash,
         fee: "0",
-        gas_limit: "0",
+        gas_limit: "10000",
         storage_limit: "0",
         public_key: this.key_pair.public_key
         // counter: $positive_bignum,

@@ -559,7 +559,7 @@ class TZClient {
         kind: "reveal",
         source: this.key_pair.public_key_hash,
         fee: "0",
-        gas_limit: "0",
+        gas_limit: "10000",
         storage_limit: "0",
         public_key: this.key_pair.public_key
         // counter: $positive_bignum,
@@ -32035,7 +32035,7 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.4.1.tgz",
   "_shasum": "c2d0b7776911b86722c632c3c06c60f2f819939a",
   "_spec": "elliptic@^6.0.0",
-  "_where": "/home/dev/Codes/tezbridge.github.io/node_modules/browserify-sign",
+  "_where": "/home/qdwang/Codes/tezbridge.github.io/node_modules/browserify-sign",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
